@@ -1,0 +1,3 @@
+interface:
+  display_name: "Docker Lan Access"
+  short_description: "Expose local Docker apps safely on the LAN"

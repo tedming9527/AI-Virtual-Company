@@ -1,0 +1,375 @@
+{
+  "unit": "Unicode code points; not model tokens",
+  "baseline_definition": "Same actual governance/code/provenance reads, replace knowledge discovery+detail reads with one read of all 11 canonical detail documents. This is a hypothetical full-library baseline, not an observed old-model run.",
+  "all_detail_chars": 25869,
+  "all_detail_paths": [
+    "employees/chief-of-staff/KNOWLEDGE.md",
+    "employees/test-expert/KNOWLEDGE.md",
+    "employees/product-manager/KNOWLEDGE.md",
+    "employees/frontend-expert/KNOWLEDGE.md",
+    "employees/backend-expert/KNOWLEDGE.md",
+    "employees/design-master/KNOWLEDGE.md",
+    "employees/ai-engineer/KNOWLEDGE.md",
+    "employees/backend-training-architect/KNOWLEDGE.md",
+    "knowledge/research-source-governance.md",
+    "knowledge/2026-09-09-ai-delivery-principles.md",
+    "knowledge/2026-09-09-mephisto-author-review.md"
+  ],
+  "sessions": [
+    {
+      "session": "frontend",
+      "reads": 18,
+      "actual_read_chars": 24244,
+      "audit_metadata_chars": 0,
+      "task_document_chars": 24244,
+      "knowledge_chars": 943,
+      "governance_code_provenance_other_chars": 23301,
+      "hypothetical_full_library_total_chars": 49170,
+      "full_library_difference_percent": 50.69,
+      "role_only_old_detail_chars": 718,
+      "role_only_new_index_plus_detail_chars": 400,
+      "role_only_difference_chars": 318,
+      "read_paths": [
+        {
+          "path": "INITIALIZATION_POLICY.md",
+          "chars": 1623,
+          "sha256": "f42dc337c52e594e886c3b0fa177c8fdf377ae6568dc0b89e6284da78613cca2"
+        },
+        {
+          "path": "scripts/check-company-bootstrap.sh",
+          "chars": 1232,
+          "sha256": "216c5b5a84bb5cae0327e6761f83a1e47da81f0869f21289a6bbd44a410f0db0"
+        },
+        {
+          "path": "AGENTS.md",
+          "chars": 617,
+          "sha256": "fa25ce6b1224dc9ed140ff3e7ef2596acfcd43420ebc80bc868e857d6ce9c398"
+        },
+        {
+          "path": "COMPANY.md",
+          "chars": 3702,
+          "sha256": "7369d054dbac2920c029363aed566a3db409521a7cf14a4540fff18abdb8a93f"
+        },
+        {
+          "path": "ROUTER.md",
+          "chars": 3916,
+          "sha256": "b397c74c001f5c2d424f01987aa51eb7fab41b15fa196480045012536f3ba319"
+        },
+        {
+          "path": "PROJECT_BINDING_POLICY.md",
+          "chars": 3428,
+          "sha256": "3e5c36d7ffa0d6563fcb2902fd0f3b9ea61488c4c0aa3dd3251cf22564c42d98"
+        },
+        {
+          "path": "MEMORY_POLICY.md",
+          "chars": 2108,
+          "sha256": "c4145f93da85250bc7d8d75181aa8b1ecaef847ace0b8d3234a6bbdcbdf4256f"
+        },
+        {
+          "path": "LEARNING_POLICY.md",
+          "chars": 1052,
+          "sha256": "df9f6eb59f6ec3013852ed920cd21242852867abc65cb081814c7c05c1250cca"
+        },
+        {
+          "path": "KNOWLEDGE_POLICY.md",
+          "chars": 1393,
+          "sha256": "38c4c10129117163f5cad25d13efb65c1cb6e71b819d02a050d6de6fb3ab3ac9"
+        },
+        {
+          "path": "DELIVERY_POLICY.md",
+          "chars": 1679,
+          "sha256": "a6f9233cb73c8d4699ea520cdc095ef0c8fbaa1895a3e006e6d36dbe9af019ff"
+        },
+        {
+          "path": "METRICS_POLICY.md",
+          "chars": 1118,
+          "sha256": "0a58d53f02878cd313c5496ff1c16201d657dbcc521261a87df5d2940ae5d3e4"
+        },
+        {
+          "path": "EVALUATION_POLICY.md",
+          "chars": 562,
+          "sha256": "215ae06b0898202e35c2480b5c6ae8050bbabeceeb408b432c9a8f8bd866c866"
+        },
+        {
+          "path": "employees/frontend-expert/PROFILE.md",
+          "chars": 105,
+          "sha256": "6817be85728e1e8c34ef588a2115d72db4d573b4797a59c851145e74c3892af4"
+        },
+        {
+          "path": "employees/frontend-expert/MEMORY.md",
+          "chars": 400,
+          "sha256": "65cb7212ec5cc380f2fa9cb28af98bb68ee7982b91358457b769dd17b5df1882"
+        },
+        {
+          "path": "fixtures/frontend-copy/page.html",
+          "chars": 156,
+          "sha256": "e704f5a535d27a832754ccb22e741a42f741407fbe0d9b5774e665f00a1ce830"
+        },
+        {
+          "path": "fixtures/frontend-copy/verify.mjs",
+          "chars": 454,
+          "sha256": "5800740bf0178277fc1b65c182eaff8e2a171e5dec8deea9f3555c2e7cfc23c4"
+        },
+        {
+          "path": "knowledge/INDEX.md",
+          "chars": 543,
+          "sha256": "c2db59b28394ba35ea318127e73f0420f9375816925cc0b9be432b7a166ed128"
+        },
+        {
+          "path": "fixtures/frontend-copy/page.html",
+          "chars": 156,
+          "sha256": "88171f3b0a3e37e3b964bd4039156589e04db46e8608d9d068ad1961b9d88bb1"
+        }
+      ]
+    },
+    {
+      "session": "backend",
+      "reads": 22,
+      "actual_read_chars": 39657,
+      "audit_metadata_chars": 3416,
+      "task_document_chars": 36241,
+      "knowledge_chars": 2866,
+      "governance_code_provenance_other_chars": 33375,
+      "hypothetical_full_library_total_chars": 59244,
+      "full_library_difference_percent": 38.83,
+      "role_only_old_detail_chars": 748,
+      "role_only_new_index_plus_detail_chars": 1158,
+      "role_only_difference_chars": -410,
+      "read_paths": [
+        {
+          "path": "INITIALIZATION_POLICY.md",
+          "chars": 1623,
+          "sha256": "f42dc337c52e594e886c3b0fa177c8fdf377ae6568dc0b89e6284da78613cca2"
+        },
+        {
+          "path": "scripts/check-company-bootstrap.sh",
+          "chars": 1232,
+          "sha256": "216c5b5a84bb5cae0327e6761f83a1e47da81f0869f21289a6bbd44a410f0db0"
+        },
+        {
+          "path": "AGENTS.md",
+          "chars": 617,
+          "sha256": "fa25ce6b1224dc9ed140ff3e7ef2596acfcd43420ebc80bc868e857d6ce9c398"
+        },
+        {
+          "path": "COMPANY.md",
+          "chars": 3702,
+          "sha256": "7369d054dbac2920c029363aed566a3db409521a7cf14a4540fff18abdb8a93f"
+        },
+        {
+          "path": "ROUTER.md",
+          "chars": 3916,
+          "sha256": "b397c74c001f5c2d424f01987aa51eb7fab41b15fa196480045012536f3ba319"
+        },
+        {
+          "path": "PROJECT_BINDING_POLICY.md",
+          "chars": 3428,
+          "sha256": "3e5c36d7ffa0d6563fcb2902fd0f3b9ea61488c4c0aa3dd3251cf22564c42d98"
+        },
+        {
+          "path": "MEMORY_POLICY.md",
+          "chars": 2108,
+          "sha256": "c4145f93da85250bc7d8d75181aa8b1ecaef847ace0b8d3234a6bbdcbdf4256f"
+        },
+        {
+          "path": "LEARNING_POLICY.md",
+          "chars": 1052,
+          "sha256": "df9f6eb59f6ec3013852ed920cd21242852867abc65cb081814c7c05c1250cca"
+        },
+        {
+          "path": "KNOWLEDGE_POLICY.md",
+          "chars": 1393,
+          "sha256": "38c4c10129117163f5cad25d13efb65c1cb6e71b819d02a050d6de6fb3ab3ac9"
+        },
+        {
+          "path": "DELIVERY_POLICY.md",
+          "chars": 1679,
+          "sha256": "a6f9233cb73c8d4699ea520cdc095ef0c8fbaa1895a3e006e6d36dbe9af019ff"
+        },
+        {
+          "path": "METRICS_POLICY.md",
+          "chars": 1118,
+          "sha256": "0a58d53f02878cd313c5496ff1c16201d657dbcc521261a87df5d2940ae5d3e4"
+        },
+        {
+          "path": "EVALUATION_POLICY.md",
+          "chars": 562,
+          "sha256": "215ae06b0898202e35c2480b5c6ae8050bbabeceeb408b432c9a8f8bd866c866"
+        },
+        {
+          "path": "fixtures/backend-review/request.md",
+          "chars": 228,
+          "sha256": "ca4611dde380aea31efffc093dad6289480babe517b339689ecb291f9e94e6e6"
+        },
+        {
+          "path": "templates/TASK_CLOSEOUT.md",
+          "chars": 726,
+          "sha256": "dfb7b3f97c4976ea60d04c42a9939cf177f4e90141e4a1cf727f1675bf93c0b4"
+        },
+        {
+          "path": "employees/backend-expert/PROFILE.md",
+          "chars": 103,
+          "sha256": "a566086437498815714d06e5c78a21f9e3f8e49fcd45390bc918ec2d3be4bd37"
+        },
+        {
+          "path": "employees/backend-expert/MEMORY.md",
+          "chars": 410,
+          "sha256": "363e97283383d60a3570024c562e80db7ffeb0ed65ade6f9d4c422e186b74e39"
+        },
+        {
+          "path": "knowledge/INDEX.md",
+          "chars": 543,
+          "sha256": "c2db59b28394ba35ea318127e73f0420f9375816925cc0b9be432b7a166ed128"
+        },
+        {
+          "path": "employees/backend-expert/KNOWLEDGE.md",
+          "chars": 748,
+          "sha256": "2a26573bad4a0324cba4163fb9417693933fb08af426c35931bd7ff6ef4d0128"
+        },
+        {
+          "path": "eval-logs/backend.jsonl",
+          "chars": 3416,
+          "sha256": "ec5c1bea96bdf39e775301d9e6435b741576db9f141e1ba3667271de71768c0c"
+        },
+        {
+          "path": "learning/2026-09-11-remaining-roles-retraining.md",
+          "chars": 5314,
+          "sha256": "e0c6edf9e4c992bea30b838717c53d3483e878c2799f3e6451e5a17d4bfc3c58"
+        },
+        {
+          "path": "knowledge/INDEX.md",
+          "chars": 1165,
+          "sha256": "c637428ff59a15d468792c6f51ed6eaa8e4e519e1035284775871e3d45ec624f"
+        },
+        {
+          "path": "results/backend.md",
+          "chars": 4574,
+          "sha256": "9cfa9ebfc5e975f8cccd243683fcb2b36806bb82c1a75e1aca4de9388c25ba19"
+        }
+      ]
+    },
+    {
+      "session": "cold",
+      "reads": 20,
+      "actual_read_chars": 39976,
+      "audit_metadata_chars": 3582,
+      "task_document_chars": 36394,
+      "knowledge_chars": 6372,
+      "governance_code_provenance_other_chars": 30022,
+      "hypothetical_full_library_total_chars": 55891,
+      "full_library_difference_percent": 34.88,
+      "role_only_old_detail_chars": 748,
+      "role_only_new_index_plus_detail_chars": 1158,
+      "role_only_difference_chars": -410,
+      "read_paths": [
+        {
+          "path": "INITIALIZATION_POLICY.md",
+          "chars": 2039,
+          "sha256": "27607a53a9311423a108fd4d34849ea7f3aa9dff0d5fdaf6d3521abbc4c33a9e"
+        },
+        {
+          "path": "scripts/check-company-bootstrap.sh",
+          "chars": 1888,
+          "sha256": "f429dffd773c66ea34495598356f27f8992216a895951949428b888650e4bf90"
+        },
+        {
+          "path": "AGENTS.md",
+          "chars": 617,
+          "sha256": "fa25ce6b1224dc9ed140ff3e7ef2596acfcd43420ebc80bc868e857d6ce9c398"
+        },
+        {
+          "path": "COMPANY.md",
+          "chars": 3702,
+          "sha256": "7369d054dbac2920c029363aed566a3db409521a7cf14a4540fff18abdb8a93f"
+        },
+        {
+          "path": "ROUTER.md",
+          "chars": 3916,
+          "sha256": "b397c74c001f5c2d424f01987aa51eb7fab41b15fa196480045012536f3ba319"
+        },
+        {
+          "path": "PROJECT_BINDING_POLICY.md",
+          "chars": 3428,
+          "sha256": "3e5c36d7ffa0d6563fcb2902fd0f3b9ea61488c4c0aa3dd3251cf22564c42d98"
+        },
+        {
+          "path": "MEMORY_POLICY.md",
+          "chars": 2108,
+          "sha256": "c4145f93da85250bc7d8d75181aa8b1ecaef847ace0b8d3234a6bbdcbdf4256f"
+        },
+        {
+          "path": "LEARNING_POLICY.md",
+          "chars": 1052,
+          "sha256": "df9f6eb59f6ec3013852ed920cd21242852867abc65cb081814c7c05c1250cca"
+        },
+        {
+          "path": "KNOWLEDGE_POLICY.md",
+          "chars": 1393,
+          "sha256": "38c4c10129117163f5cad25d13efb65c1cb6e71b819d02a050d6de6fb3ab3ac9"
+        },
+        {
+          "path": "DELIVERY_POLICY.md",
+          "chars": 1679,
+          "sha256": "a6f9233cb73c8d4699ea520cdc095ef0c8fbaa1895a3e006e6d36dbe9af019ff"
+        },
+        {
+          "path": "METRICS_POLICY.md",
+          "chars": 1118,
+          "sha256": "0a58d53f02878cd313c5496ff1c16201d657dbcc521261a87df5d2940ae5d3e4"
+        },
+        {
+          "path": "EVALUATION_POLICY.md",
+          "chars": 711,
+          "sha256": "9d2327c329993ea118ec84624150b70c482cfd2635e36f2bf22638ca5dc662d8"
+        },
+        {
+          "path": "fixtures/backend-review/request.md",
+          "chars": 228,
+          "sha256": "ca4611dde380aea31efffc093dad6289480babe517b339689ecb291f9e94e6e6"
+        },
+        {
+          "path": "employees/backend-expert/PROFILE.md",
+          "chars": 103,
+          "sha256": "a566086437498815714d06e5c78a21f9e3f8e49fcd45390bc918ec2d3be4bd37"
+        },
+        {
+          "path": "employees/backend-expert/MEMORY.md",
+          "chars": 410,
+          "sha256": "363e97283383d60a3570024c562e80db7ffeb0ed65ade6f9d4c422e186b74e39"
+        },
+        {
+          "path": "templates/TASK_CLOSEOUT.md",
+          "chars": 726,
+          "sha256": "dfb7b3f97c4976ea60d04c42a9939cf177f4e90141e4a1cf727f1675bf93c0b4"
+        },
+        {
+          "path": "employees/backend-expert/KNOWLEDGE.md",
+          "chars": 748,
+          "sha256": "2a26573bad4a0324cba4163fb9417693933fb08af426c35931bd7ff6ef4d0128"
+        },
+        {
+          "path": "knowledge/catalog.json",
+          "chars": 5214,
+          "sha256": "2383e8f9dd6af3bc9be5f4e1d2f3afc1fb1a6f617f025c9fdbf30e52e8e1158a"
+        },
+        {
+          "path": "learning/2026-09-11-remaining-roles-retraining.md",
+          "chars": 5314,
+          "sha256": "e0c6edf9e4c992bea30b838717c53d3483e878c2799f3e6451e5a17d4bfc3c58"
+        },
+        {
+          "path": "eval-logs/cold.jsonl",
+          "chars": 3582,
+          "sha256": "7096183d1d0188f360976799039c9f5f448dbad9c147f2a22650c6b4696546f7"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Not API input/token/cost data; excludes initial reader inspection and tool/system/history overhead",
+    "Audit all-document reads excluded",
+    "Frontend uses initial index; backend spans source fix; cold session targets latest fixed snapshot",
+    "Role-only comparison excludes shared index and is reported to avoid presenting full-library baseline as universal savings",
+    "No repeated randomized runs or production efficacy evidence"
+  ]
+}

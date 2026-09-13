@@ -1,0 +1,18 @@
+# 中大型任务收口卡（更新原事件，不另建重复记录）
+- id / created_at / source / request：
+- project：项目名、仓库或资料入口、模块、任务编号；没有仓库注明文档任务
+- scope / out_of_scope：业务目标、本次做与不做
+- sensitivity / authority：数据敏感性、已有授权、不可执行项
+- requested_outcome：实现 / 设计 / 评审 / 训练及验收边界
+- level / reason / classifier / owner_confirmed：S/M/L、理由、初分者、主责复核
+- owner / executor / consult：主责岗位、实际智能体；没有顾问写none
+- baseline：代码提交/文件版本/环境；不适用说明
+- context：接口/状态/依赖/限制，链接事实源，不复制密钥或原始业务数据
+- decisions：方案、理由、重要替代项；L写顾问意见及处置
+- acceptance：开始前明确可观察结果与验收者
+- artifacts：准确路径、版本、实际变更范围
+- evidence：检查命令/结果/时间/环境；已验证、未验证分别列
+- status：planned / running / partial / blocked / verified；实现、验证、发布分开记
+- remaining：已知缺陷、未知风险、回退（L必填）、下一步与负责人
+- knowledge：条目ID/路径、采用或拒绝理由、新候选或none
+- metrics：按METRICS_POLICY填写可观测值，未知写unknown

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ted.local/schemas/internalization-run-v1.json",
+  "title": "Ted employee experience internalization run",
+  "type": "object",
+  "required": ["id", "created_at", "method", "budget", "source_snapshot", "employees"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "method": {"const": "three same-role clones plus one related business stakeholder"},
+    "budget": {
+      "type": "object",
+      "required": ["model_requested", "allocation_mode", "per_role_percent", "role_count", "aggregate_target_percent", "execution_status", "cap_percent", "actual_model", "actual_reasoning", "actual_usage", "usage_snapshot"],
+      "properties": {
+        "model_requested": {"const": "gpt-5.3-codex-spark"},
+        "allocation_mode": {"enum": ["target", "cap"]},
+        "per_role_percent": {"type": "number", "exclusiveMinimum": 0, "maximum": 100},
+        "role_count": {"type": "integer", "minimum": 1},
+        "aggregate_target_percent": {"type": "number", "exclusiveMinimum": 0, "maximum": 100},
+        "execution_status": {"enum": ["executed", "failed_model_gate", "blocked_usage_unavailable"]},
+        "cap_percent": {"const": 10},
+        "actual_model": {"type": "string"},
+        "actual_reasoning": {"type": "string"},
+        "actual_usage": {"type": ["string", "number"]},
+        "usage_snapshot": {
+          "type": "object",
+          "required": ["limit_id", "before_percent", "after_percent", "delta_percent"],
+          "properties": {
+            "limit_id": {"const": "codex_bengalfox"},
+            "before_percent": {"type": ["string", "number"]},
+            "after_percent": {"type": ["string", "number"]},
+            "delta_percent": {"type": ["string", "number"]},
+            "captured_at": {"type": "string"},
+            "note": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "note": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "source_snapshot": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role_id", "path", "sha256"],
+        "properties": {
+          "role_id": {"type": "string"},
+          "path": {"type": "string", "pattern": "^(?!/)(?!.*\\.\\./).+"},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "employees": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["role_id", "display_name", "clones", "business_stakeholder", "experience_unit", "outcome_status"],
+        "properties": {
+          "role_id": {"type": "string"},
+          "display_name": {"type": "string"},
+          "clones": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["role", "conclusion"],
+              "properties": {
+                "role": {"enum": ["experience_miner", "boundary_challenger", "transfer_architect"]},
+                "conclusion": {"type": "string", "minLength": 1}
+              },
+              "additionalProperties": false
+            }
+          },
+          "business_stakeholder": {
+            "type": "object",
+            "required": ["role_id", "question", "response"],
+            "properties": {
+              "role_id": {"type": "string"},
+              "question": {"type": "string", "minLength": 1},
+              "response": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          },
+          "experience_unit": {"type": "object"},
+          "outcome_status": {"enum": ["reviewed_case", "held", "unknown"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

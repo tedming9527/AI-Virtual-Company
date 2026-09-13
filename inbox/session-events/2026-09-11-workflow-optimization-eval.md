@@ -1,0 +1,29 @@
+id: 2026-09-11-workflow-optimization-eval
+created_at: 2026-09-11
+source: codex
+request: 先完成公司优化，再用独立模型与隔离流程评测验证
+project: AI-Virtual-Company文档与本地评测
+scope: 任务卡、分级责任、指标、八岗位分层知识与独立验证
+out_of_scope: 业务仓库、生产、发布、提醒、账号、全局适配器
+sensitivity: internal
+authority: 用户明确授权优化及隔离评测，不授权真实外部业务操作
+requested_outcome: optimized-rules-and-observed-evaluation
+level: M
+reason: 多份政策与知识目录实质依赖，需要集成验证；不涉及生产执行
+classifier: 陈知行
+owner_confirmed: /root已读取当前规则并确认
+owner: 陈知行 · 路由官
+executor: /root
+consult: /root/independent_audit（新上下文独立模型规范审查；实际模型标识unknown）
+baseline: 本次编辑前源文件及八岗位原文sha256保存在评测记录
+context: KNOWLEDGE_POLICY、ROUTER、bootstrap相互依赖；治理必读不摘要化
+decisions: 保留员工原文同目录，MEMORY改为目录；快照隔离不冒充OS独占沙箱
+acceptance: bootstrap及摘要漂移校验；独立文档审查；新上下文岗位fixture执行；上下文读取量与安全反例
+artifacts: 规则、任务模板、八岗位目录与详情、校验读取脚本
+evidence: learning/evaluations/2026-09-11-workflow-v1/REPORT.md；含原始审计、各轮hash、读取账本与本地测试
+status: verified
+verification_scope: 约定文档优化与隔离评测范围；不代表生产发布；归档后bootstrap、11条知识校验、报告链接与9项脚本断言复查通过
+remaining: OS强隔离/跨设备迁移/全历史召回/长期提效未验证；原库知识增长后分主题细化、治理入口开销及细粒度证据回溯仍可改善
+knowledge: 沿用既有案例并保留来源；分层加载规则新增
+metrics: tokens/model-runtime unknown；9项脚本断言通过；前端岗位读取少318字符，后端命中增加410字符；单ID输出158字符相对5214字符完整清单；不能外推全会话节省
+next_action: 后续真实同类任务观察知识采用/遗漏/返工与人工投入；无新增自动排期

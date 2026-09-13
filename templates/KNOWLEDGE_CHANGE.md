@@ -1,0 +1,16 @@
+# 知识变更/修复单
+- issue_id / task_id / created_at：
+- owner / actual_executor / reviewer（自审注明，未参与写none）：
+- trigger：反例 / 漂移 / 断链 / 冲突 / 去重 / 版本变化
+- affected_ids / inbound_references / policy_dependencies：
+- source_version / source_hash / observed_evidence：
+- authority：当前请求允许什么、不允许什么；只有评审时不写源
+- validity_action：停止采用 / candidate / stale / superseded；无权改源时仅记录
+- proposed_change / why_not_other_alternatives：
+- preserved_before / proposed_after / concurrent_change_check：
+- adoption_example / rejection_example：
+- structural_checks / semantic_review / runtime_scope：
+- decision / updated_index_and_hash / published_status：
+- rollback_scope / residual_risks / next_review_trigger：
+- repair_round / stop_reason：
+- reuse_result：后续真实任务可补；当前未知写unknown

@@ -1,0 +1,297 @@
+{
+  "employees/.DS_Store": {
+    "sha256": "663cff12024390833377ad90f909d2bade89789aa18ee04c6eec84d3f759c986",
+    "chars": 8196,
+    "bytes": 8196
+  },
+  "employees/ROSTER.txt": {
+    "sha256": "7a2a7d3cb0599d46946e785eb72facdc2c6ef606658e5cfea66cf62d02329b30",
+    "chars": 127,
+    "bytes": 127
+  },
+  "employees/ai-engineer/KNOWLEDGE.md": {
+    "sha256": "1fa0432f2a99bd0e27c6ac4a2b6b1d03f49e53edd0291d6f3c683f2a4587b9e4",
+    "chars": 921,
+    "bytes": 2237
+  },
+  "employees/ai-engineer/MEMORY.md": {
+    "sha256": "457f5f60c8fc2510b9d9f1d6424c9260c5585f7f32a559a0e4ba732cc5da0f1a",
+    "chars": 390,
+    "bytes": 800
+  },
+  "employees/ai-engineer/PROFILE.md": {
+    "sha256": "2e8a7431fcc45abeea379c0e959f7a37cf7a9434cf4dc9894318b34dfa1d35a0",
+    "chars": 654,
+    "bytes": 1654
+  },
+  "employees/ai-engineer/SKILLS.md": {
+    "sha256": "1e01be1ea8311addf5a3c06067a8ad09beabb6052e2816c0c7321c5cc6a48bb8",
+    "chars": 83,
+    "bytes": 205
+  },
+  "employees/backend-expert/KNOWLEDGE.md": {
+    "sha256": "2a26573bad4a0324cba4163fb9417693933fb08af426c35931bd7ff6ef4d0128",
+    "chars": 748,
+    "bytes": 1499
+  },
+  "employees/backend-expert/MEMORY.md": {
+    "sha256": "363e97283383d60a3570024c562e80db7ffeb0ed65ade6f9d4c422e186b74e39",
+    "chars": 410,
+    "bytes": 828
+  },
+  "employees/backend-expert/PROFILE.md": {
+    "sha256": "a566086437498815714d06e5c78a21f9e3f8e49fcd45390bc918ec2d3be4bd37",
+    "chars": 103,
+    "bytes": 124
+  },
+  "employees/backend-expert/SKILLS.md": {
+    "sha256": "6fc9eb10450c8269c74adb4925be397d82634ad9541a0b319e4247955db5cf6c",
+    "chars": 105,
+    "bytes": 105
+  },
+  "employees/backend-training-architect/KNOWLEDGE.md": {
+    "sha256": "2bb1485459ebd72ab1f09884a0b676525f681980cb8560311e1a039dae4617e5",
+    "chars": 872,
+    "bytes": 2092
+  },
+  "employees/backend-training-architect/MEMORY.md": {
+    "sha256": "826ac90b1679352280d9bbd13fd6ad419182d0d7ad3a20b699ee041507086d82",
+    "chars": 433,
+    "bytes": 857
+  },
+  "employees/backend-training-architect/NEXT_LESSON.md": {
+    "sha256": "f1ef914f123c62631e77679e359d27678894c96d7d5495b55b1d330bd02b8962",
+    "chars": 670,
+    "bytes": 1568
+  },
+  "employees/backend-training-architect/ONBOARDING.md": {
+    "sha256": "4a3c4e841e2c9a81b880b33813ec06780148347bbaccd3eff006cce5b05a8f4b",
+    "chars": 1668,
+    "bytes": 4049
+  },
+  "employees/backend-training-architect/PROFILE.md": {
+    "sha256": "11a466e64b055ba94df51e0a69de42f2d2fbfc8f6d74f096a566a02d34ee622e",
+    "chars": 735,
+    "bytes": 1802
+  },
+  "employees/backend-training-architect/READING_MAP.md": {
+    "sha256": "49b17f2d689cdb4eaf91deadf6f9a8c05994be8c2243956ba1cafe7c0363e1e0",
+    "chars": 3082,
+    "bytes": 4700
+  },
+  "employees/backend-training-architect/SKILLS.md": {
+    "sha256": "bbe035301e0c50306d65ff492e2c81c1722a99f46534012c75d88734001413b1",
+    "chars": 537,
+    "bytes": 1369
+  },
+  "employees/backend-training-architect/TEACHING_PLAYBOOK.md": {
+    "sha256": "18ec661581aa2b6ffb262f29df9198065846c12cc48f1f10b2851ebaead9c9fa",
+    "chars": 1401,
+    "bytes": 3619
+  },
+  "employees/chief-of-staff/KNOWLEDGE.md": {
+    "sha256": "48f795900c7454a256b6c25f154db8a4723c3ec8fc94b43bb5e852fe32006d2d",
+    "chars": 788,
+    "bytes": 1485
+  },
+  "employees/chief-of-staff/MEMORY.md": {
+    "sha256": "bf94e2a17b37150d7fe7d786a725e9ab9278fefe6bf50e2fe06a6c0f0703f917",
+    "chars": 406,
+    "bytes": 838
+  },
+  "employees/chief-of-staff/PROFILE.md": {
+    "sha256": "a02f29ebca2ece4651e52b7e86b54ebc4eb876f01e7dc3a26d5852bbc178b2e9",
+    "chars": 144,
+    "bytes": 161
+  },
+  "employees/chief-of-staff/SKILLS.md": {
+    "sha256": "729a5b26269474976f9cc98c539e010638c05d49893913145fd231f7294cf16b",
+    "chars": 112,
+    "bytes": 112
+  },
+  "employees/design-master/KNOWLEDGE.md": {
+    "sha256": "6ffa2d5611d84bd23f1c3d4e6dd461607153ee3f654bd261ebed72795323f87c",
+    "chars": 1867,
+    "bytes": 3777
+  },
+  "employees/design-master/MEMORY.md": {
+    "sha256": "a3271bff3909d96e6812ab30c1de1eaac3a88f4942fa85aa99e8853fa49a7c55",
+    "chars": 399,
+    "bytes": 821
+  },
+  "employees/design-master/PROFILE.md": {
+    "sha256": "8dad3f1e7d93e56aa3384daa1e443fe2a616faa1dd94bd4281408a4a688542ac",
+    "chars": 118,
+    "bytes": 139
+  },
+  "employees/design-master/SKILLS.md": {
+    "sha256": "510202c4cd0f2ffd90bec48ea6d10136e9a83cf281521a09f1c42e11d2c101e1",
+    "chars": 116,
+    "bytes": 116
+  },
+  "employees/frontend-expert/KNOWLEDGE.md": {
+    "sha256": "31fc5e4119c1edc9d740086093ec36824e211586966af25d4734c055982b83f3",
+    "chars": 718,
+    "bytes": 1413
+  },
+  "employees/frontend-expert/MEMORY.md": {
+    "sha256": "65cb7212ec5cc380f2fa9cb28af98bb68ee7982b91358457b769dd17b5df1882",
+    "chars": 400,
+    "bytes": 818
+  },
+  "employees/frontend-expert/PROFILE.md": {
+    "sha256": "6817be85728e1e8c34ef588a2115d72db4d573b4797a59c851145e74c3892af4",
+    "chars": 105,
+    "bytes": 126
+  },
+  "employees/frontend-expert/SKILLS.md": {
+    "sha256": "7a763df5961f4cacdbccf8bf6da156494800f16ad220f7e79a8c6805ce78508c",
+    "chars": 100,
+    "bytes": 100
+  },
+  "employees/product-manager/KNOWLEDGE.md": {
+    "sha256": "e0b5e6f76658df8292ac9d678261560b17bb34625edd86031911d00ce4acbc10",
+    "chars": 719,
+    "bytes": 1428
+  },
+  "employees/product-manager/MEMORY.md": {
+    "sha256": "7f79b6e7ae70b2f50a29185331012839dce6f8d91ec6bc8f95e828b82c2bf1d6",
+    "chars": 395,
+    "bytes": 803
+  },
+  "employees/product-manager/PROFILE.md": {
+    "sha256": "202a93465f9f266bcfb8b98b85fdc19309cb2dd0fed6ea4f6ae303b145e8c93c",
+    "chars": 136,
+    "bytes": 157
+  },
+  "employees/product-manager/SKILLS.md": {
+    "sha256": "5d87ca17d31214463dca44404144276bda23098668edfe5a4a183fea5080a480",
+    "chars": 105,
+    "bytes": 105
+  },
+  "employees/test-expert/KNOWLEDGE.md": {
+    "sha256": "c16f10b3a88fdf8377d22591eeb476d003012360f7d0746310f3130786e6d9d5",
+    "chars": 998,
+    "bytes": 1616
+  },
+  "employees/test-expert/MEMORY.md": {
+    "sha256": "a1ab37369d7d31c539f9d9dbaaf1fe79ea15884d583ddc30a2a63d20b0c42fe4",
+    "chars": 398,
+    "bytes": 810
+  },
+  "employees/test-expert/PROFILE.md": {
+    "sha256": "cfac4c59df232d297e1372faa93bdaac668ee644348fdc589859b11265e98f8b",
+    "chars": 273,
+    "bytes": 298
+  },
+  "employees/test-expert/SKILLS.md": {
+    "sha256": "87225d59ef6b359f0895d241586187333e62ad67e1feac4d58b218d8fcaed483",
+    "chars": 246,
+    "bytes": 246
+  },
+  "knowledge/2026-09-09-ai-delivery-principles.md": {
+    "sha256": "f2ddee4fbeaca42c072e67f21ea8d14ef36112af498c7e104f754f83e55122a8",
+    "chars": 832,
+    "bytes": 836
+  },
+  "knowledge/2026-09-09-mephisto-author-review.md": {
+    "sha256": "1d9d0c3cbb497486a8cdeae998f0eef8bf154fb3c4e681feb42738f13ae1746d",
+    "chars": 16008,
+    "bytes": 30876
+  },
+  "knowledge/INDEX.md": {
+    "sha256": "c637428ff59a15d468792c6f51ed6eaa8e4e519e1035284775871e3d45ec624f",
+    "chars": 1165,
+    "bytes": 1952
+  },
+  "knowledge/catalog.json": {
+    "sha256": "2383e8f9dd6af3bc9be5f4e1d2f3afc1fb1a6f617f025c9fdbf30e52e8e1158a",
+    "chars": 5214,
+    "bytes": 6642
+  },
+  "knowledge/research-source-governance.md": {
+    "sha256": "bb1e49b573e3f5746fda544f848246d78cc7fd4a386542ef30f381a5f45c484d",
+    "chars": 1398,
+    "bytes": 3670
+  },
+  "scripts/check-company-bootstrap.sh": {
+    "sha256": "f429dffd773c66ea34495598356f27f8992216a895951949428b888650e4bf90",
+    "chars": 1888,
+    "bytes": 1888
+  },
+  "scripts/check-knowledge.mjs": {
+    "sha256": "24096f92d112bc55b242798ad219a0d17e8362f55f9b242cf7924edae6a81ca6",
+    "chars": 2014,
+    "bytes": 2014
+  },
+  "scripts/read-knowledge.mjs": {
+    "sha256": "02af31454447c3d1b8ae7e5c88bf8331a2bfaf32e3f7017f7ef7df23141550af",
+    "chars": 1102,
+    "bytes": 1102
+  },
+  "scripts/run-weekly-company.sh": {
+    "sha256": "3367f71905a8c48a9d7deedce4f9f88540dc5532249537c886a4b9459509a496",
+    "chars": 745,
+    "bytes": 745
+  },
+  "templates/TASK_CLOSEOUT.md": {
+    "sha256": "dfb7b3f97c4976ea60d04c42a9939cf177f4e90141e4a1cf727f1675bf93c0b4",
+    "chars": 726,
+    "bytes": 1354
+  },
+  "AGENTS.md": {
+    "sha256": "fa25ce6b1224dc9ed140ff3e7ef2596acfcd43420ebc80bc868e857d6ce9c398",
+    "chars": 617,
+    "bytes": 1387
+  },
+  "COMPANY.md": {
+    "sha256": "7369d054dbac2920c029363aed566a3db409521a7cf14a4540fff18abdb8a93f",
+    "chars": 3702,
+    "bytes": 4108
+  },
+  "DELIVERY_POLICY.md": {
+    "sha256": "a6f9233cb73c8d4699ea520cdc095ef0c8fbaa1895a3e006e6d36dbe9af019ff",
+    "chars": 1679,
+    "bytes": 4184
+  },
+  "EVALUATION_POLICY.md": {
+    "sha256": "9d2327c329993ea118ec84624150b70c482cfd2635e36f2bf22638ca5dc662d8",
+    "chars": 711,
+    "bytes": 1972
+  },
+  "INITIALIZATION_POLICY.md": {
+    "sha256": "27607a53a9311423a108fd4d34849ea7f3aa9dff0d5fdaf6d3521abbc4c33a9e",
+    "chars": 2039,
+    "bytes": 4394
+  },
+  "KNOWLEDGE_POLICY.md": {
+    "sha256": "6107f8e07c0a73a03373c49ae72d1ecb81b78c118229cd42e89dc3fdef89549a",
+    "chars": 1548,
+    "bytes": 3776
+  },
+  "LEARNING_POLICY.md": {
+    "sha256": "df9f6eb59f6ec3013852ed920cd21242852867abc65cb081814c7c05c1250cca",
+    "chars": 1052,
+    "bytes": 2580
+  },
+  "MEMORY_POLICY.md": {
+    "sha256": "c4145f93da85250bc7d8d75181aa8b1ecaef847ace0b8d3234a6bbdcbdf4256f",
+    "chars": 2108,
+    "bytes": 2112
+  },
+  "METRICS_POLICY.md": {
+    "sha256": "0a58d53f02878cd313c5496ff1c16201d657dbcc521261a87df5d2940ae5d3e4",
+    "chars": 1118,
+    "bytes": 2633
+  },
+  "PROJECT_BINDING_POLICY.md": {
+    "sha256": "3e5c36d7ffa0d6563fcb2902fd0f3b9ea61488c4c0aa3dd3251cf22564c42d98",
+    "chars": 3428,
+    "bytes": 3437
+  },
+  "ROUTER.md": {
+    "sha256": "b397c74c001f5c2d424f01987aa51eb7fab41b15fa196480045012536f3ba319",
+    "chars": 3916,
+    "bytes": 5217
+  }
+}

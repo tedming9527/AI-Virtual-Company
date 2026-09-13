@@ -1,0 +1,28 @@
+{
+  "time": "2026-09-11T15:52:54.585Z",
+  "tests": [
+    {
+      "name": "valid_catalog",
+      "pass": true,
+      "exit": 0,
+      "stdout": "{\n  \"entries\": 11,\n  \"requested\": \"all\",\n  \"errors\": [],\n  \"warnings\": [],\n  \"scope\": \"structure and drift only; not semantic certification\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "stale_source_rejected",
+      "pass": true,
+      "exit": 1,
+      "stdout": "{\n  \"entries\": 11,\n  \"requested\": \"all\",\n  \"errors\": [\n    \"backend-expert-core: STALE summary/source hash mismatch\"\n  ],\n  \"warnings\": [],\n  \"scope\": \"structure and drift only; not semantic certification\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "outside_reader_root_rejected",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/tmp/ted-eval-20260911.Eu3xEj/scripts/read-knowledge.mjs:9\nif(!file.startsWith(root+path.sep))throw Error('read outside fixture root denied');\n                                         ^\n\nError: read outside fixture root denied\n    at file:///private/tmp/ted-eval-20260911.Eu3xEj/scripts/read-knowledge.mjs:9:42\n    at ModuleJob.run (node:internal/modules/esm/module_job:195:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:337:24)\n    at async loadESM (node:internal/process/esm_loader:34:7)\n    at async handleMainPromise (node:internal/modules/run_main:106:12)\n\nNode.js v18.20.7\n"
+    }
+  ],
+  "negativeFixture": "/tmp/ted-negative-fOulCO",
+  "limits": "Generated corruption tests; reader path guard is not an OS sandbox."
+}

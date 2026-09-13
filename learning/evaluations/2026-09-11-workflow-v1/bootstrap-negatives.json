@@ -1,0 +1,34 @@
+{
+  "fixture": "/tmp/ted-bootstrap-HBVaHT",
+  "tests": [
+    {
+      "name": "normal_bootstrap",
+      "pass": true,
+      "exit": 0,
+      "stdout": "Company bootstrap check passed: /tmp/ted-bootstrap-HBVaHT\n",
+      "stderr": ""
+    },
+    {
+      "name": "missing_profile_rejected",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "INCOMPLETE EMPLOYEE: frontend-expert/PROFILE.md\nCompany bootstrap check failed: /tmp/ted-bootstrap-HBVaHT\n"
+    },
+    {
+      "name": "missing_entire_role_rejected",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "INCOMPLETE EMPLOYEE: backend-expert/PROFILE.md\nINCOMPLETE EMPLOYEE: backend-expert/MEMORY.md\nINCOMPLETE EMPLOYEE: backend-expert/KNOWLEDGE.md\nCompany bootstrap check failed: /tmp/ted-bootstrap-HBVaHT\n"
+    },
+    {
+      "name": "company_source_drift_rejected",
+      "pass": true,
+      "exit": 1,
+      "stdout": "{\n  \"entries\": 11,\n  \"requested\": \"all\",\n  \"errors\": [\n    \"research-source-governance: STALE summary/source hash mismatch\"\n  ],\n  \"warnings\": [],\n  \"scope\": \"structure and drift only; not semantic certification\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "limits": "Only disposable fixture mutations; not platform permission testing"
+}

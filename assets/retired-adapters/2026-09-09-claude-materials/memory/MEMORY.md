@@ -1,0 +1,2 @@
+- [图片解析全局规则](image-parsing-rule.md) — 收到截图时根据模型视觉能力选择最优解析方式，不支持视觉时回退 macOS OCR 并附带确认提示。引用: [[global-reference-rules]]
+- [检查useState是否必要](state-vs-computed.md) — 当你准备写useState或在多个地方setState同步数据时，先看这条：能用其他state计算出的值不应单独存为state。触发信号：连续setA/setB、函数名含sync、状态是另一个状态的子集。引用: [[global-reference-rules]]

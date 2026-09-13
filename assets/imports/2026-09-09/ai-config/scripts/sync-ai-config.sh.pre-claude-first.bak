@@ -1,0 +1,71 @@
+#!/bin/sh
+set -eu
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+config_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
+shared_rules="$config_root/AI_RULES.md"
+
+claude_home=${CLAUDE_CONFIG_HOME:-"$HOME/.claude"}
+codex_home=${CODEX_CONFIG_HOME:-"$HOME/.Codex"}
+
+generate_target() {
+  target_name=$1
+  target_file=$2
+  appendix_file=$3
+
+  target_dir=$(dirname -- "$target_file")
+  mkdir -p -- "$target_dir"
+
+  if [ -f "$target_file" ]; then
+    cp -p -- "$target_file" "$target_file.pre-unified-config.bak"
+  fi
+
+  temp_file=$(mktemp "${TMPDIR:-/tmp}/ai-config.XXXXXX")
+  {
+    printf '%s\n\n' '<!-- Generated from the cross-AI configuration. Edit AI_RULES.md or targets/, then rerun sync-ai-config.sh. -->'
+    printf '# %s global instructions\n\n' "$target_name"
+    sed '1{/^# /d;}' "$shared_rules"
+    printf '\n'
+    sed '1{/^# /d;}' "$appendix_file"
+  } > "$temp_file"
+  chmod 0644 "$temp_file"
+  mv -- "$temp_file" "$target_file"
+}
+
+generate_target "Claude Code" "$claude_home/CLAUDE.md" "$config_root/targets/claude.md"
+generate_target "Codex" "$codex_home/AGENTS.md" "$config_root/targets/codex.md"
+
+sync_skill() {
+  skill_name=$1
+  source_dir="$config_root/skills/$skill_name"
+  for skills_home in "$claude_home/skills" "$codex_home/skills"; do
+    destination="$skills_home/$skill_name"
+    backup_root="$skills_home/.ai-config-backups"
+    backup="$backup_root/$skill_name"
+    mkdir -p -- "$skills_home"
+    mkdir -p -- "$backup_root"
+    if [ -d "$destination" ]; then
+      rm -rf -- "$backup"
+      cp -R -- "$destination" "$backup"
+    fi
+    rm -rf -- "$destination"
+    cp -R -- "$source_dir" "$destination"
+  done
+}
+
+for skill_name in \
+  vanke-merge-to-test-and-deploy \
+  java-code-explainer \
+  react-scoped-styles \
+  figma-reader \
+  mephisto-save-summary \
+  agently-mail \
+  model-router
+do
+  sync_skill "$skill_name"
+done
+
+cp -- "$config_root/targets/model-map-claude.conf" "$claude_home/skills/model-router/model-map.conf"
+cp -- "$config_root/targets/model-map-codex.conf" "$codex_home/skills/model-router/model-map.conf"
+
+printf 'Updated Claude Code and Codex global instructions and portable skills.\n'

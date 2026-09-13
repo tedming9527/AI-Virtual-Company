@@ -1,0 +1,318 @@
+{
+  "id": "2026-09-13-all-hands-internalization",
+  "created_at": "2026-09-13T00:00:00+08:00",
+  "method": "three same-role clones plus one related business stakeholder",
+  "budget": {
+    "model_requested": "gpt-5.3-codex-spark",
+    "allocation_mode": "target",
+    "per_role_percent": 10,
+    "role_count": 8,
+    "aggregate_target_percent": 80,
+    "execution_status": "failed_model_gate",
+    "cap_percent": 10,
+    "actual_model": "inherited model; not gpt-5.3-codex-spark",
+    "actual_reasoning": "unknown",
+    "actual_usage": 0,
+    "usage_snapshot": {
+      "limit_id": "codex_bengalfox",
+      "before_percent": "not_recorded",
+      "after_percent": 0,
+      "delta_percent": 0,
+      "captured_at": "2026-09-13T21:12:09+08:00",
+      "note": "The post-run five-hour and weekly Spark windows were both 0 percent; no pre-run snapshot was recorded."
+    },
+    "note": "This content run used inherited non-Spark subagents and does not satisfy the requested Spark execution."
+  },
+  "source_snapshot": [
+    {"role_id": "chief-of-staff", "path": "employees/chief-of-staff/KNOWLEDGE.md", "sha256": "48f795900c7454a256b6c25f154db8a4723c3ec8fc94b43bb5e852fe32006d2d"},
+    {"role_id": "product-manager", "path": "employees/product-manager/KNOWLEDGE.md", "sha256": "e0b5e6f76658df8292ac9d678261560b17bb34625edd86031911d00ce4acbc10"},
+    {"role_id": "frontend-expert", "path": "employees/frontend-expert/KNOWLEDGE.md", "sha256": "92715bbb8f1cd0565c87a5713881b8cb132063a4e920d4445e69a761e8d22876"},
+    {"role_id": "backend-expert", "path": "employees/backend-expert/KNOWLEDGE.md", "sha256": "2a26573bad4a0324cba4163fb9417693933fb08af426c35931bd7ff6ef4d0128"},
+    {"role_id": "design-master", "path": "employees/design-master/KNOWLEDGE.md", "sha256": "6ffa2d5611d84bd23f1c3d4e6dd461607153ee3f654bd261ebed72795323f87c"},
+    {"role_id": "test-expert", "path": "employees/test-expert/KNOWLEDGE.md", "sha256": "c16f10b3a88fdf8377d22591eeb476d003012360f7d0746310f3130786e6d9d5"},
+    {"role_id": "ai-engineer", "path": "employees/ai-engineer/KNOWLEDGE.md", "sha256": "1fa0432f2a99bd0e27c6ac4a2b6b1d03f49e53edd0291d6f3c683f2a4587b9e4"},
+    {"role_id": "backend-training-architect", "path": "employees/backend-training-architect/KNOWLEDGE.md", "sha256": "a30cd62bd716144ae414551098c2af1eefe6110a9337486c30646a3604783512"}
+  ],
+  "employees": [
+    {
+      "role_id": "chief-of-staff",
+      "display_name": "陈知行 · 路由官",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "按影响、依赖、可逆性和敏感性分级；实现、验证、发布分别记事实。"},
+        {"role": "boundary_challenger", "conclusion": "文件数和参与人数不能机械决定等级；顾问署名不等于发生协作。"},
+        {"role": "transfer_architect", "conclusion": "把路由经验抽象成风险信号、权限边界、证据层级和停止条件。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "test-expert",
+        "question": "若三个分支各自测试通过，你能否宣布集成交付完成？谁验证权限和最终版本？",
+        "response": "不能。还需取得真实环境、敏感数据、可逆性和授权边界；这些事实未确认前只完成分级草案。"
+      },
+      "experience_unit": {
+        "trigger": "新任务路由、任务升级或完成声明",
+        "signals": ["影响范围", "组件依赖", "可逆性", "数据与权限", "实际参与者", "验收主张"],
+        "decision": "任务等级和完成状态由风险与证据决定，不由工作量表象决定。",
+        "action": ["核实事实", "判定S/M/L", "明确主责与实际协作者", "拆分实现验证发布", "在原事件收口"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/chief-of-staff/KNOWLEDGE.md", "claim": "分级交付和实际参与者原则"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-delivery-retraining.md", "claim": "双向案例与审查修订"}
+        ],
+        "limits": "不以集体意见扩大权限；案例原则不证明真实提效。",
+        "counterexample": "一行敏感日志改动可能是L，跨多目录的纯文本更名仍可能是S。",
+        "transfer_test": {
+          "variation_axes": ["变更规模与风险反向", "多分支到集成版本"],
+          "question": "一个跨五目录的文案修正和一个单行生产权限放宽同时到达，应如何分级与验收？",
+          "initial_answer": "拆成两项：跨五目录同目标文案可判S；生产权限放宽判L，分别验收。环境事实未核实则权限项停止并记unknown。",
+          "challenge": "测试相关者指出权限影响远高于文件数，且两个请求不能捆绑证明完成。",
+          "revision": "文案按S独立验收；权限改动按L确认授权、回退和生产证据，两个状态分开记录。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    },
+    {
+      "role_id": "product-manager",
+      "display_name": "林知夏 · 目标规划官",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "先定义用户问题、基线、目标指标、护栏和停止条件。"},
+        {"role": "boundary_challenger", "conclusion": "指标上涨不等于因果；同类样本仍可能混杂。"},
+        {"role": "transfer_architect", "conclusion": "把产品经验抽象为目标、分母、可比性、护栏和授权五类信号。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "design-master",
+        "question": "完成率提高但误操作和无障碍投诉上升时，你会用哪个指标宣布成功？",
+        "response": "不宣布整体成功；分别报告完成率变化与护栏失败，复核样本和风险阈值。"
+      },
+      "experience_unit": {
+        "trigger": "提出功能方案、看到指标变化或准备实验结论",
+        "signals": ["用户决策", "基线", "分母", "人群与时间窗", "负向护栏", "实验授权"],
+        "decision": "先确认问题与可比证据，再判断方案是否有效。",
+        "action": ["定义目标与护栏", "核对样本可比性", "区分描述变化与因果", "证据不足保持unknown"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/product-manager/KNOWLEDGE.md", "claim": "问题定义与效果归因原则"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-remaining-roles-retraining.md", "claim": "指标混杂迁移案例"}
+        ],
+        "limits": "合成指标不是项目结果；未经授权不自行上线实验。",
+        "counterexample": "点击率上涨但流量结构改变、完成率下降且投诉增加，不应判定改版成功。",
+        "transfer_test": {
+          "variation_axes": ["主指标从点击率变为留存", "护栏从投诉变为高风险误操作"],
+          "question": "AI摘要使次日留存上升，但高风险误操作翻倍且新老用户比例改变，能否推广？",
+          "initial_answer": "不能推广；留存只是混杂后的观察，高风险误操作已触发护栏。分新老用户复核，因果与风险机制unknown。",
+          "challenge": "设计相关者要求解释人群混杂和高风险护栏为何可以被忽略。",
+          "revision": "只报告所观测留存变化；先分层复核样本并把高风险误操作作为阻断护栏，未经授权不扩量。",
+          "result": "reviewed_case"
+        }
+      },
+      "outcome_status": "reviewed_case"
+    },
+    {
+      "role_id": "frontend-expert",
+      "display_name": "周启明 · 体验工程官",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "异步视图的data、error、loading必须共享请求所有权。"},
+        {"role": "boundary_challenger", "conclusion": "request ID只保护前端状态，不能证明服务端幂等或权限正确。"},
+        {"role": "transfer_architect", "conclusion": "按请求身份、状态域、副作用和生命周期四个变化轴迁移。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "backend-expert",
+        "question": "前端禁止重复点击后，能否认为支付不会重复？取消请求在服务端是什么语义？",
+        "response": "不能；退款单号是否为服务端稳定业务键、查询返回哪些业务终态都需核实，前端只能展示unknown和停止自动重试。"
+      },
+      "experience_unit": {
+        "trigger": "搜索、筛选、切页或提交存在并发返回与多状态切换",
+        "signals": ["请求身份", "受保护状态集合", "是否有副作用", "卸载和取消语义", "后端幂等契约"],
+        "decision": "最新请求只能更新其拥有的视图状态；副作用可靠性由端到端契约另证。",
+        "action": ["分配递增请求身份", "统一守护data/error/loading", "构造乱序与旧失败", "核对后端幂等"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/frontend-expert/KNOWLEDGE.md", "claim": "请求所有权与UI验证分层"},
+          {"level": "verified_context", "path": "learning/exercises/vanke-request-ownership/README.md", "claim": "本地无框架最小乱序题执行证据，仅限该fixture"}
+        ],
+        "limits": "不外推到真实网络、框架生命周期或生产副作用；取消请求不独自保证正确性。",
+        "counterexample": "支付页打开Debug并观察状态正常，仍不能证明金额、权限或重复扣款安全。",
+        "transfer_test": {
+          "variation_axes": ["读请求变写请求", "旧成功变旧超时后远端成功"],
+          "question": "用户连续提交两次退款，第二次先返回成功，第一次前端超时但服务端随后成功，界面如何处理？",
+          "initial_answer": "按稳定退款单号分别展示；第二笔成功，第一笔超时标结果确认中并主动查询，不能当失败重试。是否重复退款unknown。",
+          "challenge": "后端相关者指出两次是否同一业务操作和远端是否已执行不能由请求序号决定。",
+          "revision": "前端用请求身份保护显示，同时使用稳定业务操作键；超时结果标未知并查询/对账，不把忽略响应当作撤销副作用。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    },
+    {
+      "role_id": "backend-expert",
+      "display_name": "陆行远 · 可靠服务官",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "拆开领取所有权、本地回写和远端副作用，幂等键稳定于业务操作。"},
+        {"role": "boundary_challenger", "conclusion": "租约和本地事务不能撤销远端副作用，也不应给无状态查询强加复杂状态机。"},
+        {"role": "transfer_architect", "conclusion": "用事实归属、重试身份、下游能力和未知恢复路径迁移可靠性经验。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "product-manager",
+        "question": "业务如何定义同一次操作，未知扣款由谁在多长时间内处理，是否真的要求exactly-once？",
+        "response": "先定义稳定业务操作ID、可接受重复/延迟和人工对账SLA；仅查询不能关闭并发窗口，仍需唯一裁决、原子claim或下游幂等契约。"
+      },
+      "experience_unit": {
+        "trigger": "租约重领、消息重试或跨系统副作用出现不确定结果",
+        "signals": ["业务操作身份", "本地所有权", "下游去重与查询能力", "fencing支持", "对账责任"],
+        "decision": "局部原子性不能外推跨系统恰好一次；未知结果需要有界恢复。",
+        "action": ["分离三个事实边界", "固定幂等键", "核验下游契约", "有限重试", "查询对账或人工处置"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/backend-expert/KNOWLEDGE.md", "claim": "跨系统副作用与幂等边界"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-remaining-roles-retraining.md", "claim": "租约接管和重复扣款案例"}
+        ],
+        "limits": "mock或沙箱不证明生产契约；远端不校验时本地fencing无效。",
+        "counterexample": "无状态只读查询不因重试存在就需要outbox、租约和复杂状态机。",
+        "transfer_test": {
+          "variation_axes": ["支付副作用变文件导出", "下游无去重但可查询结果"],
+          "question": "导出服务超时，本地租约到期被重领；下游不能幂等但可按请求指纹查询，如何避免重复生成？",
+          "initial_answer": "用稳定业务指纹先查询下游；领取、本地回写和远端导出分开。查询与执行非原子时无法保证零重复，unknown则停止自动重试并对账。",
+          "challenge": "产品相关者指出旧worker不会因租约到期自动停止，且重复导出有成本。",
+          "revision": "调用前后按稳定指纹查询只能缩小风险；若无唯一裁决、原子claim或下游幂等契约，停止宣称零重复并进入有界人工处置。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    },
+    {
+      "role_id": "design-master",
+      "display_name": "苏映雪 · 信任设计官",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "将建议、确认、执行、成功和失败分阶段，并明确取消与结果反馈。"},
+        {"role": "boundary_challenger", "conclusion": "系统不支持撤销时不能设计虚假撤销；已知缺陷不能写成unknown。"},
+        {"role": "transfer_architect", "conclusion": "从副作用生效点、补偿能力、用户风险和授权者四轴迁移。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "frontend-expert",
+        "question": "后端只能在执行前取消、执行后不可逆，你的交互如何避免让用户误以为随时可撤销？",
+        "response": "先由业务与后端确认30秒窗口、发送生效点和不可撤回契约；未确认前只给条件式流程，不宣称系统已支持。"
+      },
+      "experience_unit": {
+        "trigger": "AI或高风险操作包含不可逆副作用、原稿冲突或状态反馈",
+        "signals": ["副作用生效点", "取消与补偿能力", "目标用户", "已知缺陷", "决策授权者"],
+        "decision": "交互承诺必须与真实系统能力一致，视觉一致与风险验收分开。",
+        "action": ["分阶段描述操作", "列出可取消点", "区分已知缺陷与未知", "提交原稿还原和风险备选供授权者裁决"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/design-master/KNOWLEDGE.md", "claim": "风险反馈与设计冲突交接"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-remaining-roles-retraining.md", "claim": "不可逆操作和像素还原案例"}
+        ],
+        "limits": "未做真实用户测试；不以设计稿发明后端能力或发布授权。",
+        "counterexample": "像素完全一致但输入只用占位符标签、错误只靠红色，不能称无障碍通过。",
+        "transfer_test": {
+          "variation_axes": ["永久删除变AI自动发送", "撤销能力变延迟发送窗口"],
+          "question": "AI会在30秒后自动给客户发消息，窗口内可取消、发出后只能人工补发说明，如何设计？",
+          "initial_answer": "展示30秒倒计时和待发送状态；窗口内可取消，发出后标记不可撤回，只提供需再次确认的补充说明。送达状态unknown。",
+          "challenge": "前端相关者指出发送后入口无法兑现，会形成虚假控制感。",
+          "revision": "确认页说明30秒延迟；倒计时内提供取消，发送后改为已发送证据和真实的补发/申诉路径。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    },
+    {
+      "role_id": "test-expert",
+      "display_name": "顾清妍 · 质量测试工程师",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "先拆精确主张，再选择同层级证据并断言关键终态。"},
+        {"role": "boundary_challenger", "conclusion": "测试数量、构建、mock、截图或同步门闩都不能单独证明整体质量。"},
+        {"role": "transfer_architect", "conclusion": "以主张、环境、失败代价、副作用和终态为迁移轴。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "chief-of-staff",
+        "question": "何时可以把结构检查绿色写成会议成功，何时仍必须保持partial？",
+        "response": "只能证明八岗字段和证据声明完整；还需定义正向证据，如未见迁移、实际产物和相称验收，生产能力继续unknown。"
+      },
+      "experience_unit": {
+        "trigger": "有人声称UI、并发、集成、知识成长或协作已完成",
+        "signals": ["精确主张", "目标环境", "失败代价", "关键副作用", "最终状态", "发布权限"],
+        "decision": "证据必须与主张、环境和风险处于同一层级。",
+        "action": ["拆分主张", "选相称测试", "验证副作用与终态", "记录残余风险", "区分验证和发布"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/test-expert/KNOWLEDGE.md", "claim": "分层证据和协作验收"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-delivery-retraining.md", "claim": "正反例和交叉审查"}
+        ],
+        "limits": "测试绿色不自动扩大主张范围；同步起跑不证明SQL实际重叠。",
+        "counterexample": "截图一致但按钮重复扣款，只能通过视觉子项，不能通过整体功能。",
+        "transfer_test": {
+          "variation_axes": ["UI证据变知识架构证据", "单组件变跨岗位集成"],
+          "question": "八岗运行JSON通过校验且三分身都同意，能否证明员工已经形成举一反三能力？",
+          "initial_answer": "不能。JSON通过只证明结构，三分身同意只证明意见一致；生产举一反三能力仍unknown。",
+          "challenge": "路由相关者要求区分文件结构、案例推理和后续真实任务效果。",
+          "revision": "只判结构检查完成；案例正向证据要包含未见迁移与实际产物，真实能力仍需采用、返工、遗漏和环境证据。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    },
+    {
+      "role_id": "ai-engineer",
+      "display_name": "辛澈 · AI工程师",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "建立来源地图并区分发布、事件、生效与核验时间。"},
+        {"role": "boundary_challenger", "conclusion": "多家同源转载不构成交叉证据，保留策略不是删除或发布授权。"},
+        {"role": "transfer_architect", "conclusion": "按来源独立性、时间语义、适用版本和处置权限迁移。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "product-manager",
+        "question": "目标读者需要多新、多确定的结论？引用旧文将过期时，业务希望保留什么价值？",
+        "response": "对当前性和确定性分别标注；原始来源不可得则保留待核验内部稿，先处理引用依赖，不擅自删除或发布。"
+      },
+      "experience_unit": {
+        "trigger": "核验资讯、价格、版本、转载或处理到期内容",
+        "signals": ["原始来源", "来源独立性", "发布日期", "事件与生效日期", "适用版本", "引用依赖", "处置授权"],
+        "decision": "证据独立性和时间语义决定可声明范围，内容保留规则不替代授权。",
+        "action": ["画来源地图", "合并同源", "拆分四类时间", "标记事实推断缺口", "检查引用后等待处置授权"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/ai-engineer/KNOWLEDGE.md", "claim": "同源证据去重与时效治理"},
+          {"level": "reviewed_case", "path": "learning/2026-09-11-remaining-roles-retraining.md", "claim": "价格时效和内容到期迁移案例"}
+        ],
+        "limits": "官方页面可能不含全部条款；未经授权不删除、不发布、不操作账号。",
+        "counterexample": "页面今天更新但价格生效日未知，不能据更新时间声明当前价格。",
+        "transfer_test": {
+          "variation_axes": ["价格资讯变安全公告", "同源转载变互相引用的二手来源"],
+          "question": "三篇文章互相引用称某模型漏洞已修复，官方只确认收到报告且页面刚更新，如何写？",
+          "initial_answer": "三篇互引属于循环引用，不算三份证据；只能写官方确认收到报告，修复状态和版本unknown。",
+          "challenge": "产品相关者追问读者会否据此解除防护，以及媒体是否真正独立。",
+          "revision": "追到共同源并标为一条二手链；只写官方已确认收报，修复状态与生效版本unknown，保留防护建议的适用边界。",
+          "result": "reviewed_case"
+        }
+      },
+      "outcome_status": "reviewed_case"
+    },
+    {
+      "role_id": "backend-training-architect",
+      "display_name": "沈砚舟 · Backend Training Architect",
+      "clones": [
+        {"role": "experience_miner", "conclusion": "把已讲解、已实现、已运行和能独立迁移分开，用预测解释改写验证闭环。"},
+        {"role": "boundary_challenger", "conclusion": "AI代写绿色不等于掌握，复杂模式也不是所有业务的标准答案。"},
+        {"role": "transfer_architect", "conclusion": "按业务事实归属、机制边界、变化轴和独立作答证据设计迁移题。"}
+      ],
+      "business_stakeholder": {
+        "role_id": "backend-expert",
+        "question": "这个模式解决了哪条真实业务链的什么失败？若只是无状态查询，为何需要outbox或租约？",
+        "response": "先回财务/结算业务事实源确认各状态定义和时间点，再让学员独立迁移；术语拆分本身不能证明掌握。"
+      },
+      "experience_unit": {
+        "trigger": "恢复课程、判断掌握度或从遗留业务代码提炼范式",
+        "signals": ["课程事实源", "当前代码版本", "业务状态与金额口径", "学员独立作答", "运行环境", "失败语义"],
+        "decision": "学习完成以独立迁移和相称验证为准，不以AI代写或资料覆盖量为准。",
+        "action": ["回事实源", "沿真实链路阅读", "区分代码事实推断unknown", "设计正反例", "让学员预测解释改写验证"],
+        "evidence": [
+          {"level": "reviewed_case", "path": "employees/backend-training-architect/KNOWLEDGE.md", "claim": "独立迁移与业务代码提炼原则"},
+          {"level": "reviewed_case", "path": "learning/2026-09-13-vanke-backend-project-distillation.md", "claim": "Vanke本地静态快照提炼"}
+        ],
+        "limits": "静态代码审阅不证明Maven、数据库、Redis、XXL-JOB或外部契约；不修改未授权的学员进度。",
+        "counterexample": "无状态查询接口不应为展示架构知识而强加outbox和分布式租约。",
+        "transfer_test": {
+          "variation_axes": ["事务题变金额对账题", "框架知识变业务状态归属"],
+          "question": "学员会写BigDecimal测试，但把下单预估佣金、平台结算和已收款相加称总收入，应如何验收掌握？",
+          "initial_answer": "拆开预估、结算、收款的状态和事实归属，拒绝相加；让学员解释口径并完成含unknown的迁移题。",
+          "challenge": "后端相关者指出计算正确不代表业务状态可相加，事实归属和入账时点未解释。",
+          "revision": "要求学员先区分意向、合同、结算、收款与利润，再独立设计状态模型、计算边界和不应合并的反例；未知不记0。",
+          "result": "held"
+        }
+      },
+      "outcome_status": "held"
+    }
+  ]
+}

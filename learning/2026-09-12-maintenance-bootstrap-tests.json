@@ -1,0 +1,37 @@
+[
+  {
+    "test": "baseline",
+    "pass": true,
+    "exit": 0,
+    "stdout": "Company bootstrap check passed: /var/folders/c3/p1zgrbbn7qs6frtkw1g7w0x00000gn/T/ted-maintenance-negative-nYo1Im\n",
+    "stderr": ""
+  },
+  {
+    "test": "missing-EVALUATION_RUNBOOK.md",
+    "pass": true,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "MISSING FILE: EVALUATION_RUNBOOK.md\nCompany bootstrap check failed: /var/folders/c3/p1zgrbbn7qs6frtkw1g7w0x00000gn/T/ted-maintenance-negative-nYo1Im\n"
+  },
+  {
+    "test": "missing-KNOWLEDGE_MAINTENANCE.md",
+    "pass": true,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "MISSING FILE: KNOWLEDGE_MAINTENANCE.md\nCompany bootstrap check failed: /var/folders/c3/p1zgrbbn7qs6frtkw1g7w0x00000gn/T/ted-maintenance-negative-nYo1Im\n"
+  },
+  {
+    "test": "missing-templates/EVALUATION_BRIEF.md",
+    "pass": true,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "MISSING FILE: templates/EVALUATION_BRIEF.md\nCompany bootstrap check failed: /var/folders/c3/p1zgrbbn7qs6frtkw1g7w0x00000gn/T/ted-maintenance-negative-nYo1Im\n"
+  },
+  {
+    "test": "missing-templates/KNOWLEDGE_CHANGE.md",
+    "pass": true,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "MISSING FILE: templates/KNOWLEDGE_CHANGE.md\nCompany bootstrap check failed: /var/folders/c3/p1zgrbbn7qs6frtkw1g7w0x00000gn/T/ted-maintenance-negative-nYo1Im\n"
+  }
+]

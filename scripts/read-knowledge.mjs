@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const [rootArg,session,relative]=process.argv.slice(2);
+if(!rootArg||!session||!relative||!/^[a-z0-9_-]+$/i.test(session))throw Error('usage: root session relative-file');
+const root=fs.realpathSync(rootArg);
+if(path.isAbsolute(relative))throw Error('relative path required');
+const file=fs.realpathSync(path.join(root,relative));
+if(!file.startsWith(root+path.sep))throw Error('read outside fixture root denied');
+const raw=fs.readFileSync(file),body=raw.toString('utf8');
+const logDir=path.join(root,'eval-logs');
+if(fs.existsSync(logDir)&&fs.lstatSync(logDir).isSymbolicLink())throw Error('symlink log denied');
+fs.mkdirSync(logDir,{recursive:true});
+const log=path.join(logDir,session+'.jsonl');
+if(fs.existsSync(log)&&fs.lstatSync(log).isSymbolicLink())throw Error('symlink log denied');
+fs.appendFileSync(log,JSON.stringify({session,path:relative,time:new Date().toISOString(),chars:[...body].length,bytes:raw.length,sha256:crypto.createHash('sha256').update(raw).digest('hex')})+'\n');
+console.log(body);

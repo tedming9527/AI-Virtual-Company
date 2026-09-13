@@ -1,0 +1,28 @@
+# 知识变更单：学习经验内化正式入库
+
+- issue_id / task_id / created_at：`knowledge-promote-2026-09-13` / `2026-09-13-learning-experience-internalization` / 2026-09-13。
+- owner / actual_executor / reviewer：陈知行 · 路由官 / root / 顾清妍 · 质量测试工程师。
+- trigger：用户明确要求将结果写入员工正式知识库；上一轮运行已形成八岗三分身、迁移题与独立 audit。
+- affected_ids：`experience-internalization-v2` 及八个 `*-experience-transfer` 岗位条目；既有同详情文件条目的 hash 同步更新。
+- inbound_references / policy_dependencies：`knowledge/INDEX.md`、八岗 `MEMORY.md`、`knowledge/catalog.json`；遵循 `KNOWLEDGE_POLICY.md`、`KNOWLEDGE_MAINTENANCE.md`、`MEMORY_POLICY.md`。
+- observed_evidence：八岗 24 份显式 Spark 分身产物、`SUMMARY.md`、八份 audit、`KNOWLEDGE-PROMOTION-REVIEW.md`；结构检查 0 errors / 0 warnings。
+- authority：允许本轮正式知识入库；不允许在无真实环境证据时虚构生产能力，不修改最高政策、权限或生产系统。
+- validity_action：14 条候选中，6 条共用规则合并为一个公司单一事实源，八岗各发布一个 `reviewed_case` 适配条目；`verified_context` 与生产能力保持 held/false。
+- proposed_change：创建公司共用详情，追加八岗详情和发现摘要，同步 catalog 状态与最终 hash。
+- why_not_other_alternatives：不把相同六条规则复制到八个岗位；不标 `verified_context`；不删除旧知识或覆盖历史失败。
+- preserved_before：旧条目内容保留；本次只追加新条目并更新因详情文件变化而失效的 hash。旧详情 hash 可从本任务此前运行记录和 catalog 历史版本追溯。
+- proposed_after：共用条目与八岗条目均为 `reviewed_case`，`production_capability=false`；具体业务与环境 unknown 原样保留。
+- concurrent_change_check：写入前核对八岗详情和 catalog 当前 hash；共享文件由 root 串行更新。
+- adoption_example：真实任务出现跨系统 unknown 时检索共用架构和对应岗位适配器，按事实所有者与证据层决定阻断或取证。
+- rejection_example：仅凭分身一致、结构绿灯或模型用量增长，宣称员工已经具备生产能力。
+- structural_checks：`check-knowledge.mjs` 定向检查九个新增 ID，并执行全 catalog 检查与公司 bootstrap。
+- semantic_review：顾清妍裁决 `reviewed_case PASS / verified_context HELD / production capability REJECT`。
+- runtime_scope：本次是文档案例与索引发布，不含真实数据库、接口、页面、财务、可访问性或生产环境验证。
+- decision：允许正式发布 `reviewed_case`；拒绝生产能力状态提升。
+- updated_index_and_hash：详情、MEMORY、公司 INDEX 和 catalog 在同一变更窗口同步；最终校验后发布。
+- published_status：`reviewed_case`。
+- rollback_scope：仅回退本次新增共用条目、八岗追加段、MEMORY 新摘要及 catalog 新项/对应 hash；不得重置整库。
+- residual_risks：真实项目版本、字段、SLA、金额精度、终态、可访问性和行为级证据仍 unknown/held。
+- next_review_trigger：任一真实反例，或积累三个可比真实任务的采用/拒绝与结果证据。
+- repair_round / stop_reason：1 / 语义复核和结构一致性校验完成后停止；不通过重复写作提升证据状态。
+- reuse_result：unknown；待后续真实任务记录。

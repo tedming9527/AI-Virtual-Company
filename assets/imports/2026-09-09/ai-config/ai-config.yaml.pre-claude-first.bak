@@ -1,0 +1,67 @@
+version: 1
+
+source:
+  instructions: AI_RULES.md
+
+generation:
+  managed_marker: "Generated from the cross-AI configuration. Do not edit generated sections directly."
+  backup_existing: true
+
+targets:
+  claude:
+    enabled: true
+    output: "${CLAUDE_CONFIG_HOME:-$HOME/.claude}/CLAUDE.md"
+    platform_appendix: targets/claude.md
+  codex:
+    enabled: true
+    output: "${CODEX_CONFIG_HOME:-$HOME/.Codex}/AGENTS.md"
+    platform_appendix: targets/codex.md
+  cursor:
+    enabled: false
+    output: "${CURSOR_CONFIG_HOME}/rules/global.mdc"
+  copilot:
+    enabled: false
+    output: "${COPILOT_CONFIG_HOME}/copilot-instructions.md"
+
+security:
+  copy_secrets: false
+  copy_absolute_paths: false
+  credential_strategy: environment-reference-only
+
+platform_owned:
+  - permissions
+  - hooks
+  - models
+  - plugins
+  - mcp_servers
+  - themes
+
+portable_skills:
+  - vanke-merge-to-test-and-deploy
+  - java-code-explainer
+  - react-scoped-styles
+  - figma-reader
+  - mephisto-save-summary
+  - agently-mail
+
+adapted_skills:
+  model-router:
+    public_policy: skills/model-router/SKILL.md
+    platform_mapping:
+      claude: targets/model-map-claude.conf
+      codex: targets/model-map-codex.conf
+
+portable_roles:
+  image-reader:
+    public_role: roles/image-reader.md
+    platform_implementation: target-owned
+
+portable_commands:
+  sync-ai-config: scripts/sync-ai-config.sh
+
+platform_only:
+  - permissions
+  - hooks
+  - plugin-and-mcp-registration
+  - theme
+  - rtk-and-headroom-injection

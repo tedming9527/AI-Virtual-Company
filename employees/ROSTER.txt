@@ -1,0 +1,8 @@
+ai-engineer
+backend-expert
+backend-training-architect
+chief-of-staff
+design-master
+frontend-expert
+product-manager
+test-expert

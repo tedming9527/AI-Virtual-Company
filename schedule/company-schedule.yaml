@@ -1,0 +1,20 @@
+timezone: Asia/Shanghai
+weekly_learning_and_all_hands:
+  enabled: true
+  day: sunday
+  time: "20:00"
+  budget_per_specialist:
+    equivalent_minutes: 30
+    web_research_rounds: 4
+    deep_reasoning_calls: 2
+  model_policy:
+    luna: collection, extraction, organisation, mechanical execution
+    sol: planning, tradeoffs, synthesis, review
+    astra: consequential cross-domain decisions only
+  sequence:
+    - expire or archive stale project short-term memories
+    - curate new task outcomes and employee memory candidates
+    - bounded specialist research
+    - specialist synthesis
+    - weekly all-hands
+    - promote reviewed shared knowledge

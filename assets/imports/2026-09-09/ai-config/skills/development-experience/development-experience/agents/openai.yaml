@@ -1,0 +1,6 @@
+interface:
+  display_name: "持续成长的开发经验"
+  short_description: "按风险选择专业视角与验证方式，从真实返工中积累经验并按需对标官方规范"
+  default_prompt: "使用 $development-experience 完成当前开发任务，并在发现有证据的新经验时更新经验库。"
+policy:
+  allow_implicit_invocation: true

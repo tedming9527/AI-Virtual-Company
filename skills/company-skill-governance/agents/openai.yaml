@@ -1,0 +1,5 @@
+interface:
+  display_name: Company Skill Governance
+  short_description: Choose company skills only when useful
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "id": "backend-expert-core",
+      "exit": 0,
+      "stdout": "{\n  \"entries\": 1,\n  \"requested\": \"backend-expert-core\",\n  \"errors\": [],\n  \"warnings\": [],\n  \"scope\": \"structure and drift only; not semantic certification\"\n}\n",
+      "stderr": "",
+      "output_chars": 158,
+      "pass": true
+    },
+    {
+      "id": "unknown-id",
+      "exit": 1,
+      "stdout": "{\n  \"entries\": 0,\n  \"requested\": \"unknown-id\",\n  \"errors\": [\n    \"unknown or duplicate requested id\"\n  ],\n  \"warnings\": [],\n  \"scope\": \"structure and drift only; not semantic certification\"\n}\n",
+      "stderr": "",
+      "output_chars": 192,
+      "pass": true
+    }
+  ],
+  "full_catalog_chars": 5214,
+  "limits": "Tool-output comparison only; entire workflow was not rerun after this optional helper was added"
+}

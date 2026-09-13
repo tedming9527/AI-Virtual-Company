@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "chief-of-staff-core",
+      "owner": "chief-of-staff",
+      "index": "employees/chief-of-staff/MEMORY.md",
+      "detail": "employees/chief-of-staff/KNOWLEDGE.md",
+      "sha256": "48f795900c7454a256b6c25f154db8a4723c3ec8fc94b43bb5e852fe32006d2d",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "新任务分级、收口、协作",
+      "summary": "按风险/依赖判级，领域主责复核；小任务不强制顾问，卡片须有实际证据",
+      "limit": "文件数不是复杂度；岗位称谓不是实际参与；权限不能由集体投票放大"
+    },
+    {
+      "id": "test-expert-core",
+      "owner": "test-expert",
+      "index": "employees/test-expert/MEMORY.md",
+      "detail": "employees/test-expert/KNOWLEDGE.md",
+      "sha256": "c16f10b3a88fdf8377d22591eeb476d003012360f7d0746310f3130786e6d9d5",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "验收、并发、集成、知识成长",
+      "summary": "主张与证据范围一致，视觉/行为、本地/远端、mock/真实DB分别验收",
+      "limit": "构建成功不等于整体功能通过，知识数量不代表实战提效"
+    },
+    {
+      "id": "product-manager-core",
+      "owner": "product-manager",
+      "index": "employees/product-manager/MEMORY.md",
+      "detail": "employees/product-manager/KNOWLEDGE.md",
+      "sha256": "e0b5e6f76658df8292ac9d678261560b17bb34625edd86031911d00ce4acbc10",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "产品目标、指标上涨、需求发现",
+      "summary": "先定义问题与护栏，核验分母、人群与样本可比性",
+      "limit": "点击率上涨不证明因果，同类样本仍可能混杂，实验需授权"
+    },
+    {
+      "id": "frontend-expert-core",
+      "owner": "frontend-expert",
+      "index": "employees/frontend-expert/MEMORY.md",
+      "detail": "employees/frontend-expert/KNOWLEDGE.md",
+      "sha256": "31fc5e4119c1edc9d740086093ec36824e211586966af25d4734c055982b83f3",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "搜索、筛选、乱序响应、重复提交",
+      "summary": "以当前请求身份保护数据、错误、加载状态，主动构造乱序验收",
+      "limit": "取消请求不独自保证正确；按钮禁用不证明服务端幂等"
+    },
+    {
+      "id": "backend-expert-core",
+      "owner": "backend-expert",
+      "index": "employees/backend-expert/MEMORY.md",
+      "detail": "employees/backend-expert/KNOWLEDGE.md",
+      "sha256": "2a26573bad4a0324cba4163fb9417693933fb08af426c35931bd7ff6ef4d0128",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "重试、远端成功回写失败、租约重领",
+      "summary": "业务操作重试保持稳定幂等键，分别检查本地所有权与远端副作用",
+      "limit": "owner校验仅保护本地；fencing须下游支持；沙箱不证明生产"
+    },
+    {
+      "id": "design-master-core",
+      "owner": "design-master",
+      "index": "employees/design-master/MEMORY.md",
+      "detail": "employees/design-master/KNOWLEDGE.md",
+      "sha256": "6ffa2d5611d84bd23f1c3d4e6dd461607153ee3f654bd261ebed72795323f87c",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "不可逆操作、像素还原、反馈、无障碍",
+      "summary": "按阶段设计确认/反馈，视觉还原与已知可用性缺陷分开交付",
+      "limit": "不能承诺系统不支持的取消撤销；已知缺陷不能淡化为未知"
+    },
+    {
+      "id": "ai-engineer-core",
+      "owner": "ai-engineer",
+      "index": "employees/ai-engineer/MEMORY.md",
+      "detail": "employees/ai-engineer/KNOWLEDGE.md",
+      "sha256": "1fa0432f2a99bd0e27c6ac4a2b6b1d03f49e53edd0291d6f3c683f2a4587b9e4",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "资讯、转载、价格、过期内容",
+      "summary": "合并同源转载，区分页面更新/事件/生效日期，保留证据缺口",
+      "limit": "转载不是独立证据，保留规则不自动授权删除或发布"
+    },
+    {
+      "id": "backend-training-architect-core",
+      "owner": "backend-training-architect",
+      "index": "employees/backend-training-architect/MEMORY.md",
+      "detail": "employees/backend-training-architect/KNOWLEDGE.md",
+      "sha256": "2bb1485459ebd72ab1f09884a0b676525f681980cb8560311e1a039dae4617e5",
+      "status": "reviewed_case",
+      "updated": "2026-09-11",
+      "trigger": "后端上课、课表冲突、AI代写、事务练习",
+      "summary": "分开记录实现/运行与学员理解，用预测、解释、改写迁移验证",
+      "limit": "课程事实源课前必读；案例训练不改学员成绩；catch不必然提交"
+    }
+  ]
+}

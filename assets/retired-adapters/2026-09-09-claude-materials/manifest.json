@@ -1,0 +1,32 @@
+[
+  {
+    "source": "/Users/dongdeming/.claude/CLAUDE.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/CLAUDE.md",
+    "sha256": "1754ebf9c9be6a720dfb397aa3862c065a7c171044e442f8fd42e988e15db1b1"
+  },
+  {
+    "source": "/Users/dongdeming/.claude/agents/image-reader.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/agents/image-reader.md",
+    "sha256": "b853661abf60b45551c9865d58780ddcae5fddfc9229c6421c7ce9f573ae0a21"
+  },
+  {
+    "source": "/Users/dongdeming/.claude/commands/vanke:merge-to-test-and-deploy.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/commands/vanke:merge-to-test-and-deploy.md",
+    "sha256": "08ba64df3f28d6e43d44d1b198146da9a0b74eac3247d5042962b991b0e1ecc9"
+  },
+  {
+    "source": "/Users/dongdeming/.claude/memory/MEMORY.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/memory/MEMORY.md",
+    "sha256": "276610a3db8f7c597850a866119a9dca5ee1870aea254a5e386c761bb4a3a194"
+  },
+  {
+    "source": "/Users/dongdeming/.claude/memory/state-vs-computed.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/memory/state-vs-computed.md",
+    "sha256": "3216686ed02be21ec62dceb6bcc5f6a02f17568c632ef1928b579e41bfafc4e6"
+  },
+  {
+    "source": "/Users/dongdeming/.claude/memory/image-parsing-rule.md",
+    "archive": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/assets/retired-adapters/2026-09-09-claude-materials/memory/image-parsing-rule.md",
+    "sha256": "645c0c82ecbace9b56e454c488f69f868ad2a57328d9ae1c4bdb4605cf47c3e7"
+  }
+]
