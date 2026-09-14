@@ -13,6 +13,7 @@
 使用 inbox/session-events 的原任务文件；相关证据可以链接到项目，不搬运敏感数据。
 最少记录：id、created_at、source、request、scope、sensitivity、requested_outcome、level、owner、实际执行者、consult（无则 none）、验收条件、status、outcome、evidence、remaining、next_action。
 状态：planned → running → verified；缺少必要环境或证据为 blocked 或 partial。实现、验证、发布分别记录。verified 仅表示约定范围验收通过，不暗示已发布；设计/评估任务按其交付范围验收，无须实施才完成。
+2026-09-14：登记待执行使用 queued（兼容旧 planned）；running 必须关联真实执行回执与开始时间。增加 cancelled/failed 终态；取消不是失败验收，也不要求生成知识。临时任务工具的 completed 只表示收口，verified 仍需验收证据。最小运行指标自动记录时间戳，人工时间/费用不可观测保持 unknown；清理规则见 TASK_LIFECYCLE.md。
 evidence 指向可读产物和检查结果，记录版本/时间、检查范围与限制。只有计划、agent 自述、文件数量或 build 通过，不足以证明完整功能通过。报告数量不用于反推真实交付数量。
 
 ## 多人协作

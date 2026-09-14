@@ -26,6 +26,10 @@ required_files=(
   skills/project-company-binding.template.md
   memory/PROJECT_MEMORY_POLICY.md
   scripts/resolve-model-learning-request.mjs
+  TASK_LIFECYCLE.md
+  scripts/task-lifecycle.mjs
+  SUPERVISION_POLICY.md
+  scripts/supervisor-runtime.mjs
 )
 
 required_dirs=(employees knowledge skills memory inbox schedule)

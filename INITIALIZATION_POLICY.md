@@ -12,7 +12,7 @@
 
 1. 任何声称由 Ted 公司接管的任务，必须先解析公司根目录并通过完整性检查，然后才可路由、创建员工智能体或读取公司知识。
 2. 公司根目录优先取环境变量 `AI_VIRTUAL_COMPANY_ROOT`；未设置时，才使用当前系统的 iCloud 默认位置。持久化规则、知识和模板不得写死某台电脑的用户名或绝对路径。
-3. 初始化至少加载 `AGENTS.md`、`COMPANY.md`、`ROUTER.md`、`PROJECT_BINDING_POLICY.md`、`MEMORY_POLICY.md` 和 `LEARNING_POLICY.md`，并完整读取 `KNOWLEDGE_POLICY.md`（知识读取与摘要边界）；交付、度量与评测时分别读取 `DELIVERY_POLICY.md`、`METRICS_POLICY.md`、`EVALUATION_POLICY.md`。并确认 `employees/`、`knowledge/`、`skills/`、`memory/`、`inbox/`、`schedule/` 存在。
+3. 初始化完整加载 `AGENTS.md`、`COMPANY.md`、`ROUTER.md`、`MEMORY_POLICY.md`、`KNOWLEDGE_POLICY.md`。项目绑定新增、迁移或状态不明确时读取 `PROJECT_BINDING_POLICY.md`；学习、模型资源百分比请求时读取 `LEARNING_POLICY.md` 并先解析，禁止以模型偏好代替真实指定。临时任务创建、恢复、取消与清理时读取 `TASK_LIFECYCLE.md`。交付、度量与评测时分别读取 `DELIVERY_POLICY.md`、`METRICS_POLICY.md`、`EVALUATION_POLICY.md`。条件读取不取消授权边界：外部写入须有用户授权、未知绑定不得声称已生效、未知模型不得声称已满足下限、无回执不得声称已执行。bootstrap 仍检查所有事实源完整性，并确认 `employees/`、`knowledge/`、`skills/`、`memory/`、`inbox/`、`schedule/` 存在；tmp 按需创建。
 4. 初始化失败时必须停止声称公司已接管，明确报告缺失文件、路径或同步状态；不得退化为编辑某个平台的全局规则副本，也不得把适配器当作公司规则源。
 5. 公司规则变更必须先写入公司目录中的事实源，再按需更新项目绑定或平台适配器。禁止只修改 `~/.codex/AGENTS.md`、项目根 `AGENTS.md` 或其他生成副本后宣称公司规则已更新。
 6. 迁移不得携带密钥、Token、密码、账号会话、机器绝对路径或平台私有缓存。凭据只在新设备通过环境变量或平台安全存储重新配置。
@@ -49,4 +49,5 @@ employees/ROSTER.txt 是当前岗位ID清单，新增/退役岗位须同步COMPA
 完整性检查增加EVALUATION_RUNBOOK.md、KNOWLEDGE_MAINTENANCE.md及两份操作模板存在性；仅在对应评测/维护任务读取全文，不向每个小任务额外注入。新入口由ROUTER触发，更新后用新上下文验证发现与授权边界，不等于已验证后台自治运行。
 
 ## 模型资源学习触发入口（2026-09-13）
+2026-09-14：明确监督、预算或多执行者请求按需完整读取 `SUPERVISION_POLICY.md`；全员、名单和单人均可指定任务预算，不再只匹配全员关键词。bootstrap 新增监督政策和执行工具存在性检查。该检查不证明后台或模型通道可用。
 `LEARNING_POLICY.md` 是员工模型资源关键词、默认异步调度、显式模型和共享额度验收的事实源；`scripts/resolve-model-learning-request.mjs` 是其确定性解析入口。bootstrap 必须确认该脚本存在。平台适配器不得要求用户重复写“并行”，不得把预算文字当作模型已选择，也不得在目标模型通道不可用时继承其他模型后继续执行。
