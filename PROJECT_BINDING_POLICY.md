@@ -19,6 +19,11 @@ The owner’s standing authorisation covers all current and future project-assoc
 4. Cross-domain, high-impact or ambiguous work is escalated to Chief of Staff.
 5. The final outcome records the owner(s), decision, collaboration synthesis and durable memory candidate.
 
+## Binding and intake are separate signals
+- A conversation shown inside a project and started with that project's binding instruction is **project-bound**. It is not an escaped or global conversation merely because an inbox event cannot yet be found.
+- An inbox event or brief proves the routing audit trail, not the platform's project association. Its absence is an `intake_record_missing` governance gap: request or create the minimal record before treating the task as fully auditable.
+- Reserve `unbound_session` (and user-facing “逃逸会话”) for a conversation whose project association or binding-instruction activation is absent or cannot be verified. Do not use that label for a bound conversation with a missing routing record.
+
 ## Platform boundary
 - **Codex bound projects:** supported through project instructions, subject to the project carrying the binding file.
 - **Codex global default:** a company-routing guard may be installed in the current user's `~/.codex/AGENTS.md`. It is a platform adapter, not a company source of truth. Its activation in a fresh project session must be verified before universal coverage is claimed; project-level binding remains authoritative.
