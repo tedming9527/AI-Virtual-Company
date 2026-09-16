@@ -10,14 +10,14 @@
 - 不按文件数量或代码行数机械分级。一行权限变更也可能是 L；十个纯文本更名可为 S。执行发现风险升高时升级。
 
 ## 单一任务记录
-使用 inbox/session-events 的原任务文件；相关证据可以链接到项目，不搬运敏感数据。
-最少记录：id、created_at、source、request、scope、sensitivity、requested_outcome、level、owner、实际执行者、consult（无则 none）、验收条件、status、outcome、evidence、remaining、next_action。
+M/L、可恢复持续任务、多人协作、外部动作或需保留证据的任务使用 inbox/session-events 的原任务文件；S 级与只读任务使用本轮简报，升级时再创建或更新同一事件。相关证据可以链接到项目，不搬运敏感数据。
+最少记录：id、created_at、source、request、scope、sensitivity、requested_outcome、level、owner、实际执行者、consult（无则 none）、验收条件、status、outcome、evidence、remaining、next_action。对 M/L 任务及任何显式列出咨询角色的任务，还须记录 `consult_status`、`consult_question`、`consult_evidence` 与 `consult_disposition`；未发生实际咨询时写 `consult: none`，不能以岗位名称替代证据。
 状态：planned → running → verified；缺少必要环境或证据为 blocked 或 partial。实现、验证、发布分别记录。verified 仅表示约定范围验收通过，不暗示已发布；设计/评估任务按其交付范围验收，无须实施才完成。
 2026-09-14：登记待执行使用 queued（兼容旧 planned）；running 必须关联真实执行回执与开始时间。增加 cancelled/failed 终态；取消不是失败验收，也不要求生成知识。临时任务工具的 completed 只表示收口，verified 仍需验收证据。最小运行指标自动记录时间戳，人工时间/费用不可观测保持 unknown；清理规则见 TASK_LIFECYCLE.md。
 evidence 指向可读产物和检查结果，记录版本/时间、检查范围与限制。只有计划、agent 自述、文件数量或 build 通过，不足以证明完整功能通过。报告数量不用于反推真实交付数量。
 
 ## 多人协作
-先明确输入、输出、文件归属、共享契约和集成负责人。共享文件串行修改或隔离后由主责集成；各分支通过不等于集成版本通过。顾问需提供实际审查发现和处置结果，主责整合后交付。
+先明确输入、输出、文件归属、共享契约和集成负责人。共享文件串行修改或隔离后由主责集成；各分支通过不等于集成版本通过。顾问需提供实际审查发现和处置结果，主责整合后交付。每位协作者的输入必须可定位到交接记录、评审意见、测试证据或明确的书面结论；无法定位的角色不计入实际协作，也不得出现在“已评审/已确认”的交付描述中。
 资料定位、实现与审查按当前平台可用模型和用户下限选择；小任务不为匹配模型名称强制增加智能体。记录真实模型，未知用 unknown；不得按账号共享额度推算个人消耗。
 
 ## 证据与改善

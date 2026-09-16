@@ -1,0 +1,16 @@
+# 知识变更/修复单
+- issue_id / task_id / created_at：frontend-page-architecture-visual-validation / 2026-09-16 / 2026-09-16T10:21:00+08:00
+- owner / actual_executor / reviewer（自审注明，未参与写none）：周启明 · 体验工程官（Frontend Engineer） / Codex 当前会话 / 自审
+- trigger：用户要求沉淀独立页面开发中的复盘经验
+- affected_ids / inbound_references / policy_dependencies：新条目；无既有入链；MEMORY_POLICY.md、KNOWLEDGE_POLICY.md、KNOWLEDGE_MAINTENANCE.md
+- source_version / source_hash / observed_evidence：PAGE_ARCHITECTURE.md sha256:f1d9adf88b5cdbb89a43bedeade043a75cabba1e30b833dd99d3fb5e84fe1c2e；一次真实页面迁移的用户反馈、设计实例核验与定向路由入口测试；未形成设计师实际交接
+- authority：用户明确授权将本次开发经验写入前端工程师记忆知识库；不修改最高规则、项目业务逻辑或其他岗位知识
+- validity_action：candidate，待结构与目录哈希校验后发布
+- proposed_change / why_not_other_alternatives：新增设计师实际介入门槛；不把可咨询角色视为已协作，因角色声明不构成协作证据
+- preserved_before / proposed_after / concurrent_change_check：旧知识文件保留；新增 PAGE_ARCHITECTURE.md 与 MEMORY 目录项；写入前已读取现有前端知识目录与详情
+- adoption_example / rejection_example：Figma/UI 任务先取得设计师节点、尺寸、状态和验收交接；拒绝未形成设计师产物却登记其已协作
+- structural_checks / semantic_review / runtime_scope：单条知识结构与哈希检查通过；自审；不宣称长期生产效果
+- decision / updated_index_and_hash / published_status：目录与哈希已更新；candidate
+- rollback_scope / residual_risks / next_review_trigger：仅本次新增的经验卡和目录项；一次复盘证据有限；下一个同类独立页任务复核
+- repair_round / stop_reason：1 / 用户授权的知识沉淀完成后收口
+- reuse_result：unknown

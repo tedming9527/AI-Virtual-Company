@@ -24,6 +24,7 @@ required_files=(
   templates/TASK_CLOSEOUT.md
   employees/ROSTER.txt
   skills/project-company-binding.template.md
+  skills/ASSET_REGISTRY.md
   memory/PROJECT_MEMORY_POLICY.md
   scripts/resolve-model-learning-request.mjs
   TASK_LIFECYCLE.md

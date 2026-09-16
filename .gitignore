@@ -1,2 +1,5 @@
-# Local execution state, process output and recoverable task scratch space.
+# Ephemeral execution state, process output and recoverable task scratch space.
 /tmp/
+/logs/
+*.tmp
+*.swp

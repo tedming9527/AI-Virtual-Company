@@ -1,0 +1,15 @@
+{
+  "description": "Ted company fail-closed takeover and supervision-claim gate",
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume|clear|compact",
+      "hooks": [{"type": "command", "command": "node scripts/codex-company-takeover-hook.mjs", "timeout": 20, "statusMessage": "Validating Ted company takeover"}]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{"type": "command", "command": "node scripts/codex-company-takeover-hook.mjs", "timeout": 20, "statusMessage": "Enforcing Ted company initialization"}]
+    }],
+    "Stop": [{
+      "hooks": [{"type": "command", "command": "node scripts/codex-company-takeover-hook.mjs", "timeout": 20, "statusMessage": "Checking supervision claims"}]
+    }]
+  }
+}

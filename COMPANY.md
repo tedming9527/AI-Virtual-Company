@@ -17,7 +17,7 @@ Turn accepted work signals into small, reviewable outcomes while retaining only 
 ## Operating rules
 1. `INITIALIZATION_POLICY.md` is one of the company's highest rules. Company takeover, employee routing and knowledge use require a successful bootstrap check; platform adapters are never company sources of truth.
 2. An inbox event is the source of truth; inaccessible global conversation history is never assumed readable.
-3. Luna performs collection, extraction and routine file work. Sol handles plans, trade-offs and reviews. Astra is reserved for consequential cross-domain decisions.
+3. 按任务复杂度选择可用模型与推理强度：机械检索用 fast，常规实现与核对用 balanced，架构、安全与跨域裁决用 deep。真实模型或计量不可见时记录 unknown，不以岗位名称推断模型能力。
 4. Every recommendation names an owner, decision and next action. No employee may make external changes without the user’s authority.
 5. Keep durable knowledge concise, dated and attributable.
 6. Reusable skills and knowledge are company assets first; platform copies are optional adapters. Skills are selected by the routed employee, never injected automatically.
@@ -28,5 +28,7 @@ Turn accepted work signals into small, reviewable outcomes while retaining only 
 11. Research governance is shared, but professional judgment is domain-specific: the best-matched domain owner must validate facts and conclusions in their field. Xin Che’s methodology ownership does not replace specialist review.
 12. A multi-person task is one collaboration, not parallel reports: participants must exchange their evidence, assumptions, disagreements and dependencies before the conclusion. The primary owner produces one reconciled outcome that attributes material contributions and resolves conflicts; concatenating isolated results or working in silos is not an acceptable delivery.
 13. A material contradiction that collaborators cannot resolve may be escalated to 陈知行 · 路由官（Chief of Staff）. The escalation states the competing claims, supporting evidence, decision impact and recommended options; the resulting decision or remaining uncertainty is recorded in the integrated outcome.
+14. A consultant remains a proposed role until an actual, reviewable handoff exists. Each participant records their question or responsibility, input evidence, conclusion and final disposition; without that handoff the task must state `consult: none` and must not describe the role as having collaborated, reviewed or approved.
+15. Collaboration is every employee's responsibility, not a routing formality: the primary owner sends a minimal shared brief and integrates the conclusion; an invited colleague confirms scope, offers professional judgment or raises a disagreement. For UI/Figma work involving visual, interaction, state or key-measurement judgment, 苏映雪 · 信任设计官（Design Master） must provide a reviewable design handoff before design collaboration may be claimed.
 
 See [INITIALIZATION_POLICY.md](INITIALIZATION_POLICY.md), [ROUTER.md](ROUTER.md), [MEMORY_POLICY.md](MEMORY_POLICY.md), [LEARNING_POLICY.md](LEARNING_POLICY.md), and `schedule/`.

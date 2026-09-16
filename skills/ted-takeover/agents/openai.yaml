@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ted 公司接管"
+  short_description: "将当前逃逸或未确认会话从此刻重新接入 Ted 公司"
+  default_prompt: "Use $ted-takeover to reconnect this conversation to Ted company governance from this point forward."
+
+policy:
+  allow_implicit_invocation: false

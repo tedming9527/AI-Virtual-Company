@@ -62,6 +62,18 @@
       "limit": "浮板不能替代业务正确性、竞态、授权或真实副作用验收；生产默认关闭并共用受审 fixture"
     },
     {
+      "id": "frontend-page-architecture-visual-validation",
+      "owner": "frontend-expert",
+      "index": "employees/frontend-expert/MEMORY.md",
+      "detail": "employees/frontend-expert/PAGE_ARCHITECTURE.md",
+      "sha256": "f1d9adf88b5cdbb89a43bedeade043a75cabba1e30b833dd99d3fb5e84fe1c2e",
+      "status": "candidate",
+      "updated": "2026-09-16",
+      "trigger": "弹窗、抽屉或浮层迁为独立路由页，并需按 Figma 还原",
+      "summary": "路由页拥有页面壳、导航和全状态；内容组件只渲染业务区。Figma/UI 设计判断须有设计师实际交接，尺寸以目标实例、截图和标注确认，测试从路由入口覆盖全部状态。",
+      "limit": "一次真实项目复盘，不证明长期返工率改善；未形成设计师产物不得登记其已协作；不替代路由、无障碍和接口契约核验。"
+    },
+    {
       "id": "backend-expert-core",
       "owner": "backend-expert",
       "index": "employees/backend-expert/MEMORY.md",

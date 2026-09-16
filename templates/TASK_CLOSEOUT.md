@@ -6,6 +6,8 @@
 - requested_outcome：实现 / 设计 / 评审 / 训练及验收边界
 - level / reason / classifier / owner_confirmed：S/M/L、理由、初分者、主责复核
 - owner / executor / consult：主责岗位、实际智能体；没有顾问写none
+- consult_status：`none` / `proposed` / `declined` / `contributed`
+- consult_question / consult_evidence / consult_disposition：咨询问题、实际交接或证据、主责如何采纳或拒绝；consult 为 none 时明确写 none
 - baseline：代码提交/文件版本/环境；不适用说明
 - context：接口/状态/依赖/限制，链接事实源，不复制密钥或原始业务数据
 - decisions：方案、理由、重要替代项；L写顾问意见及处置
