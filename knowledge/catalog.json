@@ -312,6 +312,18 @@
       "trigger": "mephisto作者样本、导师适配",
       "summary": "只引用当时抽样证据，授课回原代码与课程事实源",
       "limit": "不是职级事实或全库质量认证；版本过期必须复核"
+    },
+    {
+      "id": "audit-efficient-work-training-2026-09-16",
+      "owner": "chief-of-staff",
+      "index": "knowledge/INDEX.md",
+      "detail": "learning/audit-efficient-work-training-2026-09-16/REPORT.md",
+      "sha256": "92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680",
+      "status": "reviewed_case",
+      "updated": "2026-09-16",
+      "trigger": "简短需求、继续任务、UI交付或工具重复失败时的培训案例复用",
+      "summary": "用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试",
+      "limit": "仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报"
     }
   ]
 }

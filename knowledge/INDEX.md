@@ -37,3 +37,9 @@
 - 详情：[2026-09-09-mephisto-author-review.md](2026-09-09-mephisto-author-review.md)；sha256:1d9d0c3cbb497486a8cdeae998f0eef8bf154fb3c4e681feb42738f13ae1746d。
 
 岗位知识按 employees/<role>/MEMORY.md 定向检索；治理与安全必读规则不受本目录状态影响。
+
+## audit-efficient-work-training-2026-09-16 · 审计后的效率培训
+- 触发：简短需求、继续任务、UI交付或工具重复失败时的培训案例复用。
+- 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
+- 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
+- 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
