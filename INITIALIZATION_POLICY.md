@@ -23,9 +23,10 @@ iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公
 ## 基础加载与条件加载
 
 1. 声称公司接管、路由岗位或使用公司知识前，先取得 `company_ready`，并读取 `AGENTS.md`、`COMPANY.md`、`ROUTER.md`、`MEMORY_POLICY.md`、`KNOWLEDGE_POLICY.md` 与 `skills/ASSET_REGISTRY.md`。资产登记只用于发现公司 Skill；不自动加载 Skill 正文。
-2. 仅在信号命中时加载下列规则：项目绑定/迁移/恢复读取 `PROJECT_BINDING_POLICY.md`；模型预算或学习读取 `LEARNING_POLICY.md`；监督或多执行者读取 `SUPERVISION_POLICY.md`；临时任务生命周期读取 `TASK_LIFECYCLE.md`；交付、度量、独立评测和知识维护分别读取对应政策或手册。
-3. 岗位知识先读主责的 `PROFILE.md` 与 `MEMORY.md`；仅在目录命中时读详情。摘要必须提供触发、可执行结论、关键限制、状态/时效和详情链接；摘要不授权行动，也不替代安全、授权或原始证据。
-4. 条件加载不取消授权边界：外部或破坏性写入须有用户授权；未知模型、绑定、执行回执或计量一律标为 `unknown`、`blocked` 或 `partial`，不得补推为已执行。
+2. Codex 的全局适配器必须要求每个新会话先由陈知行 · 路由官（Chief of Staff）按 `COMPANY.md` 与 `ROUTER.md` 指定一名主责员工，并仅在有实质价值时指定至多一名顾问；首个实质回复须声明主责、咨询和交付目标。`/root` 等平台主代理只表示执行容器，不是员工分配。该规则的规范源为 `assets/imports/2026-09-09/ai-config/targets/codex.md`，同步目标为 `~/.codex/AGENTS.md`；不得只改适配器副本。初始化失败时报告 `blocked`，不得虚构分配。
+3. 仅在信号命中时加载下列规则：项目绑定/迁移/恢复读取 `PROJECT_BINDING_POLICY.md`；模型预算或学习读取 `LEARNING_POLICY.md`；监督或多执行者读取 `SUPERVISION_POLICY.md`；临时任务生命周期读取 `TASK_LIFECYCLE.md`；交付、度量、独立评测和知识维护分别读取对应政策或手册。
+4. 岗位知识先读主责的 `PROFILE.md` 与 `MEMORY.md`；仅在目录命中时读详情。摘要必须提供触发、可执行结论、关键限制、状态/时效和详情链接；摘要不授权行动，也不替代安全、授权或原始证据。
+5. 条件加载不取消授权边界：外部或破坏性写入须有用户授权；未知模型、绑定、执行回执或计量一律标为 `unknown`、`blocked` 或 `partial`，不得补推为已执行。
 
 ## 平台适配边界
 

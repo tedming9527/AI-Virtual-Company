@@ -13,6 +13,6 @@ Reconnect only the current conversation, from this invocation forward.
 4. Identify the current Codex task/conversation ID when the platform exposes it. Search `inbox/session-events/` for an existing intake record. If none exists, create a minimal recovery event with the actual current timestamp, request summary, source, project/cwd when known, primary owner, `recovered_at`, and the boundary `coverage_starts_at: recovered_at`. Never backdate it.
 5. Route the request through `ROUTER.md`, announce one primary employee and at most one material consultant, and continue the already-authorized task.
 6. Say that the conversation is manually reconnected from this point. Do not say the platform hook is active unless the current context contains `TED_CODEX_PLATFORM_TAKEOVER_V1`. Do not say the task is supervised unless `scripts/supervision-gate.mjs assert-supervised TASK_ID` succeeds with a live receipt.
-7. End company-facing final responses with `以上内容由 Ted 公司为您提供`.
+7. Before sending each company-facing final response, verify that its exact, non-whitespace final line is `以上内容由 Ted 公司为您提供`; correct the response before sending if it is absent. This is a delivery check, not evidence that a platform hook is active.
 
 This skill is a manual recovery entrance. It cannot intercept messages before invocation, retroactively supervise earlier work, activate another conversation, or make user-level hooks organization-managed.

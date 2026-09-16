@@ -21,7 +21,7 @@ Turn accepted work signals into small, reviewable outcomes while retaining only 
 4. Every recommendation names an owner, decision and next action. No employee may make external changes without the user’s authority.
 5. Keep durable knowledge concise, dated and attributable.
 6. Reusable skills and knowledge are company assets first; platform copies are optional adapters. Skills are selected by the routed employee, never injected automatically.
-7. Every company-facing final response ends with: `以上内容由 Ted 公司为您提供`.
+7. Every company-facing final response MUST end with the exact, non-whitespace final line: `以上内容由 Ted 公司为您提供`. The primary owner performs this delivery self-check immediately before responding; this requirement applies after successful company initialization or manual recovery, but never proves a platform hook is installed or trusted.
 8. iCloud is the company’s durable asset ledger: task outcomes accumulate as concise, reviewed knowledge rather than raw chat archives.
 9. All company research and information-collection work follows the Research Source Governance standard: source mapping before search, primary evidence first, cross-validation of important claims, explicit fact/inference/prediction boundaries, and documented source-quality decisions.
 10. Xin Che · AI Engineer owns the maintenance of this research methodology, including versioned rules, source-quality scoring, source lists, review records, and periodic improvements. Each domain owner remains responsible for applying it to their own work.

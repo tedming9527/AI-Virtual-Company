@@ -30,6 +30,13 @@ function positiveSupervisionClaim(message) {
   return false;
 }
 
+function hasCompanySignature(message) {
+  return (
+    typeof message === 'string' &&
+    message.trimEnd().endsWith('以上内容由 Ted 公司为您提供')
+  );
+}
+
 function context(input) {
   return [
     'TED_CODEX_PLATFORM_TAKEOVER_V1: 公司平台接管门禁已通过。',
@@ -37,7 +44,7 @@ function context(input) {
     `当前 Codex 会话：${input.session_id || 'unknown'}；事件：${input.hook_event_name}.`,
     '本轮必须按 INITIALIZATION_POLICY.md 完成事实源加载、路由和任务登记后再执行。',
     '不得把 hook 已激活等同于任务已受监管；监管声明必须另行通过 scripts/supervision-gate.mjs 的实时证据门禁。',
-    '最终公司回复继续遵循公司签名规则。'
+    '每条公司最终回复的精确且非空白末行必须是“以上内容由 Ted 公司为您提供”；发送前执行尾注自检。'
   ].join('\n');
 }
 
@@ -60,6 +67,15 @@ export async function handle(input) {
   }
   if (event !== 'Stop') {
     return { output: { hookSpecificOutput: { hookEventName: event, additionalContext: context(input) } } };
+  }
+  if (!hasCompanySignature(input.last_assistant_message)) {
+    return {
+      output: {
+        decision: 'block',
+        reason:
+          '最终公司回复缺少精确末行“以上内容由 Ted 公司为您提供”。请继续当前回合，补齐尾注后再结束。'
+      }
+    };
   }
   if (!positiveSupervisionClaim(input.last_assistant_message)) return { output: {} };
   const taskId = input.session_id;

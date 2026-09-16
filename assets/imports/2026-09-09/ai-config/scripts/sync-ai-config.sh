@@ -6,7 +6,7 @@ config_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
 shared_rules="$config_root/AI_RULES.md"
 
 claude_home=${CLAUDE_CONFIG_HOME:-"$HOME/.claude"}
-codex_home=${CODEX_CONFIG_HOME:-"$HOME/.Codex"}
+codex_home=${CODEX_CONFIG_HOME:-"$HOME/.codex"}
 
 generate_target() {
   target_name=$1
