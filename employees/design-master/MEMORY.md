@@ -17,3 +17,10 @@
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
 - 原文版本：sha256:777c42704fdcd4d7c88f9a5d7463db5ab55ae29a5f507b58955b4825b5856713。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：首次介入项目设计、组件改造或跨页面交互时。
+- 摘要：先识别设计系统、已有交互模式、内容层级和无障碍约束，再决定是否新增视觉或组件模式。
+- 限制：地图不替代目标 Figma 实例、用户研究或交互验收。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

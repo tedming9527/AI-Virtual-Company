@@ -17,3 +17,10 @@
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
 - 原文版本：sha256:73e93cb41c0c47be8d0d622a848a4c30bb0ff3dae3630de119ccb8b267c1a6da。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：陌生项目、跨模块任务或可能复用既有资产时。
+- 摘要：先明确目标、依赖、资产与所有权，再路由和安排相称验证；不以任务卡代替项目事实。
+- 限制：只映射目标链路；未知项保持 unknown，不能凭岗位或项目名补推。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

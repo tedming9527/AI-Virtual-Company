@@ -2,6 +2,18 @@
   "version": 1,
   "entries": [
     {
+      "id": "project-context-first-delivery",
+      "owner": "chief-of-staff",
+      "index": "knowledge/INDEX.md",
+      "detail": "knowledge/project-context-first-delivery.md",
+      "sha256": "8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4",
+      "status": "candidate",
+      "updated": "2026-09-16",
+      "trigger": "首次介入陌生项目、跨模块改动或可能复用既有资产时",
+      "summary": "先建立与目标相连的入口、边界、通用资产、契约、验证与 unknown 地图；优先复用，再新增抽象",
+      "limit": "仅为 candidate；不是全库阅读，不替代用户需求、实时系统事实、权限或生产验证"
+    },
+    {
       "id": "chief-of-staff-core",
       "owner": "chief-of-staff",
       "index": "employees/chief-of-staff/MEMORY.md",
@@ -72,6 +84,30 @@
       "trigger": "弹窗、抽屉或浮层迁为独立路由页，并需按 Figma 还原",
       "summary": "路由页拥有页面壳、导航和全状态；内容组件只渲染业务区。Figma/UI 设计判断须有设计师实际交接，尺寸以目标实例、截图和标注确认，测试从路由入口覆盖全部状态。",
       "limit": "一次真实项目复盘，不证明长期返工率改善；未形成设计师产物不得登记其已协作；不替代路由、无障碍和接口契约核验。"
+    },
+    {
+      "id": "frontend-project-architecture-discovery",
+      "owner": "frontend-expert",
+      "index": "employees/frontend-expert/MEMORY.md",
+      "detail": "employees/frontend-expert/PROJECT_DISCOVERY.md",
+      "sha256": "d1bebfdd85ceb8dd61b2b33d134069e1f1ad4d51a2bfb127355904dacfd8f8c7",
+      "status": "candidate",
+      "updated": "2026-09-16",
+      "trigger": "首次介入陌生项目，或改动涉及路由、页面结构、通用组件、共享逻辑、样式、构建或测试约定",
+      "summary": "先定向绘制入口、路由/layout、通用组件、状态/请求、样式和验证链路；优先复用现有边界，再新增抽象",
+      "limit": "只读目标链路，不全库加载；架构地图不替代需求、接口、设计和真实运行验收；未确认项保持 unknown"
+    },
+    {
+      "id": "frontend-framework-aware-delivery",
+      "owner": "frontend-expert",
+      "index": "employees/frontend-expert/MEMORY.md",
+      "detail": "employees/frontend-expert/EXTERNAL_SKILL_LEARNING.md",
+      "sha256": "0fecd8c4dae4e8869cbab57be95acec1b0f5d86997335327aedba787ca59e1da",
+      "status": "candidate",
+      "updated": "2026-09-16",
+      "trigger": "React/Next 陌生项目的跨页面改动、性能/可访问性审查、通用组件或共享状态的改造",
+      "summary": "先复用项目入口、路由、状态/请求层和设计系统；再审查状态完整性、可访问性、响应式、性能与渲染验证，避免平行组件和未测量优化",
+      "limit": "外部 Skill 不替代目标项目的框架版本、业务接口、设计和真实性能证据；非 React/Next 项目重新判断适用性"
     },
     {
       "id": "backend-expert-core",

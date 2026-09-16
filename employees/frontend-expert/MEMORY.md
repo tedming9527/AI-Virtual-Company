@@ -32,3 +32,26 @@
 - 限制：一次真实项目复盘，不证明长期返工率改善；未形成设计师产物不得登记其已协作；不替代路由、无障碍和接口契约核验。
 - 状态：candidate；更新时间：2026-09-16；详情：[PAGE_ARCHITECTURE.md](PAGE_ARCHITECTURE.md)。
 - 原文版本：sha256:f1d9adf88b5cdbb89a43bedeade043a75cabba1e30b833dd99d3fb5e84fe1c2e。
+
+## frontend-project-architecture-discovery · 项目介入前的架构地图
+
+- 触发：首次介入陌生项目，或改动涉及路由、页面结构、通用组件、共享逻辑、样式、构建或测试约定。
+- 摘要：先定向绘制入口、路由/layout、通用组件、状态/请求、样式和验证链路；优先复用现有边界，再新增抽象。
+- 限制：只读目标链路，不全库加载；架构地图不替代需求、接口、设计和真实运行验收；未确认项保持 unknown。
+- 状态：candidate；更新时间：2026-09-16；详情：[PROJECT_DISCOVERY.md](PROJECT_DISCOVERY.md)。
+- 原文版本：sha256:d1bebfdd85ceb8dd61b2b33d134069e1f1ad4d51a2bfb127355904dacfd8f8c7；漂移或反例须回原文复核。
+
+## frontend-framework-aware-delivery · 框架与系统一致性
+
+- 触发：React/Next 陌生项目的跨页面改动、性能/可访问性审查、通用组件或共享状态的改造。
+- 摘要：先复用项目入口、路由、状态/请求层和设计系统；再审查状态完整性、可访问性、响应式、性能与渲染验证，避免平行组件和未测量优化。
+- 限制：外部 Skill 不替代目标项目的框架版本、业务接口、设计和真实性能证据；非 React/Next 项目重新判断适用性。
+- 状态：candidate；更新时间：2026-09-16；详情：[EXTERNAL_SKILL_LEARNING.md](EXTERNAL_SKILL_LEARNING.md)。
+- 原文版本：sha256:0fecd8c4dae4e8869cbab57be95acec1b0f5d86997335327aedba787ca59e1da；外部来源变化或项目反例须回原文复核。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：跨模块前端改动，或需与服务、设计、测试共同理解项目边界时。
+- 摘要：将入口、路由、组件、状态/请求、样式与验证地图置于公司共用项目上下文中，优先复用既有资产。
+- 限制：前端地图仍须回到目标框架、接口、Figma 与实际渲染验证。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

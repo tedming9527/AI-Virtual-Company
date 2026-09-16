@@ -17,3 +17,10 @@
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
 - 原文版本：sha256:8530d64d823c968f33a8f2b6e153e8d8c56974d724d05ed38bef18742a9199fb。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：介入陌生项目的验收、回归、可靠性或评测任务时。
+- 摘要：先识别关键链路、状态矩阵、现有测试层次、mock 边界和可观察证据，再选择验证策略。
+- 限制：测试地图不替代真实接口、数据、权限或生产环境证据。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

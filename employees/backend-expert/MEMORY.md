@@ -17,3 +17,10 @@
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
 - 原文版本：sha256:4c712f28b498c119af14b31dd1ece6d77f3743614730e79b07548a57418c8f24。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：首次改动服务、接口、数据模型或跨系统流程时。
+- 摘要：先追踪调用链、数据契约、鉴权、事务/幂等边界与现有服务资产，再实现局部变更。
+- 限制：静态地图不证明真实数据或远端行为；接口与权限仍须现场核验。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

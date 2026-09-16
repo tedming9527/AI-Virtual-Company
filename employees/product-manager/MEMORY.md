@@ -17,3 +17,10 @@
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
 - 原文版本：sha256:7ddd668dde87d8104d512481b00ff0c5dcd8f88a05e813ca58ecb2c671536860。
+
+## project-context-first-delivery · 项目上下文优先交付
+
+- 触发：进入陌生项目、跨页面需求或指标可能受系统边界影响时。
+- 摘要：先定位用户旅程、现有流程、成功指标、约束与可复用能力，再定义需求范围。
+- 限制：地图不替代用户研究、指标证据或业务授权；未知保持 unknown。
+- 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。

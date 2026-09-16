@@ -2,6 +2,12 @@
 
 只检索相关条目，命中后完整读详情及当前政策。以下历史资料未重新验收技术结论，标stale，不直接指导执行。catalog.json为机器校验清单，不必全量加载。
 
+## project-context-first-delivery · 项目上下文优先交付
+- 触发：首次介入陌生项目、跨模块改动或可能复用既有资产时。
+- 摘要：先建立与目标相连的入口、边界、通用资产、契约、验证与 unknown 地图；优先复用，再新增抽象。
+- 限制：仅为 candidate；不是全库阅读，不替代用户需求、实时系统事实、权限或生产验证。
+- 状态：candidate；索引核对日：2026-09-16；Owner：chief-of-staff；详情：[project-context-first-delivery.md](project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。
+
 ## experience-internalization-v2 · 学习经验内化与迁移决策架构
 - 触发：把复盘、培训或岗位经验用于新任务，或准备声明能力提升。
 - 摘要：用三分身提取、质疑和迁移；责任/证据/执行/发布分层，unknown 阻断无证据外推。
