@@ -20,7 +20,7 @@ Owner：沈砚舟 · 后端培训导师（资深后端架构师）
 | Java/Spring 与 SQL | unknown | 课程方向，不是独立能力证据 | low | 完成一条纵向业务链并通过真实持久层验收 |
 | 事务、并发与可靠性 | unknown | 尚无归档观测 | low | 处理一个失败路径或并发反例并解释最终状态 |
 | 测试、证据与故障定位 | unknown | 尚无归档观测 | low | 独立选择相称测试并定位一次非预设失败 |
-| AI、Skill 与工具协作 | unknown | 本次仅提出治理目标 | low | 在真实任务中记录工具选择、复核与纠错行为 |
+| AI、Skill 与工具协作 | 一次可归属的证据边界判断；稳定能力仍未建立 | 用户明确改为分项证据展示与用户最终判断；实现与审计均由 AI/员工完成 | low | 在未见工具评估任务中独立定义证据、风险和淘汰决策，并复核真实结果 |
 | 业务理解、沟通与交付 | unknown | 尚无归档观测 | low | 在真实任务中完成决策说明、验收和复盘 |
 
 ## 观测记录
@@ -149,6 +149,47 @@ Owner：沈砚舟 · 后端培训导师（资深后端架构师）
 - review_status：`incorporated`
 - supersedes：无
 
+### 2026-09-19 · 薪资与学习计划审计修订
+
+- observation_id：`2026-09-19-career-dashboard-audit-v3`
+- task_ref：`2026-09-19-career-dashboard`
+- task_level：L
+- result_scope：默认隐藏的三档求职报价实验、四步法工程改编、D0/D+2/D+7 复盘、服务端验证闸门、稳定语义阶段迁移和 D1 集成测试
+- attribution：`ai_or_employee_done`（AI 审计角色与沈砚舟完成方案、代码、测试及发布；不计为用户本人后端或 AI 能力）
+- user_preference：敏感薪资默认隐藏；学习指导需要理论依据、可执行任务和专业审计，审计问题先修复再优化
+- capability_effect：`no_evidence`；站点和计划改进不提升用户个人能力，后续以用户亲自完成、解释、运行和未见变体为准
+- market_value_boundary：个人市场价值仍为 `unknown`；20–24K、25–29K、30–34K 只是低置信度分批投递报价实验
+- evidence_refs：`output/2026-09-19-career-market-and-learning-plan.md`、`memory/projects/2026-09-19-career-dashboard.md`、Sites 版本 4
+- observer：沈砚舟 · 后端培训导师（资深后端架构师）
+- review_status：`incorporated`
+- supersedes：本文件同日“深圳首轮低置信度基线”中“尚不生成任何区间”的执行表达；不 supersede 个人价值 `unknown` 结论
+
+### 2026-09-19 · AI 工具雷达证据边界调整
+
+- observation_id：`2026-09-19-ai-capability-tool-radar-user-judgment`
+- task_ref：`2026-09-19-ai-capability-tool-radar`
+- observed_at：2026-09-19
+- task_level：L
+- domain_and_risk：AI/Skill/工具协作、产品决策边界与安全证据表达；错误合并热度、身份和安全信号可能误导工具采用
+- user_goal：不再要求系统自动证明发布者身份或自动给出可靠/安全结论；由系统展示可核验证据标签，用户保留最终判断
+- user_actions：用户明确把最终可靠性判断收回到人工决策，并要求展示 GitHub stars/forks、npm 对应证据以及病毒/安全检测标签
+- initial_judgment：早期范围要求系统自动证明发布者身份并给出可靠/安全结论
+- assistance_level：`light_prompt`（用户在收到独立审计失败及其问题边界后主动调整目标；具体实现由 AI/员工完成）
+- revision_process：将单一可靠/安全结论修订为分项证据展示，要求热度、维护、身份、供应链、已知漏洞和恶意代码扫描分别表达，不把关注度或 provenance 当作安全认证
+- result_scope：需求与判断边界；不包含用户本人完成的 Schema、校验器、采集、审计、测试、扫描或发布
+- evidence_refs：`inbox/session-events/2026-09-19-ai-capability-tool-radar.md` 的“v3 用户判断模式”及“v3 审计终态”
+- evidence_level：任务事件中的用户明确指示摘要；AI/员工实现与审计结果仅作为触发上下文，不归因给用户
+- attribution：`user`（仅限目标修订、证据分层要求和最终判断责任）
+- capability_signals：能在审计暴露自动判定边界后调整人机责任；能要求把流行度、来源关联、供应链实践、已知漏洞与恶意代码扫描拆成不同证据，避免把代理指标包装成安全结论
+- capability_gaps：尚未观察用户独立验证标签来源、定义数据契约、判断具体工具风险、执行扫描、定位绕过或完成发布门禁
+- unknown：该判断能否迁移到未见工具或真实工件；用户能否识别过期、版本错配、扫描覆盖不足和伪阳性/漏报；独立技术实现能力
+- market_relevance：对 AI 应用全栈岗位中的人机边界、证据表达与风险沟通有相关性；单次判断不足以改变岗位级别或薪资结论，不触发市场价值重估
+- confidence：medium（用户指示与修订边界清晰；仅有一个任务且原始实现、审计和测试均非用户完成）
+- privacy_redactions：无职业能力无关信息
+- observer：沈砚舟 · 后端培训导师（资深后端架构师）
+- review_status：`incorporated`
+- supersedes：无；仅新增单次观测，不覆盖其他维度的 `unknown`
+
 ## 市场价值记录
 
 ### 2026-09-19 · 深圳首轮低置信度基线
@@ -159,5 +200,5 @@ Owner：沈砚舟 · 后端培训导师（资深后端架构师）
 - 候选岗位卡：BOSS 月薪中位数约 24K，业务型全栈约 21.3K，AI 应用/Agent 约 36.3K；猎聘约 35K，但样本结构偏中高端、猎头和专家岗，两者不得直接合并。
 - 官方校准：深圳“计算机程序设计员”历史税前年工资 P25/P50/P75/P90 为 14.56/21.57/29.22/37.57 万元；调查期为 2024 年，不是当前岗位报价。
 - 用户证据上限：12 年前端、交易链路和配置化组件为用户自述；后端、AI、自动化测试、部署和运行证据不足。
-- 当前结论：职业路线可暂定为“Java/Spring 业务全栈主线 + AI 应用辅线”，但个人推荐薪资保持 `unknown`。达到 100 个正式有效样本并取得个人端到端验收与真实投递反馈后再生成保守/目标/冲刺区间。
+- 当前结论：职业路线可暂定为“Java/Spring 业务全栈主线 + AI 应用辅线”，个人市场价值与正式推荐薪资保持 `unknown`。可用 20–24K / 25–29K / 30–34K 三档做低置信度分批投递实验，但不得当作 Offer 预测。达到 100 个正式有效样本、三个方向各不少于 20 条，并取得个人端到端验收与真实投递/面试反馈后，才生成正式推荐。
 - 置信度与失效：low；候选岗位卡 30 天后需重采，官方工资基准按年度替换。

@@ -8,7 +8,7 @@
 - 限制：课程事实源课前必读；案例训练不改学员成绩；catch不必然提交。
 - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:c8950dc8e4749d3fa056b9554c61d14d4faf85e3ae6b3471a34e15dd84043603；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:12b4f5c776d8d0b1c41f64e95adf22553e34844b620a8d432ad1431d02edb18e；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## backend-training-architect-vanke-critical-distillation · Vanke 后端链路评审
 - 触发：Vanke后端代码学习、跨系统金额或可靠任务评审。
@@ -16,7 +16,7 @@
 - 限制：仅对应本地静态代码快照；未跑测试/数据库/外部系统，业务与财务口径须回事实源。
 - 状态：reviewed_case；更新时间：2026-09-13；真实运行效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；完整证据见 [学习产物](../../learning/2026-09-13-vanke-backend-project-distillation.md)。
-- 原文版本：sha256:c8950dc8e4749d3fa056b9554c61d14d4faf85e3ae6b3471a34e15dd84043603；远端、DDL或接口契约变化时回源码复核。
+- 原文版本：sha256:12b4f5c776d8d0b1c41f64e95adf22553e34844b620a8d432ad1431d02edb18e；远端、DDL或接口契约变化时回源码复核。
 
 ## backend-training-architect-experience-transfer · 学习迁移能力门禁
 - 触发：把课程案例、导师答案或迁移题用于学员能力判断。
@@ -24,7 +24,7 @@
 - 限制：仅为 reviewed_case；真实代码回归、业务阈值和学员行为证据未完成。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:c8950dc8e4749d3fa056b9554c61d14d4faf85e3ae6b3471a34e15dd84043603。
+- 原文版本：sha256:12b4f5c776d8d0b1c41f64e95adf22553e34844b620a8d432ad1431d02edb18e。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -46,3 +46,10 @@
 - 限制：静态审查和受指导案例不等于学员独立生产能力；代码、数据库、外部契约或课程事实变化时重新取证，返工改善效果仍为 unknown。
 - 置信度：medium；案例、迁移题与独立语义复核通过，学员前瞻表现和预测效度仍未验证。
 - 状态：reviewed_case；更新时间：2026-09-18；详情：[真实项目五段式后端教学](REAL_PROJECT_FIVE_STAGE_TEACHING.md)；sha256:3f369e360441fb3fe9b2f751136fd618feb79b7973904a46cbdbe02e8a565498。
+
+## backend-training-four-step-engineering-loop · 四步法工程学习闭环
+
+- 触发：陌生后端/Agent学习任务，或进度勾选准备升级为能力证据
+- 摘要：四步法配合D0/D+2/D+7、渐隐示例与未见变体；服务端只接受标准阶段全集和非空证据
+- 限制：仅为 reviewed_case；站点测试与发布不证明学员已掌握，固定间隔需按表现调整。
+- 状态：reviewed_case；更新时间：2026-09-19；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；sha256:12b4f5c776d8d0b1c41f64e95adf22553e34844b620a8d432ad1431d02edb18e。
