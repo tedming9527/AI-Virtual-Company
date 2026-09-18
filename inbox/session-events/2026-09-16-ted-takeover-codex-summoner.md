@@ -2,7 +2,7 @@ id: 2026-09-16-ted-takeover-codex-summoner
 created_at: 2026-09-16T10:21:00+08:00
 source: codex
 request: Manually reconnect the current Codex conversation to AI-Virtual-Company through the ted-takeover skill.
-scope: /Users/dongdeming/Documents/vanke/daojia/summoner
+scope: $VANKE_WORKSPACE_ROOT/daojia/summoner
 sensitivity: internal
 requested_outcome: company intake and routing
 primary_owner: 陈知行 · 路由官（Chief of Staff）

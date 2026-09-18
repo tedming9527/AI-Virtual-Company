@@ -4,30 +4,30 @@ Owner：沈砚舟。状态对应本次接手，不自动表示学员已掌握。
 
 ## 已研读核心包
 
-- [13-后端课程教学策略与迭代记录.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/13-后端课程教学策略与迭代记录.md>)
-- [00-阅读指南与勘误.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/00-阅读指南与勘误.md>)
-- [10-进度.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/10-进度.md>)
-- [20-教学策略.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/20-教学策略.md>)
-- [21-课程大纲.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/21-课程大纲.md>)
-- [11-专题学习路径.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/11-专题学习路径.md>)
-- [99-教学日志.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/99-教学日志.md>)
-- [01-交易域锚定案例包-回调重复到达.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/01-交易域锚定案例包-回调重复到达.md>)
-- [02-退款域锚定案例包-ING卡三天.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/02-退款域锚定案例包-ING卡三天.md>)
-- [03-退款工单处置一页纸.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/03-退款工单处置一页纸.md>)
-- [04-项目生态与项目关系.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/04-项目生态与项目关系.md>)
-- [05-Baal后台页面地图一页纸.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/05-Baal后台页面地图一页纸.md>)
-- [06-闭卷事实代码仲裁卡.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/06-闭卷事实代码仲裁卡.md>)
-- [07-灵工生态与take-list工作台.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/07-灵工生态与take-list工作台.md>)
-- [08-功能点项目地图.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/08-功能点项目地图.md>)
-- [09-研选工单全流程与按钮状态机.md](</Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/09-研选工单全流程与按钮状态机.md>)
+- 13-后端课程教学策略与迭代记录.md（`$MEPHISTO_ANALYSIS_ROOT/13-后端课程教学策略与迭代记录.md`）
+- 00-阅读指南与勘误.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/00-阅读指南与勘误.md`）
+- 10-进度.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/10-进度.md`）
+- 20-教学策略.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/20-教学策略.md`）
+- 21-课程大纲.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/21-课程大纲.md`）
+- 11-专题学习路径.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/11-专题学习路径.md`）
+- 99-教学日志.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/99-教学日志.md`）
+- 01-交易域锚定案例包-回调重复到达.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/01-交易域锚定案例包-回调重复到达.md`）
+- 02-退款域锚定案例包-ING卡三天.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/02-退款域锚定案例包-ING卡三天.md`）
+- 03-退款工单处置一页纸.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/03-退款工单处置一页纸.md`）
+- 04-项目生态与项目关系.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/04-项目生态与项目关系.md`）
+- 05-Baal后台页面地图一页纸.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/05-Baal后台页面地图一页纸.md`）
+- 06-闭卷事实代码仲裁卡.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/06-闭卷事实代码仲裁卡.md`）
+- 07-灵工生态与take-list工作台.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/07-灵工生态与take-list工作台.md`）
+- 08-功能点项目地图.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/08-功能点项目地图.md`）
+- 09-研选工单全流程与按钮状态机.md（`$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/09-研选工单全流程与按钮状态机.md`）
 
 ## 每次授课必须更新的事实源
 
-- 编码进度：`/Users/dongdeming/Documents/ted-projects/ai-branch/spring-test-web/docs/learning/PROGRESS.md`。
+- 编码进度：`$TED_PROJECTS_ROOT/ai-branch/spring-test-web/docs/learning/PROGRESS.md`。
 - 编码策略：同目录 `TEACHING_STRATEGY.md`。
-- 实际实现：`/Users/dongdeming/Documents/ted-projects/ai-branch/spring-test-web/src/main/java/org/example/springtestweb/category/`。
-- 参考业务源码：`/Users/dongdeming/Documents/vanke/daojia/mephisto`。
-- 研选可读源码：`/Users/dongdeming/Documents/vanke/daojia/yanxuan-blacksam`。
+- 实际实现：`$TED_PROJECTS_ROOT/ai-branch/spring-test-web/src/main/java/org/example/springtestweb/category/`。
+- 参考业务源码：`$VANKE_WORKSPACE_ROOT/daojia/mephisto`。
+- 研选可读源码：`$VANKE_WORKSPACE_ROOT/daojia/yanxuan-blacksam`。
 
 ## 已接手的作者分析
 

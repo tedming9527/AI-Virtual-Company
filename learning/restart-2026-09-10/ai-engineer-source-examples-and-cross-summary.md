@@ -9,7 +9,7 @@
 - 标题：从模型能力到工作流
 - 日期：原始发布日期：未知（内部素材未标注）
 - 来源：本地内部素材文件
-- 来源路径：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/docs/learning/2026-09-10-individual-learning-plans.md`
+- 来源路径：`$AI_VIRTUAL_COMPANY_ROOT/docs/learning/2026-09-10-individual-learning-plans.md`
 - 结论：将“能力边界+可复用模板”作为发布前判断框架。
 - 来源标注：上述本地材料用于课程复盘，不等同于外部时效资讯。
 
@@ -17,7 +17,7 @@
 - 标题：提示词复用模板
 - 日期：原始发布日期：未知（内部素材未标注）
 - 来源：本地会议内沉淀条目
-- 来源路径：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/learning/restart-2026-09-10/frontend-checklist.md`
+- 来源路径：`$AI_VIRTUAL_COMPANY_ROOT/learning/restart-2026-09-10/frontend-checklist.md`
 - 结论：先定义问题与验收，再调用模型可降低返工率。
 - 来源标注：本地课程沉淀文档，不构成外部新闻事实。
 
@@ -25,7 +25,7 @@
 - 标题：10 天归档规则实验草稿
 - 日期：原始发布日期：未知（内部素材未标注）
 - 来源：页面文案与迁移题草案
-- 来源路径：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/app/page.tsx`
+- 来源路径：`$AI_VIRTUAL_COMPANY_ROOT/app/page.tsx`
 - 结论：规则应从文案转为后端判定函数并统一闭区间计算。
 - 来源标注：来自内部前端页面与课程设计文案。
 
@@ -40,7 +40,7 @@
 
 ## 基于研读收获（3条）
 1. 目前 AI 示例必须区分“课程内部素材”与“外部最新资讯”，避免误导后续发布。
-2. 所有来源都应给出本地绝对路径，便于复现与追责。
+2. 所有来源都应给出仓库相对路径或受控逻辑路径，具体机器映射不进入共享资料。
 3. 结论需与页面事实一致，不得凭空填充未标注日期。
 
 ## 给其他岗位的问题与基于产物的回答

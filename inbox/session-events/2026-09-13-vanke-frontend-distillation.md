@@ -3,7 +3,7 @@ id: 2026-09-13-vanke-frontend-distillation
 created_at: 2026-09-13T00:00:00+08:00
 source: codex
 request: 前端工程师优先蒸馏 /vanke 下的前端项目，学习可复用的代码经验
-scope: /Users/dongdeming/Documents/vanke（只读分析）与公司学习知识库（产物写入）
+scope: $VANKE_WORKSPACE_ROOT（只读分析）与公司学习知识库（产物写入）
 sensitivity: internal
 requested_outcome: research
 level: S

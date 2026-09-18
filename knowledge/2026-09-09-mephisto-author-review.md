@@ -7,7 +7,7 @@
 
 ## 范围与可信度
 
-- 仓库：`/Users/dongdeming/Documents/vanke/daojia/mephisto`。本次没有同步或评价旁边两个仓库，不能把结果推广到团队所有系统。
+- 仓库：`$VANKE_WORKSPACE_ROOT/daojia/mephisto`。本次没有同步或评价旁边两个仓库，不能把结果推广到团队所有系统。
 - 已从 GitHub 获取最新 main，基线 `bdb5dc31fa89d2cfdffea06321afc0aea2d8eb8f`，提交时间 2026-09-03 18:09:20 +08:00。
 - 原工作区干净，位于 master。现切换到 `codex/main-author-study-20260909`，从 origin/main 创建并跟踪它。没有改业务代码、提交或推送；本报告保存在仓库外。
 - 核心观察窗口为 2026-07-09 00:00:00 至 2026-09-09 23:59:59，时区 Asia/Shanghai；检查 main 可达的非 merge 提交，结合当前实现、父提交差异、测试和更早历史。
@@ -50,17 +50,17 @@
 
 **最有价值的三个样本：**
 
-1. `696c1b46f / a9b962657 / ea8c4dff8`：组合商品基础模型、编写生命周期、订单权益与履约。看 [BundleOrderServiceImpl.java:164](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/goods/bundle/service/impl/BundleOrderServiceImpl.java:164)，理解为什么商品当前配置不能直接代表旧订单购买时的价格、费率和组件。购买时冻结快照，把“现在卖什么”和“当时承诺了什么”分开。
-2. `6e2875e05`：取消后重新预约的结算尾差。看 [金额分配:637](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/goods/bundle/service/impl/BundleOrderServiceImpl.java:637)。剩余金额依据冻结总额减去有效服务单已分配金额计算，不能只按次数机械乘单价。这里值得学的是金额守恒和撤销后的重算依据。
-3. `6b0ebb951`：历史结算修复支持 dry-run，并对已有结算流水作限制。看 [BundleSettlementHistoryRepairServiceImpl.java:97](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/settle/service/impl/BundleSettlementHistoryRepairServiceImpl.java:97)。这是“知道什么时候不能直接更新数据库”的设计信号。
+1. `696c1b46f / a9b962657 / ea8c4dff8`：组合商品基础模型、编写生命周期、订单权益与履约。看 BundleOrderServiceImpl.java:164（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/goods/bundle/service/impl/BundleOrderServiceImpl.java:164`），理解为什么商品当前配置不能直接代表旧订单购买时的价格、费率和组件。购买时冻结快照，把“现在卖什么”和“当时承诺了什么”分开。
+2. `6e2875e05`：取消后重新预约的结算尾差。看 金额分配:637（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/goods/bundle/service/impl/BundleOrderServiceImpl.java:637`）。剩余金额依据冻结总额减去有效服务单已分配金额计算，不能只按次数机械乘单价。这里值得学的是金额守恒和撤销后的重算依据。
+3. `6b0ebb951`：历史结算修复支持 dry-run，并对已有结算流水作限制。看 BundleSettlementHistoryRepairServiceImpl.java:97（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/settle/service/impl/BundleSettlementHistoryRepairServiceImpl.java:97`）。这是“知道什么时候不能直接更新数据库”的设计信号。
 
 更早的 `d563d54ef / c708a0d83`（2026-05）已涉及宠物档案与订单快照，说明快照区分并非只在7月出现；仍不据此推断每个方案独立完成。
 
 **常用技术：**Spring事务、MyBatis/MyBatis-Plus、乐观锁版本和条件更新、唯一约束、BigDecimal分摊、枚举与业务错误、JUnit/Mockito、Mapper集成测试、设计与接口文档。
 
-**明确局限：**`65de05062` 修改当前退款算法后，[实际实现:140](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/handler/OrderAfterSaleHandler.java:140)调用 `calculateUsedAmount()`；[现存测试:43](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/test/java/com/vanke/maintain/order/handler/OrderAfterSaleHandlerBundleRefundTest.java:43)仍模拟 `calculateRemainingRefundAmount()` 并期待与当前执行不一致的结果。静态可以确认脱节，本次没有运行测试，因此不报告执行失败数量。
+**明确局限：**`65de05062` 修改当前退款算法后，实际实现:140（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/handler/OrderAfterSaleHandler.java:140`）调用 `calculateUsedAmount()`；现存测试:43（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/test/java/com/vanke/maintain/order/handler/OrderAfterSaleHandlerBundleRefundTest.java:43`）仍模拟 `calculateRemainingRefundAmount()` 并期待与当前执行不一致的结果。静态可以确认脱节，本次没有运行测试，因此不报告执行失败数量。
 
-测试中有真实数据库用例，例如 [权益Mapper集成测试:48](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/test/java/com/vanke/maintain/goods/bundle/mapper/OrderBundleEntitlementMapperIntegrationTest.java:48)，覆盖自增ID与重复唯一键；也有SQL字符串和模拟对象检查。前者的顺序重复插入仍不能替代两个独立事务同时操作的并发证据。
+测试中有真实数据库用例，例如 权益Mapper集成测试:48（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/test/java/com/vanke/maintain/goods/bundle/mapper/OrderBundleEntitlementMapperIntegrationTest.java:48`），覆盖自增ID与重复唯一键；也有SQL字符串和模拟对象检查。前者的顺序重复插入仍不能替代两个独立事务同时操作的并发证据。
 
 **跟学顺序：**商品配置→订单快照→权益次数→预约扣减与取消归还→金额分摊→历史修复。最值得问：“商品涨价以后旧订单为什么不能跟着变？两人争最后一次权益怎么办？取消重约后尾差落在哪里？哪类结算记录绝不能直接回刷？”
 
@@ -70,18 +70,18 @@
 
 **最有价值的样本：**
 
-- `99ff98b69` 等7月9日七个提交是方案演进，尚非Java实现。它们区分商品配置、订单有效期快照、卫星表与定时阶段。真正落库可看 `2fdb1f44e` 及 [有效期创建:105](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:105)。
-- `44e35367b` 把有效期校验和落库从提交后监听改进下单事务，见 [调用点:2542](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ServiceOrderServiceImpl.java:2542)。这值得你学习“校验必须发生在什么时间，才真能阻止错误订单”。
-- `86967aedb` 停止按当前商品配置补算历史无快照订单，见 [resolveExpireTime:154](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:154)。这体现新规则与旧数据的兼容边界。
-- `0c10d8913` 的改派流程重新读取订单、校验候选人，再使用条件SQL并检查影响行数，见 [Service:58](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterItemOrderReassignServiceImpl.java:58)和 [Mapper XML:6075](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/mapper/ServiceOrderItemMapper.xml:6075)。前端传来的旧状态不能作为最终依据。
+- `99ff98b69` 等7月9日七个提交是方案演进，尚非Java实现。它们区分商品配置、订单有效期快照、卫星表与定时阶段。真正落库可看 `2fdb1f44e` 及 有效期创建:105（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:105`）。
+- `44e35367b` 把有效期校验和落库从提交后监听改进下单事务，见 调用点:2542（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ServiceOrderServiceImpl.java:2542`）。这值得你学习“校验必须发生在什么时间，才真能阻止错误订单”。
+- `86967aedb` 停止按当前商品配置补算历史无快照订单，见 resolveExpireTime:154（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:154`）。这体现新规则与旧数据的兼容边界。
+- `0c10d8913` 的改派流程重新读取订单、校验候选人，再使用条件SQL并检查影响行数，见 Service:58（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterItemOrderReassignServiceImpl.java:58`）和 Mapper XML:6075（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/mapper/ServiceOrderItemMapper.xml:6075`）。前端传来的旧状态不能作为最终依据。
 
 **常用技术：**日期与配置、状态枚举、Mapper条件更新、Spring事务、XXL-JOB扫描、公共Handler复用、审计记录和Mockito分支测试。
 
 **三个值得试讲的真实边界：**
 
-1. [自动售后:409](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:409)先调用另一服务的事务方法创建售后，再更新有效期卫星表，外层编排未形成覆盖两步的事务。若前一步提交而后一步失败，下轮可能因主订单已有进行中售后而跳过；自动同意任务又依赖卫星表的 `AFTER_SALE_CREATED`。这条任务链存在自行恢复的缺口，不等于已证实线上事故。
-2. [通知发送:349](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/OrderSendMessageImpl.java:349)捕获异常后返回，[调用方:352](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:352)继续标记提醒完成。发送失败与业务成功之间缺少可靠反馈。
-3. `3db721b66` 撤掉批量到期日查询的用户归属条件。[当前接口:545](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/controller/ServiceOrderController.java:545)检查登录，但局部查询只按订单ID。若无外部数据权限约束，存在跨用户查询订单到期日的边界问题；不能扩大为整个系统无鉴权。
+1. 自动售后:409（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:409`）先调用另一服务的事务方法创建售后，再更新有效期卫星表，外层编排未形成覆盖两步的事务。若前一步提交而后一步失败，下轮可能因主订单已有进行中售后而跳过；自动同意任务又依赖卫星表的 `AFTER_SALE_CREATED`。这条任务链存在自行恢复的缺口，不等于已证实线上事故。
+2. 通知发送:349（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/OrderSendMessageImpl.java:349`）捕获异常后返回，调用方:352（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/WaterOrderValidityServiceImpl.java:352`）继续标记提醒完成。发送失败与业务成功之间缺少可靠反馈。
+3. `3db721b66` 撤掉批量到期日查询的用户归属条件。当前接口:545（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/controller/ServiceOrderController.java:545`）检查登录，但局部查询只按订单ID。若无外部数据权限约束，存在跨用户查询订单到期日的边界问题；不能扩大为整个系统无鉴权。
 
 需要公平评价：没有确认他的重点链路存在“同类自调用导致整条事务失效”。下单的外层入口已有事务，内部调用可以沿用；真正要分析的是事务覆盖范围。不要看到私有方法就机械判错。
 
@@ -95,18 +95,18 @@
 
 **最适合你精读的样本：**
 
-- `6dd63285c → 780606bf9`：第三方接单时，哪些情况下保留原供应商，哪些标准供应商可替换。看 [ItemOrderServiceImpl.java:7707](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ItemOrderServiceImpl.java:7707)。学习的是来源、归属和例外矩阵，不只是几个if。
-- `431e8d667`：支付回调按支付记录原本绑定的加价单处理，不能按当前“最新加价单”推断。看 [回调关联:3664](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ItemOrderServiceImpl.java:3664)。这是异步请求必须依赖稳定业务身份的好例子。
-- `77305b65c` 与更早 `e8248b734`：商品变更前做快照，金额用 `compareTo` 判断实际变化，事务提交后再通知外部商城。见 [快照:49](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsKeyFieldChangeSnapshot.java:49)、[通知登记:1136](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsServiceImpl.java:1136)。这里与已学的afterCommit有直接联系。
-- `1817a3ed1`：朴里节循环链接分配使用Redis WATCH/MULTI/EXEC及有限重试，见 [PuliSilverUvServiceImpl.java:82](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/puli/service/impl/PuliSilverUvServiceImpl.java:82)。展示与实际点击分开，配置缺失时用户信息有兜底。适合从前端事件过渡到后端共享状态。
+- `6dd63285c → 780606bf9`：第三方接单时，哪些情况下保留原供应商，哪些标准供应商可替换。看 ItemOrderServiceImpl.java:7707（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ItemOrderServiceImpl.java:7707`）。学习的是来源、归属和例外矩阵，不只是几个if。
+- `431e8d667`：支付回调按支付记录原本绑定的加价单处理，不能按当前“最新加价单”推断。看 回调关联:3664（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/ItemOrderServiceImpl.java:3664`）。这是异步请求必须依赖稳定业务身份的好例子。
+- `77305b65c` 与更早 `e8248b734`：商品变更前做快照，金额用 `compareTo` 判断实际变化，事务提交后再通知外部商城。见 快照:49（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsKeyFieldChangeSnapshot.java:49`）、通知登记:1136（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsServiceImpl.java:1136`）。这里与已学的afterCommit有直接联系。
+- `1817a3ed1`：朴里节循环链接分配使用Redis WATCH/MULTI/EXEC及有限重试，见 PuliSilverUvServiceImpl.java:82（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/puli/service/impl/PuliSilverUvServiceImpl.java:82`）。展示与实际点击分开，配置缺失时用户信息有兜底。适合从前端事件过渡到后端共享状态。
 
-更早 `d1bb84cee`（2026-06）部分退款按累计应退减之前应退处理积分取整，见 [CloudPointPaymentServiceImpl.java:391](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/CloudPointPaymentServiceImpl.java:391)。学习时以当前规则为准，不能把被恢复的历史积分比例当作现行口径。
+更早 `d1bb84cee`（2026-06）部分退款按累计应退减之前应退处理积分取整，见 CloudPointPaymentServiceImpl.java:391（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/order/service/impl/CloudPointPaymentServiceImpl.java:391`）。学习时以当前规则为准，不能把被恢复的历史积分比例当作现行口径。
 
 **常用技术：**HTTP/SDK、外部字段适配、登录上下文、配置解析、Spring事务与afterCommit、Redis事务、BigDecimal、Mockito/反射局部回归。
 
-**明确局限：**[商品通知:1172](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsServiceImpl.java:1172)目前调用HTTP后记录成功日志、异常只记日志，未见该路径持久化待发送记录或解析业务成功结果。afterCommit能把通知推迟到提交后，但不能保障提交后崩溃、网络失败时一定补发。这个区别非常值得你学。
+**明确局限：**商品通知:1172（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/goods/service/impl/GoodsServiceImpl.java:1172`）目前调用HTTP后记录成功日志、异常只记日志，未见该路径持久化待发送记录或解析业务成功结果。afterCommit能把通知推迟到提交后，但不能保障提交后崩溃、网络失败时一定补发。这个区别非常值得你学。
 
-测试中 [MemberOrderControllerTest.java:85](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/test/java/com/vanke/maintain/order/thirdapi/MemberOrderControllerTest.java:85)用两次新建的 `singletonList` 做 `assertSame`，引用比较本身不成立；另有Redis测试模拟EXEC冲突，尚不能证明真实双请求竞争。不能因为近期多次改测试就认定验证闭环完善。
+测试中 MemberOrderControllerTest.java:85（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/test/java/com/vanke/maintain/order/thirdapi/MemberOrderControllerTest.java:85`）用两次新建的 `singletonList` 做 `assertSame`，引用比较本身不成立；另有Redis测试模拟EXEC冲突，尚不能证明真实双请求竞争。不能因为近期多次改测试就认定验证闭环完善。
 
 **跟学顺序：**供应商归属→接口身份与配置兜底→回调关联→外部通知→部分退款。最值得问：“对方超时但实际已经成功怎么办？同一业务重试如何识别？为什么数据提交后通知仍可能丢？旧付款单迟到成功怎么办？”
 
@@ -116,15 +116,15 @@
 
 **跨时期可支持的强项：**
 
-- `70ddca6c0`（2025-05）从订单数据按人员、组织、月份统计承揽费指标，见 [ExclusiveHandlingFeeCalculateMapper.xml:7](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/mapper/ExclusiveHandlingFeeCalculateMapper.xml:7)。`5c1055f2f`（2025-08）同时调整SQL字段与回收率公式分母，体现数据口径和计算代码的联动。
-- [计算服务:81](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/impl/ExclusiveHandlingFeeCalculateServiceImpl.java:81)通过Spring获取服务Bean，再逐人调用事务方法。可以用来解释为什么单条失败不应回滚整批，以及为什么直接this调用不能产生新的代理增强。
-- `d06fe29ac → 45a143363` 的 [expireReward:1575](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/impl/EmployeeRewardServiceImpl.java:1575)在事务里锁记录、重新检查待确认状态、写EXPIRED状态和系统流程记录。相比仅扫描后直接更新，这具有明确的并发和审计意识。
+- `70ddca6c0`（2025-05）从订单数据按人员、组织、月份统计承揽费指标，见 ExclusiveHandlingFeeCalculateMapper.xml:7（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/mapper/ExclusiveHandlingFeeCalculateMapper.xml:7`）。`5c1055f2f`（2025-08）同时调整SQL字段与回收率公式分母，体现数据口径和计算代码的联动。
+- 计算服务:81（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/impl/ExclusiveHandlingFeeCalculateServiceImpl.java:81`）通过Spring获取服务Bean，再逐人调用事务方法。可以用来解释为什么单条失败不应回滚整批，以及为什么直接this调用不能产生新的代理增强。
+- `d06fe29ac → 45a143363` 的 expireReward:1575（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/impl/EmployeeRewardServiceImpl.java:1575`）在事务里锁记录、重新检查待确认状态、写EXPIRED状态和系统流程记录。相比仅扫描后直接更新，这具有明确的并发和审计意识。
 
 **常用技术：**MySQL聚合与JOIN、Java集合分组和日期换算、BigDecimal、配置化业务公式、Spring代理与事务、FOR UPDATE、XXL-JOB、流程枚举。
 
 **最需要追问的两个边界：**
 
-1. 历史专职激励任务 [EmployeeExclusiveRewardClearGenJob.java:104](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/job/EmployeeExclusiveRewardClearGenJob.java:104)分别执行企服与管家清分；下轮 [查询:896](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/mapper/EmployeeRewardMapper.xml:896)却只以企服侧 `has_gen_clear=false` 筛选。企服成功、管家失败后，这个任务会漏选需要补做管家的记录。是当前路径的恢复缺口，不是已经确认的线上漏账；底层两个清分服务也不能全归给同一作者。
+1. 历史专职激励任务 EmployeeExclusiveRewardClearGenJob.java:104（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/job/EmployeeExclusiveRewardClearGenJob.java:104`）分别执行企服与管家清分；下轮 查询:896（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/mapper/EmployeeRewardMapper.xml:896`）却只以企服侧 `has_gen_clear=false` 筛选。企服成功、管家失败后，这个任务会漏选需要补做管家的记录。是当前路径的恢复缺口，不是已经确认的线上漏账；底层两个清分服务也不能全归给同一作者。
 2. 月度计算可指定月份重跑，但可见代码每次生成新code并插入；若数据库没有员工、月份、组织等业务唯一约束，部分成功后重跑可能重复生成。必须查实际约束与业务补算语义，不能因为流水号唯一就认为任务幂等。查询JOIN也要确认关联表是否唯一，否则聚合可能放大，不能只凭SQL复杂就认定性能或准确性优秀。
 
 近期过期扫描另依赖 `is_scan_expired` 字段，已查源码未找到置位或迁移来源；需要核实上线数据准备。单批500条和逐条异常日志已有，但失败隔离、后续批次推进与调度失败汇总的证据不足。没有看到这些关键重跑和部分失败边界的自动化回归。
@@ -133,13 +133,13 @@
 
 ## 样本不足者和不应照搬的习惯
 
-`liangcx08_onewo` 的 `88331a56a` 把规则抽到 [HomeServiceBaseProfitPolicy.java:30](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/HomeServiceBaseProfitPolicy.java:30)，并有 [7个JUnit规则测试:17](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/test/java/com/vanke/maintain/employeereward/service/HomeServiceBaseProfitPolicyTest.java:17)。这是初学者很适合复刻的小样本，但只有一个近期提交，不能评综合水平，更不能排在他人前后。unknown与既有作者的别名关系需本人确认。
+`liangcx08_onewo` 的 `88331a56a` 把规则抽到 HomeServiceBaseProfitPolicy.java:30（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/employeereward/service/HomeServiceBaseProfitPolicy.java:30`），并有 7个JUnit规则测试:17（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/test/java/com/vanke/maintain/employeereward/service/HomeServiceBaseProfitPolicyTest.java:17`）。这是初学者很适合复刻的小样本，但只有一个近期提交，不能评综合水平，更不能排在他人前后。unknown与既有作者的别名关系需本人确认。
 
 不要照搬的共同习惯：用日志代替失败状态；用“加了事务”代替说明提交边界；用Mock证明真实回滚或竞争；规则变化后不检查旧文档和断言；用大Service和零散条件承接所有复杂性。上述问题的意义是为学习找到反例，不是从几处缺陷推断人的性格、责任心或完整能力。
 
 ## 这个仓库能教你什么
 
-它是一个 Spring Boot 部署应用，内部共存商品、订单、履约、供应商、结算、水业务、员工激励和外部集成。连接其他平台并不意味着每个业务包都是一个独立微服务。入口可核对 [Application.java](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/Application.java:12)。
+它是一个 Spring Boot 部署应用，内部共存商品、订单、履约、供应商、结算、水业务、员工激励和外部集成。连接其他平台并不意味着每个业务包都是一个独立微服务。入口可核对 Application.java（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/Application.java:12`）。
 
 ```mermaid
 flowchart TD
@@ -173,8 +173,8 @@ flowchart TD
 特别适合你补课的三个边界：
 
 1. **事务与外部调用边界。** 本地数据库回滚不会自动撤销外部已经接收的请求；需要用状态、幂等标识、查单和补偿处理。先拿一条真实链路解释，不急着背分布式事务名词。
-2. **主从读取边界。** [MasterSlaveRoutingPlugin.java](/Users/dongdeming/Documents/vanke/daojia/mephisto/src/main/java/com/vanke/maintain/sys/MasterSlaveRoutingPlugin.java:88) 对事务同步已开启、显式数据源和 `FOR UPDATE` 等路径作了特殊处理。这是旧基础设施代码，历史作者为陈炼，不归给本次四位活跃作者。它提醒你：读完刚写的数据、加锁读取和普通展示查询不能机械地采用同一读库策略。
-3. **部署与验证边界。** [.cicd-config-test.yml](/Users/dongdeming/Documents/vanke/daojia/mephisto/.cicd-config-test.yml:36) 当前跳过测试；[deployment.yaml](/Users/dongdeming/Documents/vanke/daojia/mephisto/chart/templates/deployment.yaml:109) 提供条件化健康检查模板。前者不能证明团队完全不测，后者不能证明生产已启用所有探针。要分清“代码支持”“配置启用”“运行成功”。
+2. **主从读取边界。** MasterSlaveRoutingPlugin.java（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/src/main/java/com/vanke/maintain/sys/MasterSlaveRoutingPlugin.java:88`） 对事务同步已开启、显式数据源和 `FOR UPDATE` 等路径作了特殊处理。这是旧基础设施代码，历史作者为陈炼，不归给本次四位活跃作者。它提醒你：读完刚写的数据、加锁读取和普通展示查询不能机械地采用同一读库策略。
+3. **部署与验证边界。** .cicd-config-test.yml（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/.cicd-config-test.yml:36`） 当前跳过测试；deployment.yaml（`$VANKE_WORKSPACE_ROOT/daojia/mephisto/chart/templates/deployment.yaml:109`） 提供条件化健康检查模板。前者不能证明团队完全不测，后者不能证明生产已启用所有探针。要分清“代码支持”“配置启用”“运行成功”。
 
 这是有历史积累的业务系统，不宜当作全部写法都标准的教材。例如当前两个核心订单Service分别约8974和8645行，说明阅读和修改成本较高，但不能据此把历史债务算到最后一位作者身上。你应学习如何用小范围测试、局部抽取和兼容迁移逐步改进。
 

@@ -2,7 +2,7 @@ id: 2026-09-16-project-picker-page
 created_at: 2026-09-16T10:21:00+08:00
 source: codex
 request: Convert the community picker from a modal to an independent page according to Figma node 488:157, and refresh project information after a selection.
-scope: /Users/dongdeming/Documents/vanke/daojia/summoner
+scope: $VANKE_WORKSPACE_ROOT/daojia/summoner
 sensitivity: internal
 requested_outcome: implementation
 level: M

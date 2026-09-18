@@ -3,97 +3,97 @@
   "scope": "核心研读来源；非全目录阅读声明",
   "sources": [
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/13-后端课程教学策略与迭代记录.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/13-后端课程教学策略与迭代记录.md",
       "sha256": "72ce9eb3525895b5433b0dff89b507e793257e446f1e192b3c03a345444f82c9",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/00-阅读指南与勘误.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/00-阅读指南与勘误.md",
       "sha256": "b1daccd38022aa996859095c4ffb82675bbced98f84de0467a44dbd97e5c120e",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/10-进度.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/10-进度.md",
       "sha256": "237e914a4c555e61df9bf5c947c2c203462af256c8e88929bfa54d2515aa64ed",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/20-教学策略.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/20-教学策略.md",
       "sha256": "57ffd57bfc8fc841887f83c82bba929ba00e25129b82d0fa50623683993e35ae",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/21-课程大纲.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/21-课程大纲.md",
       "sha256": "5b461194398b2c54c76fabfa1dbfbcfca89db0c4dd7da6ad0f4a934cfa05ef3b",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/11-专题学习路径.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/11-专题学习路径.md",
       "sha256": "8a43b6ea933c7cbd9112cfb831db3174ed48841f4bddc1366b0912b487860b49",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/99-教学日志.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/99-教学日志.md",
       "sha256": "6797a7bcd20b9ca69147336ef597c4ecb11523f62419686883aae935c1d4645d",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/01-交易域锚定案例包-回调重复到达.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/01-交易域锚定案例包-回调重复到达.md",
       "sha256": "69dadef38f09c288cfe43b56035520cb2ff429b8b0c2c8f398ff439d6f1bc942",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/02-退款域锚定案例包-ING卡三天.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/02-退款域锚定案例包-ING卡三天.md",
       "sha256": "4ef5a0e6419848994a6cb5c6b7f35ca21734ddc6b3f76e4173c2a9c3cc2a1127",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/03-退款工单处置一页纸.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/03-退款工单处置一页纸.md",
       "sha256": "f193c4fe107f388ad286dd579162897192866f3b9b461f98f6eb32c0fef8e4fb",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/04-项目生态与项目关系.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/04-项目生态与项目关系.md",
       "sha256": "cc3113844ea7a40c2a3320148cd642ae22bc4978f0460d49a168227e04bd77d1",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/05-Baal后台页面地图一页纸.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/05-Baal后台页面地图一页纸.md",
       "sha256": "ccf767ffb9a4a7ae6fecdd7ccc572df3b6591ad915a72e27d4b8e82e49a73726",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/06-闭卷事实代码仲裁卡.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/06-闭卷事实代码仲裁卡.md",
       "sha256": "bd382af37bb0f4e688ad27eab55f77ea4858104dc2bcd368321281101c60f047",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/07-灵工生态与take-list工作台.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/07-灵工生态与take-list工作台.md",
       "sha256": "e0f274a9953c52c7647e6077dc16d7ee7ae71322458312528accfb78b40ed920",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/08-功能点项目地图.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/08-功能点项目地图.md",
       "sha256": "f1a9dd8f6a09623b19df309b16494c4d53fbf23e56c687ee2cee404c20577071",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"
     },
     {
-      "path": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/mephisto解析/系统全景分析-2026-08-13/超级导师/50-教材/09-研选工单全流程与按钮状态机.md",
+      "path": "$MEPHISTO_ANALYSIS_ROOT/系统全景分析-2026-08-13/超级导师/50-教材/09-研选工单全流程与按钮状态机.md",
       "sha256": "b7b597f3631dadbc0151de17d5d602d865c07cc8fd5194e2a1c18a48521d1ca4",
       "reading": "core-read",
       "at": "2026-09-09T23:15:45+08:00"

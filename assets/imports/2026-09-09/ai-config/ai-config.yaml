@@ -14,7 +14,7 @@ targets:
     platform_appendix: targets/claude.md
   codex:
     enabled: true
-    output: "${CODEX_CONFIG_HOME:-$HOME/.Codex}/AGENTS.md"
+    output: "${CODEX_CONFIG_HOME:-$HOME/.codex}/AGENTS.md"
     platform_appendix: targets/codex.md
   cursor:
     enabled: false
@@ -38,7 +38,6 @@ platform_owned:
 
 portable_skills:
   - development-experience
-  - vanke-merge-to-test-and-deploy
   - java-code-explainer
   - react-scoped-styles
   - figma-reader

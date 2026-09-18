@@ -55,7 +55,6 @@ sync_skill() {
 
 for skill_name in \
   development-experience \
-  vanke-merge-to-test-and-deploy \
   java-code-explainer \
   react-scoped-styles \
   figma-reader \

@@ -3,7 +3,7 @@ id: 2026-09-13-vanke-backend-distillation
 created_at: 2026-09-13T09:59:43+08:00
 source: codex
 request: 后端工程师去蒸馏优先的 /vanke 下后端项目，学习其代码经验
-scope: /Users/dongdeming/Documents/vanke 下本地可读后端仓库；公司学习与知识沉淀目录
+scope: $VANKE_WORKSPACE_ROOT 下本地可读后端仓库；公司学习与知识沉淀目录
 sensitivity: internal
 requested_outcome: research
 level: M

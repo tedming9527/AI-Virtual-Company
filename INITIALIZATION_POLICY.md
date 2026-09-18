@@ -5,7 +5,7 @@
 
 ## 目标与事实源
 
-iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公司 Skill 的唯一事实源；平台指令、hook 和安装副本只是适配器。公司根目录优先取 `AI_VIRTUAL_COMPANY_ROOT`，未设置时才使用当前系统的 iCloud 默认位置。事实源、知识和模板不得写入机器用户名、绝对路径、凭据或平台会话。
+iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公司 Skill 的唯一事实源；平台指令、hook 和安装副本只是适配器。公司根目录优先取 `AI_VIRTUAL_COMPANY_ROOT`，未设置时才使用当前系统的 iCloud 默认位置。事实源、知识和模板不得写入机器用户名、绝对路径、凭据或平台会话。跨设备资料使用 `$AI_VIRTUAL_COMPANY_ROOT`、`$MEPHISTO_ANALYSIS_ROOT`、`$VANKE_WORKSPACE_ROOT`、`$TED_PROJECTS_ROOT`、`$CODEX_ARCHIVE_ROOT` 等逻辑路径；具体映射属于平台本地配置，未解析时保持 unavailable，不猜测路径。
 
 ## 四个独立状态
 

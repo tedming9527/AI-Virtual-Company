@@ -5,7 +5,7 @@
 实际执行者：Codex 子任务代理  
 模型：inherited（具体模型不可精确获知）  
 推理强度：inherited/unknown  
-范围：只读检查 `/Users/dongdeming/Documents/vanke`；未拉远端、未安装依赖、未修改仓库、未运行依赖型构建或测试。  
+范围：只读检查 `$VANKE_WORKSPACE_ROOT`；未拉远端、未安装依赖、未修改仓库、未运行依赖型构建或测试。
 结论状态：交叉复核后修订；静态代码蒸馏通过，运行时质量未验收。
 
 ## 1. 结论先行

@@ -3,7 +3,7 @@
 日期：2026-09-13  
 评审：顾清妍 · 质量测试工程师（Test Expert）  
 被复核产物：`learning/2026-09-13-vanke-frontend-code-distillation.md`  
-范围：只读复核 `/Users/dongdeming/Documents/vanke` 当前本地快照；未安装依赖、未运行项目测试/构建、未改动任何 `/vanke` 仓库。  
+范围：只读复核 `$VANKE_WORKSPACE_ROOT` 当前本地快照；未安装依赖、未运行项目测试/构建、未改动任何 `/vanke` 仓库。
 结论：**有条件通过，主责完成下列必须修订项后可作为“静态选择性学习指南”；当前版本不适合作为 23 个项目的精确质量排名或运行时质量证明。**
 
 ## 一、总判断

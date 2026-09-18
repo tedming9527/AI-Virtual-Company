@@ -7,7 +7,7 @@
 
 已在指定 GPT-5.3-Codex-Spark 任务中完成两轮研读与修订：8 个岗位学习卡、职责认识、问题与回答，以及网站代码检查。是同一 Spark 会话的岗位视角研讨，不代表 8 个独立代理或自然人发言。主会话陈知行进行了资料复核和额度核对。
 
-完整成果：[Spark 学习卡与问答](/Users/dongdeming/Documents/Codex/2026-09-09/referenced-chatgpt-conversation-this-is-an/docs/learning/2026-09-10-spark-all-hands.md)。该成果中的 7% 是执行期间快照，主会话在任务结束后查询到 10%；应以后者为本次最新观察。初稿中无依据的 58% 与逐岗数字已退回删除。无法逐人独立计量，不声称精确使用或锁定了各岗位 10% 硬限。
+完整成果：Spark 学习卡与问答（`$CODEX_ARCHIVE_ROOT/2026-09-09/referenced-chatgpt-conversation-this-is-an/docs/learning/2026-09-10-spark-all-hands.md`）。该成果中的 7% 是执行期间快照，主会话在任务结束后查询到 10%；应以后者为本次最新观察。初稿中无依据的 58% 与逐岗数字已退回删除。无法逐人独立计量，不声称精确使用或锁定了各岗位 10% 硬限。
 
 | 岗位 | 带回的具体做法 |
 |---|---|

@@ -34,21 +34,21 @@
   - 类别：AI 最新动态
   - 发布时间：`2026-09-10 09:00:00`
   - 过期时间：`2026-09-20 09:00:00`
-  - 来源：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/learning/restart-2026-09-10/backend-date-filter-spec-experiment.md`
+  - 来源：`$AI_VIRTUAL_COMPANY_ROOT/learning/restart-2026-09-10/backend-date-filter-spec-experiment.md`
 - 示例 2：
   - ID：`SYN-2026-09-10-02`
   - 标题：`测试复现实验：retention.test.mjs`
   - 类别：实战案例
   - 发布时间：`2026-09-10 12:00:00`
   - 过期时间：`2026-09-20 12:00:00`
-  - 来源：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/learning/restart-2026-09-10/retention.test.mjs`
+  - 来源：`$AI_VIRTUAL_COMPANY_ROOT/learning/restart-2026-09-10/retention.test.mjs`
 - 示例 3：
   - ID：`SYN-2026-09-10-03`
   - 标题：`岗位协同模板：8 岗位研讨论证`
   - 类别：工具与技巧
   - 发布时间：`2026-09-10 14:00:00`
   - 过期时间：`2026-09-20 14:00:00`
-  - 来源：`/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company/learning/restart-2026-09-10/chief-of-staff-pioneer-progress.md`
+  - 来源：`$AI_VIRTUAL_COMPANY_ROOT/learning/restart-2026-09-10/chief-of-staff-pioneer-progress.md`
 
 ## 用户故事（3类）
 - 作为内容运营，我要看到“发布后 240 小时内可见”的文案与时间标记，以便快速确认是否已过期。
@@ -61,5 +61,5 @@
 3. 加入用户故事后，验收条件不再依赖经验描述，可直接转化为任务分解。
 
 ## 给其他岗位的问题与基于产物的回答
-- 给后端的问题：验收表为何要求来源路径写本地绝对路径？
-- 回答：教学与复现场景无法联网核验时，本地绝对路径是最小闭环证据，能证明“真实研读”链路可追溯。
+- 给后端的问题：验收表为何要求来源路径可定位？
+- 回答：教学与复现场景无法联网核验时，仓库相对路径或受控逻辑路径是最小闭环证据；机器绝对路径只保存在平台本地映射中。

@@ -34,7 +34,7 @@
 - 摘要：只引用当时抽样证据，授课回原代码与课程事实源。
 - 限制：不是职级事实或全库质量认证；版本过期必须复核。
 - 状态：stale；索引核对日：2026-09-11；Owner：backend-training-architect。
-- 详情：[2026-09-09-mephisto-author-review.md](2026-09-09-mephisto-author-review.md)；sha256:1d9d0c3cbb497486a8cdeae998f0eef8bf154fb3c4e681feb42738f13ae1746d。
+- 详情：[2026-09-09-mephisto-author-review.md](2026-09-09-mephisto-author-review.md)；sha256:9f91fed860adc4fe0f8bcc382a09c8c158e3fa11132c30d3f9a2f3f18ee80230。
 
 岗位知识按 employees/<role>/MEMORY.md 定向检索；治理与安全必读规则不受本目录状态影响。
 

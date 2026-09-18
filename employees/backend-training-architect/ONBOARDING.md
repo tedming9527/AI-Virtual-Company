@@ -19,7 +19,7 @@ Owner：沈砚舟；统筹：陈知行。状态：岗位与核心资料接手完
 2. 旧20-教学策略仍写PM唯一主线和水卡目标；较新大纲/勘误与当前用户后端培训目标不同。采纳独立输出、异常案例等方法，不继承互相冲突的限制。
 3. 旧01/02/05教材仍有桶装水/押金案例；授课转为家政维修，不能宣称原教材已全部清理。退款案例D1 10:06到D2 22:00不足两天，与“已超两天”文字冲突；使用D4或重新算时间。
 4. 07/08等简图写“两线数据不通”；09已描述到家服务单推研选、加价镜像和生命周期回传。因此准确说法是两个系统模型独立，但特定集成链可交换数据，不能绝对说完全不通。
-5. 旧地图标记blacksam不可得或放在meiju目录；本次确认当前可读路径为 /Users/dongdeming/Documents/vanke/daojia/yanxuan-blacksam，存在DaoJiaOpenApiController和FlexTaskApi。没有据此认定远端平台内部可见。
+5. 旧地图标记blacksam不可得或放在meiju目录；本次确认当前可读路径为 $VANKE_WORKSPACE_ROOT/daojia/yanxuan-blacksam，存在DaoJiaOpenApiController和FlexTaskApi。没有据此认定远端平台内部可见。
 6. 业务进度9月2日仍挂原子领取作业；编码进度已记录9月1日并发领取、9月3日Job领取、9月7日Flyway验收。两份记录是不同课线，均不擅自覆盖。
 7. 更重要：当前CategoryChangeEventJob已包含payload解析、从库版本条件写入和事件回写，进度正文仍有“下一步做增量同步”。本次看到实现，未看到对应运行验收；首课应审查已有切片，不从零重复实现。
 
