@@ -30,3 +30,11 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## verifiable-ai-workflow-evidence-ledger · 可验证的 AI 工作证据账本
+- 触发：AI 研究、模型/工具比较、Skill 调用、预算监督或涉及外部读写与发布判断时。
+- 摘要：来源主张与模型选择、运行回执、Skill 状态、只读发现、授权、写工具回执、结果证据正交记录；外部写入须先 `authority_confirmed`。
+- 限制：仅为 reviewed_case；不授予外部操作权限，不证明生产能力、平台能力、个人精确用量或返工已经下降。
+- 状态：reviewed_case；更新时间：2026-09-18；Owner：辛澈 · AI工程师；Reviewer：顾清妍 · 质量测试工程师。
+- 置信度：medium；真实研究记录与案例推理经复核，真实账号写入、异常恢复和业务终态仍未验证。
+- 详情：[VERIFIABLE_AI_WORKFLOW.md](VERIFIABLE_AI_WORKFLOW.md)；sha256:680162f473b516a75ad07a01083f60b121583645a2ee1d41a56b1712d63b14dd。

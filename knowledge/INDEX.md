@@ -2,6 +2,13 @@
 
 只检索相关条目，命中后完整读详情及当前政策。以下历史资料未重新验收技术结论，标stale，不直接指导执行。catalog.json为机器校验清单，不必全量加载。
 
+## verifiable-work-evidence-ledger · 可验证工作的证据账本
+- 触发：跨岗位协作、模型或工具调用、完成/验收声明、外部副作用。
+- 摘要：分开执行、证据、业务终态、发布与授权五个正交状态；每个完成主张绑定同层证据，unknown 不用猜测填平。
+- 限制：仅为 reviewed_case；不规定统一工具、SLA 或签核链，不证明生产能力或返工已经下降。
+- 状态：reviewed_case；索引核对日：2026-09-18；Owner：chief-of-staff；Reviewer：test-expert。
+- 详情：[verifiable-work-evidence-ledger.md](verifiable-work-evidence-ledger.md)；sha256:74cfadd23db6f952fd410617357700ca8a0b56642e3a526e4c694420786d109d。
+
 ## project-context-first-delivery · 项目上下文优先交付
 - 触发：首次介入陌生项目、跨模块改动或可能复用既有资产时。
 - 摘要：先建立与目标相连的入口、边界、通用资产、契约、验证与 unknown 地图；优先复用，再新增抽象。

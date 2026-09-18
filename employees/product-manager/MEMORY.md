@@ -30,3 +30,13 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## product-measurable-ai-pilot · 可测量 AI 试点门禁
+
+- 触发：AI 功能准备立项、试点、扩大样本或用指标上涨证明效果。
+- 摘要：先固定问题、基线、分母、人群、窗口、护栏与停止条件；关键 unknown 阻断放量，`pilot_note` 仅是非放量观察。
+- 限制：阈值由当前试点事实所有者确认；仅为 reviewed_case，不授权实验或发布，不证明生产能力或返工已经下降。
+- 状态：reviewed_case；更新时间：2026-09-18；Owner：林知夏 · 目标规划官；Reviewer：顾清妍 · 质量测试工程师。
+- 置信度：medium；报告与迁移题经独立语义复核，真实生产效果待验证。
+- 详情：[MEASURABLE_AI_PILOT.md](MEASURABLE_AI_PILOT.md)。
+- 原文版本：sha256:ca8cebad910b1ef4e2683dfc78755fe6efd3f0213c5c1f97fe8033af4e757021；真实任务出现反例、口径/权限变化或累计三个可比任务时复核。

@@ -8,7 +8,9 @@
 
 ## 不入库
 
-探索笔记、一次性排查、工具原始输出、运行日志、可再生成产物、未核实主张、原始对话、凭据和个人数据均为临时信息，放入 `tmp/` 或 `logs/`，不得写入上述持久目录、暂存或推送。任何材料缺少可复用结论、最小证据或明确交付价值时，默认临时；“可能以后有用”不是入库理由。
+探索笔记、一次性排查、工具原始输出、运行日志、可再生成产物、未核实主张、原始对话、凭据和未经专项授权的个人数据均为临时信息，放入 `tmp/` 或 `logs/`，不得写入上述持久目录、暂存或推送。任何材料缺少可复用结论、最小证据或明确交付价值时，默认临时；“可能以后有用”不是入库理由。
+
+用户于 2026-09-18 明确授权沈砚舟 · 后端培训导师（资深后端架构师）维护专业能力与市场价值评估档案。该专项档案只允许存放在 `memory/learner/`，限于职业目标、用户本人在任务中的可归属行为、独立程度、提示轨迹、能力观测、市场评估条件和纠错记录；不得保存原始对话、密钥、私人账户内容、健康、家庭、身份号码等与职业能力无关或高敏信息。每条观测必须有来源、时间、证据等级和不确定性，用户可随时要求更正、导出、暂停或删除；删除属于专项授权动作，不由清理脚本自动执行。
 
 ## Format and lifecycle
 Each entry is dated, concise, has a source/owner and a confidence label. Employees maintain candidates in their own detailed `KNOWLEDGE.md` and a concise discovery entry in `MEMORY.md`; Chief of Staff promotes cross-team items to `knowledge/` after review. Review quarterly; supersede rather than silently overwrite.

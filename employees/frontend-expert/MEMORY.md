@@ -29,9 +29,10 @@
 ## frontend-page-architecture-visual-validation · 独立页迁移与设计实例核验
 - 触发：弹窗、抽屉或浮层迁为独立路由页，并需按 Figma 还原。
 - 摘要：路由页拥有页面壳、导航和全状态；内容组件只渲染业务区。Figma/UI 设计判断须有设计师实际交接，尺寸以目标实例、截图和标注确认，测试从路由入口覆盖全部状态。
-- 限制：一次真实项目复盘，不证明长期返工率改善；未形成设计师产物不得登记其已协作；不替代路由、无障碍和接口契约核验。
+- 限制：来自任务记录的候选复盘；`actual_executor: not_started` 与 `status: verified` 存在冲突，未补原始提交、运行与浏览器证据前不得称真实页面迁移完成；未形成设计师产物不得登记其已协作。
 - 状态：candidate；更新时间：2026-09-16；详情：[PAGE_ARCHITECTURE.md](PAGE_ARCHITECTURE.md)。
-- 原文版本：sha256:f1d9adf88b5cdbb89a43bedeade043a75cabba1e30b833dd99d3fb5e84fe1c2e。
+- 置信度：low；记录层材料可定位，但实现归属与真实运行尚未证实。
+- 原文版本：sha256:e51ab80e1dfa7d7082502f127979a30605db24e60dbe464042c20d66552363bd。
 
 ## frontend-project-architecture-discovery · 项目介入前的架构地图
 
@@ -61,3 +62,11 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## frontend-design-evidence-state-architecture · 设计证据驱动的页面架构与全状态正确性
+- 触发：Figma 驱动的独立页迁移，且包含异步搜索、选择返回、直达入口或多状态组合。
+- 摘要：将公司证据账本适配到路由壳、内容区、状态契约和请求归属；设计、代码、浏览器与接口结论分别取证，按风险分层验收。
+- 限制：历史项目选择页只作记录层样本；不证明页面已实现、已验收、生产能力形成或返工已经下降。
+- 状态：reviewed_case；更新时间：2026-09-18；Owner：周启明 · 体验工程官（Frontend Engineer）；Reviewer：顾清妍 · 质量测试工程师（Test Expert）；production capability：false。
+- 置信度：medium；报告案例、迁移题与独立复核通过，真实页面和接口仍未验证。
+- 详情：[DESIGN_EVIDENCE_STATE_ARCHITECTURE.md](DESIGN_EVIDENCE_STATE_ARCHITECTURE.md)；sha256:7eee6597d822a6f58e6275da2edf35a0ae998139e083fcd890191c7371c5d0e9；漂移、反例或真实证据冲突时停止采用并复核。

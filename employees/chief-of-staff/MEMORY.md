@@ -30,3 +30,12 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## chief-verifiable-task-orchestration · 可验证任务编排
+
+- 触发：多执行者、持续任务、外部动作，或交付同时涉及实现、验证、发布任两层。
+- 摘要：单事件线分离逻辑岗位与实际执行者；执行、证据、业务终态、发布、授权采用正交状态；取得新鲜执行回执后才进入 running，顾问有可定位交接后才记 contributed。
+- 限制：普通 S 级任务不扩流程；状态、环境或回执冲突时回原始通道复核；不证明生产能力、平台持续监督或返工已经下降。
+- 状态：reviewed_case；更新时间：2026-09-18；负责人：陈知行 · 路由官（Chief of Staff）；复核人：顾清妍 · 质量测试工程师（Test Expert）。
+- 置信度：medium；本地监督器测试与案例推理经复核，非本地通道和真实效果仍未验证。
+- 详情：[VERIFIABLE_TASK_ORCHESTRATION.md](VERIFIABLE_TASK_ORCHESTRATION.md)；原文版本：sha256:2f08ded5bae33e8b2f5bb32765eef84d642ef6f49f4557e375ba9c94378b544c。

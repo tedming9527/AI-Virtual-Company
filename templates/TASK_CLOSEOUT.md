@@ -21,3 +21,5 @@
 - remaining：已知缺陷、未知风险、回退（L必填）、下一步与负责人
 - knowledge：条目ID/路径、采用或拒绝理由、新候选或none
 - metrics：按METRICS_POLICY填写可观测值，未知写unknown
+- capability_handoff：M/L 或培训会话填写；任务领域/难度、用户本人贡献、提示层级、独立判断与修订、同层证据、观察到的能力/缺口、unknown
+- capability_handoff_status / receipt：`not_required` / `pending` / `delivered` / `no_evidence` / `incorporated` / `discarded`；填写真实消息、agent 回执或档案记录位置，不能把文档登记冒充通知

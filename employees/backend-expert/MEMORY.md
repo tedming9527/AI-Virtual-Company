@@ -30,3 +30,10 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## backend-cross-system-terminal-evidence · 跨系统业务终态证据
+- 触发：跨服务重试、超时、回调、租约重领、金额或库存副作用。
+- 摘要：用稳定业务键、短事务、条件回写、终态查询和人工对账区分本地所有权与远端事实；outbox 只在异步可靠投递需要时采用。
+- 限制：2026-09-10 日期边界历史运行 9/9 仅证明当时本地纯函数；H2、Mock 不证明真实下游或生产正确性；改善幅度待三个可比真实任务验证。
+- 置信度：medium；静态案例、迁移题与语义复核通过，真实下游、数据库并发和生产终态仍未验证。
+- 状态：reviewed_case；更新时间：2026-09-18；详情：[CROSS_SYSTEM_TERMINAL_EVIDENCE.md](CROSS_SYSTEM_TERMINAL_EVIDENCE.md)；sha256:dc3d958b17bef457505ec3849e4b5bcc0928b1762a2ace310671c1657da19a91。

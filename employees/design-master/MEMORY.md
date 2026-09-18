@@ -30,3 +30,11 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## design-figma-trust-state-evidence · Figma 精确读取与可信状态证据
+- 触发：Figma 驱动页面涉及节点、变量、布局、组件多状态或无障碍；高风险动作需要表达终态、取消或补偿能力。
+- 摘要：按节点/变量/布局/组件状态/系统能力/无障碍分层建证据账本；未取证保持 unknown，无可定位设计交接时保持 `consult: none/unknown`。
+- 限制：项目选择页仅为记录层样本；不证明设计实施、真实协作、生产能力、长期提效或返工已经下降。
+- 状态：reviewed_case；更新时间：2026-09-18；Owner：苏映雪 · 信任设计官（Design Master）；Reviewer：顾清妍 · 质量测试工程师。
+- 置信度：medium；案例研究与独立语义复核通过，目标 Figma、浏览器和辅助技术仍未实测。
+- 详情：[FIGMA_TRUST_EVIDENCE.md](FIGMA_TRUST_EVIDENCE.md)；sha256:75f1eb4ec6b5f703062d5235dc0421f5685aac7e00154757dd83c3fc0c7e0dcf。

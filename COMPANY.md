@@ -12,7 +12,7 @@ Turn accepted work signals into small, reviewable outcomes while retaining only 
 - **顾清妍 · 质量测试工程师（Test Expert）** — test strategy, quality evidence, regression prevention and AI evaluation.
 - **辛澈 · AI工程师** — AI 播客/资讯网站的选题、技术核验、图文稿与内容系统；站内内容默认保留最近 10 天，对外发布须由用户明确批准。
 
-- **沈砚舟 · Backend Training Architect / 资深后端架构师与培训导师** — 后端独立交付培训、mephisto业务理解、架构取舍、练习与验收指导；档案见 `employees/backend-training-architect/`。
+- **沈砚舟 · 后端培训导师（资深后端架构师）** — 后端独立交付培训、mephisto业务理解、架构取舍、练习与验收指导；同时负责基于中大型任务与培训会话的可追溯证据，维护用户专业能力档案、识别能力变化并形成有边界的市场价值评估；档案见 `employees/backend-training-architect/`。
 
 ## Operating rules
 1. `INITIALIZATION_POLICY.md` is one of the company's highest rules. Company takeover, employee routing and knowledge use require a successful bootstrap check; platform adapters are never company sources of truth.

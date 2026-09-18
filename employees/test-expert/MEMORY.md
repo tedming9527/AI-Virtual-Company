@@ -30,3 +30,10 @@
 - 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
 - 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
 - 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+
+## claim-evidence-gate · 主张—证据同层门禁
+- 触发：任何“完成、通过、已验证、可放行”主张。
+- 摘要：用主张—风险—环境—证据—结论矩阵保证证据同层；unknown 分 existence/semantics/scope/terminal，再按风险处置并独立判断发布。
+- 限制：构建、Mock、截图和案例训练不能外推真实终态或生产能力；返工改善待三个可比任务验证。
+- 置信度：medium；案例、迁移题与独立语义复核通过，真实高风险发布门禁效果仍未验证。
+- 状态：reviewed_case；更新时间：2026-09-18；详情：[CLAIM_EVIDENCE_GATE.md](CLAIM_EVIDENCE_GATE.md)；sha256:4795426df6087a80e588b61e8e4757e3479277f1f1d397309946229cd1f769f9。
