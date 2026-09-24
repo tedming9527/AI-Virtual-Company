@@ -71,3 +71,9 @@
 - 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；单概念答疑、单个练习点评、日常教学直接完成不启动；练习通过判定、复盘评分、能力分级等有限判断批量交给 jev，升级项回本岗，教学内容生成归导师。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产收益待真实任务验证；consult: none。
 - 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:083261e221325e688dbbc69e67631edb3d1f8695147efb40c002989d0a7b3f5c。
+
+## backend-training-architect-macro-first-induction · 宏观先行跨课题教学规律
+- 触发：任何新课题教学切入、架构讲解、故障边界教学、知识卡编写。
+- 摘要：先讲第一性原理（一句话核心+推导+检验尺）统摄微观实现与术语；术语涉及时态必区分（当前/当时）；公认定义置于原理后印证。需求理解（09-22）与可观测性（09-24）两案例同向验证"微观由宏观统摄"。
+- 限制：仅两个可比案例同向观察，生产能力待第三课题复核；不据两例声称全域提效。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)。
