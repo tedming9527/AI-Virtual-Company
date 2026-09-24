@@ -1,0 +1,29 @@
+{
+  "version":"5.0","updated_at":"2026-09-19","decision_policy":"wide_discovery_strict_user_review",
+  "fixed_notices":["reliability_unverified","security_scan_not_run","review_source_before_use"],"minimum_attempted_sources":10,"minimum_source_families":5,
+  "entity_types":["hosted_model_api","agent_skill","mcp","desktop_app","protocol","sdk","repository_tool","npm_package"],
+  "source_roles":["official_release","official_docs","official_repo","official_sdk","official_skill","package","registry","community_signal"],
+  "raw_signal_definitions":{"github-stars":{"label":"GitHub Stars","value_type":"integer"},"github-forks":{"label":"GitHub Forks","value_type":"integer"},"github-archived":{"label":"仓库归档状态","value_type":"boolean"},"github-last-push":{"label":"最近 Push","value_type":"iso_datetime"}},
+  "sources":[
+    {"id":"user-nominated","family":"user_input","tier":"priority","execution":"available","entrypoint":"local:user-input"},
+    {"id":"x-public-signals","family":"social","tier":"discovery","execution":"not_connected","entrypoint":"https://x.com/search"},
+    {"id":"github-trending","family":"code_forge","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/trending"},
+    {"id":"github-topic-ai-agent","family":"code_forge","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/topics/ai-agent"},
+    {"id":"github-topic-mcp","family":"code_forge","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/topics/mcp"},
+    {"id":"github-topic-agent-skills","family":"code_forge","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/topics/agent-skills"},
+    {"id":"github-vendor-orgs","family":"vendor","tier":"official","execution":"manual_available","entrypoint":"https://github.com"},
+    {"id":"github-release-rss","family":"release_feed","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/{owner}/{repo}/releases.atom"},
+    {"id":"npm-registry","family":"package_registry","tier":"registry","execution":"manual_available","entrypoint":"https://www.npmjs.com"},
+    {"id":"pypi","family":"package_registry","tier":"registry","execution":"manual_available","entrypoint":"https://pypi.org"},
+    {"id":"mcp-registry","family":"protocol_registry","tier":"registry","execution":"manual_available","entrypoint":"https://registry.modelcontextprotocol.io"},
+    {"id":"huggingface-models","family":"model_hub","tier":"catalog","execution":"manual_available","entrypoint":"https://huggingface.co/models"},
+    {"id":"huggingface-spaces","family":"model_hub","tier":"catalog","execution":"manual_available","entrypoint":"https://huggingface.co/spaces"},
+    {"id":"huggingface-daily-papers","family":"research","tier":"discovery","execution":"manual_available","entrypoint":"https://huggingface.co/papers"},
+    {"id":"arxiv-ai-cl","family":"research","tier":"discovery","execution":"manual_available","entrypoint":"https://arxiv.org"},
+    {"id":"hacker-news","family":"community","tier":"discovery","execution":"manual_available","entrypoint":"https://hn.algolia.com"},
+    {"id":"reddit-ai-communities","family":"community","tier":"discovery","execution":"manual_available","entrypoint":"https://www.reddit.com"},
+    {"id":"product-hunt-ai","family":"launch_platform","tier":"discovery","execution":"manual_available","entrypoint":"https://www.producthunt.com/topics/artificial-intelligence"},
+    {"id":"vercel-ai-sdk-providers","family":"ecosystem_catalog","tier":"catalog","execution":"manual_available","entrypoint":"https://ai-sdk.dev/providers/ai-sdk-providers"},
+    {"id":"curated-awesome-newsletters","family":"curation","tier":"discovery","execution":"manual_available","entrypoint":"https://github.com/topics/awesome-list"}
+  ]
+}

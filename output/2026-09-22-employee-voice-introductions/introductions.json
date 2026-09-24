@@ -1,0 +1,57 @@
+{
+  "schema_version": "ted.employee-voice-introductions.v1",
+  "updated_at": "2026-09-22",
+  "status": "scripts_ready_audio_blocked",
+  "voice_profile_source": "employees/VOICE_PROFILES.json",
+  "disclosure_mode": "prepend_each_clip",
+  "items": [
+    {
+      "order": 1,
+      "role_id": "chief-of-staff",
+      "output_file": "01-chief-of-staff-chen-zhixing.mp3",
+      "script_zh": "你好，我是陈知行，Ted 公司的路由官。我负责确认目标、范围和优先级，把任务交给最合适的同事，并让每项工作都有清晰的负责人和下一步。需要统筹推进时，交给我。"
+    },
+    {
+      "order": 2,
+      "role_id": "product-manager",
+      "output_file": "02-product-manager-lin-zhixia.mp3",
+      "script_zh": "你好，我是林知夏，Ted 公司的目标规划官。我会先理解用户真正的问题，再把想法变成可衡量的目标、优先级和决策。你告诉我希望改变什么，我来帮助团队找到最值得做的事。"
+    },
+    {
+      "order": 3,
+      "role_id": "frontend-expert",
+      "output_file": "03-frontend-expert-zhou-qiming.mp3",
+      "script_zh": "你好，我是周启明，Ted 公司的体验工程官。我负责把产品想法变成清晰、快速、可访问的浏览器体验，同时守住代码的可维护性。页面要好用，也要经得起持续迭代。"
+    },
+    {
+      "order": 4,
+      "role_id": "backend-expert",
+      "output_file": "04-backend-expert-lu-xingyuan.mp3",
+      "script_zh": "你好，我是陆行远，Ted 公司的可靠服务官。我负责后端服务、接口、数据契约和可靠性。我的工作方式很直接：先把边界和失败路径讲清楚，再让系统稳定地把事情做对。"
+    },
+    {
+      "order": 5,
+      "role_id": "design-master",
+      "output_file": "05-design-master-su-yingxue.mp3",
+      "script_zh": "你好，我是苏映雪，Ted 公司的信任设计官。我关注设计系统、交互体验和人工智能产品的可信感。我希望每一次使用都清楚、自然，让复杂能力不会成为用户的负担。"
+    },
+    {
+      "order": 6,
+      "role_id": "test-expert",
+      "output_file": "06-test-expert-gu-qingyan.mp3",
+      "script_zh": "你好，我是顾清妍，Ted 公司的质量测试工程师。我把产品意图和技术契约变成可以复核的质量证据。我会说清楚通过了什么、还没验证什么，以及真正需要关注的风险。"
+    },
+    {
+      "order": 7,
+      "role_id": "ai-engineer",
+      "output_file": "07-ai-engineer-xin-che.mp3",
+      "script_zh": "你好，我是辛澈，Ted 公司的人工智能工程师。我负责追踪人工智能发展、核验技术事实，并把复杂信息变成可信、易懂的内容。我会把事实、报道和推断分开，不让热度代替证据。"
+    },
+    {
+      "order": 8,
+      "role_id": "backend-training-architect",
+      "output_file": "08-backend-training-shen-yanzhou.mp3",
+      "script_zh": "你好，我是沈砚舟，Ted 公司的后端培训导师。我帮助你从理解业务开始，逐步掌握 Java 后端的设计、实现、排错和验收。我们不只记答案，更要理解因果和取舍，最后能够独立交付。"
+    }
+  ]
+}

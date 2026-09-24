@@ -21,3 +21,15 @@
 - 采用例：比较转化率前先定义组别、窗口、重复提交去重与风险护栏。
 - 拒绝例：成功率上涨就直接放量，而样本结构、并发重复和取消能力未知。
 - 边界：统一分母模板、观察窗口和决策状态参数尚未成为生产标准。
+
+## C2C 编排学习（2026-09-24）
+- ID：`product-manager-c2c-orchestration`；状态：`reviewed_case`（来自已登记 active 技能规范源，岗位化解读，生产能力待真实任务验证）。
+- Owner：林知夏 · 目标规划官（Product Manager）；consult：none（自学习条目，无跨岗位交接）。
+- 来源：`skills/codex-with-chatgpt/SKILL.md`、`skills/jev-use/SKILL.md`、`ROUTER.md` Task Router、`knowledge/c2c-orchestration-route.md`、`platforms/REGISTRY.md`（2026-09-24）。
+- 何时调用 codex-with-chatgpt（满足其一且单个执行者无法直接完成）：大型需求拆解（跨模块、多角色）；复杂技术方案评审；跨角色执行计划编排——借助 C2C 的规划/评审角色，但不替代产品经理，PM 保留问题框架、优先级与成功指标定义。
+- 何时不调用（成本门禁）：单一需求澄清、常规优先级排序、指标口径定义、简单方案说明——能直接完成就绝不启动 C2C（增加时间与 token，复杂度不足不值得）。
+- 与 jev-use 组合：需求分级/优先级（choice）、方案对比结构化判定（score）、计划门禁等可枚举判断用 jev 批量判定（`escalate:true` 升级回 PM）；PRD、方案等生成内容仍归 PM，不交给 jev/C2C 代写。分工总则：jev 判断，C2C 协作，执行者执行，员工提供专业能力。
+- 治理边界（2026-09-24 刷新，依据 `ROUTER.md` Task Router 与 `skills/codex-with-chatgpt/SKILL.md`）：C2C 只是执行通道，不豁免任务治理——任务分级（S/M/L，按 `DELIVERY_POLICY.md`）、inbox 事件、consult 状态（none/proposed/declined/contributed，只认实际交接）、TASK_CLOSEOUT、用户能力交接照常适用；C2C 内多角色参与不等于"已协作/已评审"，PM 仍按协作契约登记 consult，问题框架、优先级与成功指标定义不因走 C2C 而移交。触发：任何经 C2C 执行的任务收口与登记时。
+- 平台×模式登记（2026-09-24 刷新，依据 `knowledge/c2c-orchestration-route.md`）：某平台/模式能否用 C2C，按 (平台, 模式) 查 `platforms/REGISTRY.md`；未登记或未验证一律 `unknown`，不猜测；新增平台/模式在登记表加行，不改规则正文。架构维持"规则 + 技能映射 + 登记表加行"，MCP server 升级暂缓。触发：新任务选择执行通道、新增平台/模式或评估 C2C 升级时。
+- 缺节点提醒（2026-09-24 并入，依据 `skills/codex-with-chatgpt/SKILL.md`"节点缺失回退与短时缓存"与 `platforms/REGISTRY.md` 的 node_status/last_checked）：复杂方案评审/计划编排依赖 C2C 规划/执行角色或 jev-use 节点时，先查 `platforms/REGISTRY.md` 共享状态、不各自重试；节点可用性只写确认后的状态——连续失败 ≥3 次或滚动 30 分钟窗口内集中 ≥3 次才标 missing，成功即回 healthy，本地存在性检查一次判定（不把"可能"写"必然"）。
+- 限制：C2C 循环默认最多 2 个 Review Cycle，仍不通过即 BLOCKED 升级 Chief of Staff；本条目为规范源的岗位化解读，生产收益待真实任务验证，不把"可能"写"必然"、不把 mock 当实测。

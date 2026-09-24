@@ -1,0 +1,26 @@
+# 分类变更补偿任务：批次关联日志训练
+
+- id / created_at / source / request：2026-09-24-category-job-correlation-logging / 2026-09-24T00:00:00+08:00 / codex / 继续
+- project：spring-test-web；`CategoryChangeEventJob`
+- scope / out_of_scope：为一次分类变更补偿 Job 建立批次标识与单事件结果关联日志，并设计成功与失败证据；不接入日志平台、不修改数据库结构、不进入 RabbitMQ/Nacos/Sentinel。
+- sensitivity / authority：本地教学项目；本轮先完成学员拆解与最小实现方案，应用启动、Admin 触发、教学数据写入与清理由学员亲自执行。
+- requested_outcome：训练；完成后以代码、定向测试和真实 Job 日志决定已实现/已验收状态。
+- level / reason / classifier / owner_confirmed：M / 涉及 Job 行为与运行日志契约 / 陈知行 · 路由官（Chief of Staff） / 沈砚舟 · 后端培训导师（资深后端架构师）
+- owner / executor / consult：沈砚舟 · 后端培训导师（资深后端架构师） / 当前 Codex 会话（模型、推理强度 unknown） / none
+- consult_status：none
+- consult_question / consult_evidence / consult_disposition：none / none / none
+- baseline：`master`，HEAD `9d883a4`；工作区已有上一课教学文档变更，须保留且不混入业务代码范围。
+- context：现有 Job 仅输出批次汇总，单条异常日志仅含 eventId，缺少同次执行的批次关联键。
+- temporary_artifacts：none
+- retention_decision：retain
+- promotion_target：inbox/session-events/（本训练任务的最小审计记录）
+- decisions：先由学员独立写出日志字段、生成位置和失败路径，再给最小 Java 实现提示。
+- acceptance：同一批真实 Job 日志可用一个 batchId 关联启动、每个事件结果与汇总；至少验证成功与一条失败/重试路径，且不以 `handleCode` 替代业务结果。
+- artifacts：当前无代码变更。
+- evidence：2026-09-24 已复核 `CategoryChangeEventJob`、课程进度与工作区状态；实现与运行证据待取得。
+- status：queued
+- remaining：需学员完成独立拆解后进入实现；真实验收需本地 XXL-JOB 与 MySQL。
+- knowledge：采用既有跨连接实验的“日志、批次计数、主库、从库分别取证”规则。
+- metrics：unknown
+- capability_handoff：待记录用户对日志关联、失败边界与验收设计的独立判断。
+- capability_handoff_status / receipt：pending / 待沈砚舟 · 后端培训导师（资深后端架构师）在任务收口时更新能力档案。

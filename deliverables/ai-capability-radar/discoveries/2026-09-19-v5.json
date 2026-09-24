@@ -1,0 +1,37 @@
+{
+  "run_id":"2026-09-19-v5-wide-discovery",
+  "attempts":[
+    {"source_id":"user-nominated","attempted_at":"2026-09-19","status":"succeeded","query":"Jev / 能够扩展 AI 能力边界的工具","raw_hit_count":1},
+    {"source_id":"x-public-signals","attempted_at":"2026-09-19","status":"unavailable","query":"Jev AI tools agent skills","raw_hit_count":0},
+    {"source_id":"github-trending","attempted_at":"2026-09-19","status":"failed","query":"AI agent tools daily trending","raw_hit_count":0},
+    {"source_id":"github-topic-ai-agent","attempted_at":"2026-09-19","status":"succeeded","query":"GitHub topic ai-agents recent tools","raw_hit_count":4},
+    {"source_id":"github-topic-mcp","attempted_at":"2026-09-19","status":"succeeded","query":"GitHub topics mcp and modelcontextprotocol","raw_hit_count":3},
+    {"source_id":"github-topic-agent-skills","attempted_at":"2026-09-19","status":"succeeded","query":"GitHub topics agent-skills ai-agent-skills","raw_hit_count":4},
+    {"source_id":"github-vendor-orgs","attempted_at":"2026-09-19","status":"succeeded","query":"TypeSafe AI official organization SDK and skills","raw_hit_count":2},
+    {"source_id":"github-release-rss","attempted_at":"2026-09-19","status":"failed","query":"recent releases for shortlisted repositories","raw_hit_count":0},
+    {"source_id":"npm-registry","attempted_at":"2026-09-19","status":"succeeded","query":"browser agent SDK MCP","raw_hit_count":1},
+    {"source_id":"pypi","attempted_at":"2026-09-19","status":"succeeded","query":"AI agent browser MCP packages","raw_hit_count":3},
+    {"source_id":"mcp-registry","attempted_at":"2026-09-19","status":"succeeded","query":"official MCP registry servers and API","raw_hit_count":1},
+    {"source_id":"huggingface-models","attempted_at":"2026-09-19","status":"failed","query":"trending tool-use and agent models","raw_hit_count":0},
+    {"source_id":"huggingface-spaces","attempted_at":"2026-09-19","status":"succeeded","query":"trending agent-environment Spaces","raw_hit_count":3},
+    {"source_id":"huggingface-daily-papers","attempted_at":"2026-09-19","status":"failed","query":"agent tools and computer use papers","raw_hit_count":0},
+    {"source_id":"arxiv-ai-cl","attempted_at":"2026-09-19","status":"failed","query":"cs.AI cs.CL agent tool use recent","raw_hit_count":0},
+    {"source_id":"hacker-news","attempted_at":"2026-09-19","status":"failed","query":"Show HN AI agent tools recent","raw_hit_count":0},
+    {"source_id":"reddit-ai-communities","attempted_at":"2026-09-19","status":"succeeded","query":"recent LocalLLaMA and AI_Agents project discussions","raw_hit_count":3},
+    {"source_id":"product-hunt-ai","attempted_at":"2026-09-19","status":"succeeded","query":"recent AI agents and developer tools launches","raw_hit_count":3},
+    {"source_id":"vercel-ai-sdk-providers","attempted_at":"2026-09-19","status":"succeeded","query":"AI SDK providers and custom provider ecosystem","raw_hit_count":1},
+    {"source_id":"curated-awesome-newsletters","attempted_at":"2026-09-19","status":"succeeded","query":"awesome agent skills and TypeSafe Jev lists","raw_hit_count":2}
+  ],
+  "leads":[
+    {"entity_key":"jev","priority":"user_nominated","decision":"eligible"},
+    {"entity_key":"codecut","priority":"expanded","decision":"eligible"},
+    {"entity_key":"premiere-agent","priority":"expanded","decision":"eligible"},
+    {"entity_key":"browser-use","priority":"routine","decision":"eligible"},
+    {"entity_key":"official-mcp-registry","priority":"routine","decision":"eligible"},
+    {"entity_key":"agents-browser","priority":"routine","decision":"eligible"},
+    {"entity_key":"hf-greenhouse-env","priority":"routine","decision":"omitted","omission_reason":"运行状态异常且与当前通用能力扩展范围不够贴合"},
+    {"entity_key":"my-ai-agent","priority":"routine","decision":"omitted","omission_reason":"只有发布平台自述，尚未回溯到足够明确的官方技术入口"},
+    {"entity_key":"jevify","priority":"expanded","decision":"omitted","omission_reason":"与 Jev 主实体高度重叠，本轮作为社区信号合并而不单独发布"},
+    {"entity_key":"agentdiscuss","priority":"routine","decision":"omitted","omission_reason":"更接近社区目录，不是直接提升执行能力的工具"}
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "run": {
+    "id": "ai-capability-radar-2026-09-19",
+    "collected_at": "2026-09-19",
+    "scope": "First source-link-only collection of AI capability-expansion candidates",
+    "source_registry_version": "4.0",
+    "decision_policy": "source_link_user_review",
+    "audit": {
+      "status": "passed",
+      "ref": "audits/2026-09-19-v4-independent-audit.md",
+      "reviewer": "independent-v4",
+      "snapshot_sha256": "sha256:f411b5b61626d951beaf181bf26a68828f0efa1dcc16346102dc7df07620d3d8"
+    }
+  },
+  "tools": [
+    {
+      "id": "jianying-headless",
+      "name": "Jianying Headless",
+      "capability_hypothesis": "可能让 AI 通过独立 Agent Skill 创建、编辑和导出剪映草稿。",
+      "source": {"kind": "github_repository", "url": "https://github.com/mcncarl/jianying-headless", "locator": "mcncarl/jianying-headless"},
+      "status": "candidate",
+      "visibility": "candidate",
+      "recommendation": "hold",
+      "user_decision": {"status": "pending", "decided_at": null, "note": "review_source_before_use"},
+      "volatility": "high",
+      "checked_at": "2026-09-19",
+      "next_review_at": "2026-09-26",
+      "discovered_via": [{"source_id": "github-repository", "url": "https://github.com/mcncarl/jianying-headless", "discovered_at": "2026-09-19"}],
+      "raw_signals": [
+        {"definition_id": "github-stars", "value": 1404, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/mcncarl/jianying-headless"},
+        {"definition_id": "github-forks", "value": 618, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/mcncarl/jianying-headless"},
+        {"definition_id": "github-archived", "value": false, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/mcncarl/jianying-headless"},
+        {"definition_id": "github-last-push", "value": "2026-09-19T02:42:58Z", "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/mcncarl/jianying-headless"}
+      ],
+      "notices": ["reliability_unverified", "security_scan_not_run", "review_source_before_use"]
+    },
+    {
+      "id": "browser-use",
+      "name": "Browser Use",
+      "capability_hypothesis": "可能让 AI Agent 通过浏览器自动化执行网页操作。",
+      "source": {"kind": "github_repository", "url": "https://github.com/browser-use/browser-use", "locator": "browser-use/browser-use"},
+      "status": "candidate",
+      "visibility": "candidate",
+      "recommendation": "hold",
+      "user_decision": {"status": "pending", "decided_at": null, "note": "review_source_before_use"},
+      "volatility": "high",
+      "checked_at": "2026-09-19",
+      "next_review_at": "2026-09-26",
+      "discovered_via": [{"source_id": "github-repository", "url": "https://github.com/browser-use/browser-use", "discovered_at": "2026-09-19"}],
+      "raw_signals": [
+        {"definition_id": "github-stars", "value": 115277, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browser-use/browser-use"},
+        {"definition_id": "github-forks", "value": 12687, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browser-use/browser-use"},
+        {"definition_id": "github-archived", "value": false, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browser-use/browser-use"},
+        {"definition_id": "github-last-push", "value": "2026-09-18T22:34:42Z", "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browser-use/browser-use"}
+      ],
+      "notices": ["reliability_unverified", "security_scan_not_run", "review_source_before_use"]
+    },
+    {
+      "id": "stagehand",
+      "name": "Stagehand",
+      "capability_hypothesis": "可能让 AI 通过 SDK 与网页交互并提取结构化数据。",
+      "source": {"kind": "github_repository", "url": "https://github.com/browserbase/stagehand", "locator": "browserbase/stagehand"},
+      "status": "candidate",
+      "visibility": "candidate",
+      "recommendation": "hold",
+      "user_decision": {"status": "pending", "decided_at": null, "note": "review_source_before_use"},
+      "volatility": "high",
+      "checked_at": "2026-09-19",
+      "next_review_at": "2026-09-26",
+      "discovered_via": [{"source_id": "github-repository", "url": "https://github.com/browserbase/stagehand", "discovered_at": "2026-09-19"}],
+      "raw_signals": [
+        {"definition_id": "github-stars", "value": 24499, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browserbase/stagehand"},
+        {"definition_id": "github-forks", "value": 1696, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browserbase/stagehand"},
+        {"definition_id": "github-archived", "value": false, "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browserbase/stagehand"},
+        {"definition_id": "github-last-push", "value": "2026-09-18T23:42:06Z", "observed_at": "2026-09-19", "evidence_url": "https://api.github.com/repos/browserbase/stagehand"}
+      ],
+      "notices": ["reliability_unverified", "security_scan_not_run", "review_source_before_use"]
+    }
+  ]
+}

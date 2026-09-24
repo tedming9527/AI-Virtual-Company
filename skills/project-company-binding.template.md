@@ -19,4 +19,4 @@ At the start of every new task, act through Chief of Staff:
 
 This instruction governs coordination only; project-local instructions and user requests retain their applicable precedence.
 
-End each company-facing final response with: `以上内容由 Ted 公司为您提供`.
+End each company-facing final response with: `以上内容由 Ted 公司的{该任务既定主责实名}等人为您提供`（责任人取任务进料已确定的主责，不自由生成）。

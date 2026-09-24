@@ -39,3 +39,15 @@
 - 采用例：取消能力未知时提供状态详情与人工入口，同时显式说明不可确认的能力。
 - 拒绝例：任务终态未知却显示绿色成功和“可随时撤回”。
 - 边界：取消字段、空值文案、焦点、读屏和对比度尚未在真实页面实测。
+
+## C2C 编排学习（2026-09-24）
+- ID：`design-master-c2c-orchestration`；状态：`reviewed_case`（来自已登记 active 技能规范源，岗位化解读，生产能力待真实任务验证）。
+- Owner：苏映雪 · 信任设计官（Design Master）；consult：none（自学习条目，无跨岗位交接）。
+- 来源：`skills/codex-with-chatgpt/SKILL.md`、`skills/jev-use/SKILL.md`、`ROUTER.md` Task Router、`knowledge/c2c-orchestration-route.md`、`platforms/REGISTRY.md`（2026-09-24）。
+- 何时调用 codex-with-chatgpt（满足其一且单个执行者无法直接完成）：复杂设计系统搭建或跨页面演进（多 token/组件/状态联动）；设计→前端实现的大规模 Review（跨多页面，需 PLAN→EXECUTE→REVIEW）；全站/大规模页面一致性检查；首次高风险的设计交付评审。
+- 何时不调用（成本门禁）：单页面视觉微调、单个组件样式、局部 flow 调整、简单 UX 研究、Figma 标注——能直接完成就绝不启动 C2C（增加时间与 token，复杂度不足不值得）。
+- 与 jev-use 组合：一致性检查结果判定（noul/score）、设计验收门禁、候选方案选择等可枚举有限判断用 jev 批量判定（同状态一次调用、`escalate:true` 项升级本岗裁决）；视觉/交互/文案生成归设计师，不交给 jev/C2C 替代设计判断。C2C 承担跨范围规划—执行—评审循环。分工总则：jev 判断，C2C 协作，执行者执行，员工提供专业能力。
+- 治理边界（2026-09-24 刷新，依据 `ROUTER.md` Task Router 与 `skills/codex-with-chatgpt/SKILL.md`）：C2C 只是执行通道，不豁免任务治理——任务分级（S/M/L，按 `DELIVERY_POLICY.md`）、inbox 事件、consult 状态（none/proposed/declined/contributed，只认实际交接）、TASK_CLOSEOUT、用户能力交接照常适用；C2C 内多角色参与不等于"已协作/已评审"，设计判断与证据保留照常适用，C2C 内角色参与不替代设计签核。触发：任何经 C2C 执行的任务收口与登记时。
+- 平台×模式登记（2026-09-24 刷新，依据 `knowledge/c2c-orchestration-route.md`）：某平台/模式能否用 C2C，按 (平台, 模式) 查 `platforms/REGISTRY.md`；未登记或未验证一律 `unknown`，不猜测；新增平台/模式在登记表加行，不改规则正文。架构维持"规则 + 技能映射 + 登记表加行"，MCP server 升级暂缓，本岗不自行实现 C2C 的 MCP server 集成。触发：新任务选择执行通道、新增平台/模式或评估 C2C 升级时。
+- 缺节点提醒（2026-09-24 并入，依据 `skills/codex-with-chatgpt/SKILL.md`"节点缺失回退与短时缓存"与 `platforms/REGISTRY.md` 的 node_status/last_checked）：全站一致性检查/设计验收门禁依赖 C2C 规划/执行角色或 jev-use 节点时，先查 `platforms/REGISTRY.md` 共享状态、不各自重试；节点可用性只写确认后的状态——连续失败 ≥3 次或滚动 30 分钟窗口内集中 ≥3 次才标 missing，成功即回 healthy，本地存在性检查一次判定（不把"可能"写"必然"）。
+- 限制：C2C 循环默认最多 2 个 Review Cycle，仍不通过即 BLOCKED 升级 Chief of Staff；本条目为规范源的岗位化解读，生产收益待真实任务验证，不把"可能"写"必然"、不把 mock 当实测。

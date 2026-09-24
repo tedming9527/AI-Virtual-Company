@@ -18,3 +18,15 @@
 - 采用例：高风险任务分别登记实施者、独立复核者和发布授权者。
 - 拒绝例：正文要求质量复核但 `Consult` 写无，并依赖该字段自动放行。
 - 边界：具体任务的顾问映射和签核链仍需现场核对；不据本条宣称公司生产路由能力已验证。
+
+## C2C 编排学习（2026-09-24）
+- ID：`chief-of-staff-c2c-orchestration`；状态：`reviewed_case`（来自已登记 active 技能规范源，岗位化解读，生产能力待真实任务验证）。
+- Owner：陈知行 · 路由官（Chief of Staff）；consult：none（自学习条目，无跨岗位交接）。
+- 来源：`skills/codex-with-chatgpt/SKILL.md`、`skills/jev-use/SKILL.md`、`ROUTER.md` Task Router、`knowledge/c2c-orchestration-route.md`、`platforms/REGISTRY.md`（2026-09-24）。
+- 何时调用 codex-with-chatgpt（满足其一且单个执行者无法直接完成）：多执行者复杂任务的编排；跨职能、边界模糊的大型任务；监督、预算等高风险事项的首次执行；需综合多模块证据的复杂裁决——借助 C2C 的规划/评审角色铺排，路由官保留最终决策。
+- 何时不调用（成本门禁）：常规事件分级与路由、单事件简报、S 级只读任务、临时清理调度、已有明确执行通道的低风险任务——能直接完成就绝不启动 C2C（增加时间与 token，复杂度不足不值得）。
+- 与 jev-use 组合：任务分级（S/M/L）、是否命中 C2C 触发、预算/门禁判定、升级决定等 decision/triage/gate 型判断是 jev 主场（同事实包批量一次调用，`escalate:true` 升级回路由官）；C2C 承担多执行者规划—评审协作。分工总则：jev 判断，C2C 协作，执行者执行，员工提供专业能力。
+- 治理边界（2026-09-24 刷新，依据 `ROUTER.md` Task Router 与 `skills/codex-with-chatgpt/SKILL.md`）：C2C 只是执行通道，不豁免任务治理——任务分级（S/M/L，按 `DELIVERY_POLICY.md`）、inbox 事件、consult 状态（none/proposed/declined/contributed，只认实际交接）、TASK_CLOSEOUT、用户能力交接照常适用；C2C 内多角色参与不等于"已协作/已评审"，路由官仍按协作契约登记 consult 并整合单一可追溯结论。触发：任何经 C2C 执行的任务收口与登记时。
+- 平台×模式登记（2026-09-24 刷新，依据 `knowledge/c2c-orchestration-route.md`）：某平台/模式能否用 C2C，按 (平台, 模式) 查 `platforms/REGISTRY.md`；未登记或未验证一律 `unknown`，不猜测；新增平台/模式在登记表加行，不改规则正文。架构维持"规则 + 技能映射 + 登记表加行"，MCP server 升级暂缓。触发：新任务选择执行通道、新增平台/模式或评估 C2C 升级时。
+- 缺节点提醒（2026-09-24 并入，依据 `skills/codex-with-chatgpt/SKILL.md`"节点缺失回退与短时缓存"与 `platforms/REGISTRY.md` 的 node_status/last_checked）：路由/编排依赖 C2C 规划/执行角色或 jev-use 节点时，先查 `platforms/REGISTRY.md` 共享状态、不各自重试；节点可用性只写确认后的状态——连续失败 ≥3 次或滚动 30 分钟窗口内集中 ≥3 次才标 missing，成功即回 healthy，本地存在性检查一次判定（不把"可能"写"必然"）。
+- 限制：C2C 循环默认最多 2 个 Review Cycle，仍不通过即 BLOCKED 升级 Chief of Staff；本条目为规范源的岗位化解读，生产收益待真实任务验证，不把"可能"写"必然"、不把 mock 当实测。

@@ -14,16 +14,66 @@ Owner：沈砚舟 · 后端培训导师（资深后端架构师）
 
 | 维度 | 当前结论 | 证据层级 | 置信度 | 下一验证 |
 |---|---|---|---|---|
-| 需求澄清与目标定义 | unknown | 尚无归档观测 | low | 在真实 M/L 任务中独立写出目标、范围、风险与验收 |
+| 需求澄清与目标定义 | unknown | 尚无归档观测 | low | 陌生切片先短诊断（不计失败），补足必要事实/完整最小例，再由用户解释并识别关键未知；按五维记录初答与提示来源，延迟独立检索另验 |
 | 架构、边界与变更影响 | unknown | 尚无归档观测 | low | 对一条真实链路说明事实归属、状态、依赖、异常和恢复 |
 | 前端工程 | 有较长从业经历的用户自述；工程水平待验证 | 用户自述履历，未附项目或代码证据 | medium（履历事实）/ low（能力判断） | 用一项真实页面交付与浏览器证据建立基线 |
 | Java/Spring 与 SQL | unknown | 课程方向，不是独立能力证据 | low | 完成一条纵向业务链并通过真实持久层验收 |
 | 事务、并发与可靠性 | unknown | 尚无归档观测 | low | 处理一个失败路径或并发反例并解释最终状态 |
 | 测试、证据与故障定位 | unknown | 尚无归档观测 | low | 独立选择相称测试并定位一次非预设失败 |
 | AI、Skill 与工具协作 | 一次可归属的证据边界判断；稳定能力仍未建立 | 用户明确改为分项证据展示与用户最终判断；实现与审计均由 AI/员工完成 | low | 在未见工具评估任务中独立定义证据、风险和淘汰决策，并复核真实结果 |
-| 业务理解、沟通与交付 | unknown | 尚无归档观测 | low | 在真实任务中完成决策说明、验收和复盘 |
+| 业务理解、沟通与交付 | unknown | 尚无归档观测 | low | 补足事实后闭卷重建真实业务主线、关键状态与失败结果；按实际学习日和表现安排未见变体，预测影响并选择验证证据 |
+
+未来验证口径（2026-09-22 r1 校准）：缺业务事实归需求缺口，不计学员失败。五维状态与帮助来源按 `USER_CAPABILITY_ASSESSMENT.md` 记录，不设总分；三个具体可比任务尚待选择，只能支持限定任务族/条件下对下一同类任务的初步预测，一次项目验收只确认该次范围。10+3+1 为预算上限，实际负担与最优性未知；W4 自身 D+7 留到下一周期 `pending`，替换原复盘内容且不加时。本次仅校准未来验证安排，无用户新增作答或能力提升。
 
 ## 观测记录
+
+### 2026-09-24 · XXL-JOB 批次对账与事务可见性故障
+
+- observation_id：`2026-09-24-category-job-real-reconciliation`
+- task_ref：`2026-09-24-category-job-real-reconciliation`
+- observed_at：2026-09-24
+- task_level：M
+- domain_and_risk：Java/Spring、MySQL 事务可见性、XXL-JOB 批次统计与双库同步；本地教学数据，已精确清理
+- user_goal：完成一次真实 Job 执行的批次日志、主库事件终态与从库业务终态对账
+- user_actions：独立预测单事件批次的计数守恒与成功终态；在明确操作指引下插入教学事件、查询主从库、手工触发 Job、核对结果、提交未提交事务并清理教学数据
+- initial_judgment：正确预测 `claimedCount=1` 且四类结果之和为 `1`；正确预测成功后状态为 `SUCCESS`、token 与租约为空
+- assistance_level：`guided`（实验设计、SQL、对首次领取为 0 的事务可见性定位均由导师引导）
+- revision_process：首次触发 `handleCode=200` 但 `claimedCount=0`；经提示检查后发现插入会话 `@@autocommit=0`，提交后重触发获得预期业务结果
+- result_scope：真实 XXL-JOB 运行、真实 MySQL 主从库状态与教学数据清理；不包含独立代码实现或未见变体
+- evidence_refs：任务事件中的 2026-09-24 10:40:23 Job 日志、主库事件 `132` 终态、从库 `1100` 终态与清理复核
+- evidence_level：真实运行
+- attribution：`user`
+- capability_signals：能独立预测批次计数守恒和成功终态；能在指导下完成跨系统运行证据收集，并根据提交可见性线索修正实验
+- capability_gaps：尚未独立提出“未提交事务导致独立 Job 连接不可见”的假设；未在未见失败分支中独立选择诊断 SQL；独立后端交付能力仍待更多任务验证
+- unknown：未见变体迁移、独立设计测试数据与异常分支、生产环境运行能力
+- market_relevance：无；单次受指导教学实验不触发市场价值重估
+- confidence：medium（本次行为与运行证据），low（对长期独立能力的外推）
+- privacy_redactions：无职业能力无关信息
+- observer：沈砚舟 · 后端培训导师（资深后端架构师）
+- review_status：`incorporated`
+- supersedes：无
+
+### 2026-09-22 · 需求说明适配与培训穿插偏好
+
+- observation_id：`2026-09-22-adaptive-requirement-learning-preference`
+- task_ref：`2026-09-22-adaptive-requirements-training`
+- task_level：M
+- domain_and_risk：陌生业务需求理解与后端转型学习；本次只形成教学与协作偏好，不包含用户独立作答
+- user_goal：将需求理解训练穿插进既有一主两辅计划，并要求产品、前端、后端以后按其“资深前端但业务域陌生、后端在学习”的能力结构输出易于快速理解的需求说明
+- user_actions：用户识别并明确提出“代码已实现但业务仍未理解”的问题，要求由培训导师安排训练并让三岗位吸取经验
+- assistance_level：`independent`（提出问题与治理目标）；专业能力执行证据不适用
+- result_scope：学习与沟通偏好；不包含业务复述、代码、测试、运行或生产效果
+- evidence_refs：当前任务事件 `2026-09-22-adaptive-requirements-training`
+- evidence_level：用户明确要求
+- attribution：`user`
+- capability_signals：能识别交付完成与理解完成并非同一状态，并主动要求调整协作方式
+- capability_gaps：本次没有闭卷重建、失败预测或未见变体表现，需求澄清与业务理解能力仍为 `unknown`
+- market_relevance：无；不触发市场价值重估
+- confidence：high（偏好与授权事实）；low（专业能力判断）
+- privacy_redactions：无职业能力无关信息
+- observer：沈砚舟 · 后端培训导师（资深后端架构师）
+- review_status：`no_evidence`
+- supersedes：无
 
 ### 2026-09-18 · 能力评估机制建立
 

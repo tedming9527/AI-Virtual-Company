@@ -1,0 +1,76 @@
+{
+  "schema_version": "ted.employee-local-voice-plan.v1",
+  "updated_at": "2026-09-22",
+  "status": "ready_to_generate",
+  "provider": "macos-say",
+  "locale": "zh_CN",
+  "output_format": "m4a-aac",
+  "disclosure_zh": "本语音由 macOS 系统语音合成，并非真人录音。",
+  "selection_note_zh": "映射仅依据本机实际枚举、普通话语言标签、角色间唯一性和岗位节奏做初配；自然度、性格贴合度与中英混排读音仍需人工试听。",
+  "items": [
+    {
+      "order": 1,
+      "role_id": "chief-of-staff",
+      "local_voice": "Reed (Chinese (China mainland))",
+      "rate_wpm": 165,
+      "output_file": "01-chief-of-staff-chen-zhixing-local.m4a",
+      "style_target_zh": "沉稳、克制、决断清楚"
+    },
+    {
+      "order": 2,
+      "role_id": "product-manager",
+      "local_voice": "Flo (Chinese (China mainland))",
+      "rate_wpm": 178,
+      "output_file": "02-product-manager-lin-zhixia-local.m4a",
+      "style_target_zh": "温暖、清晰、善于引导"
+    },
+    {
+      "order": 3,
+      "role_id": "frontend-expert",
+      "local_voice": "Eddy (Chinese (China mainland))",
+      "rate_wpm": 190,
+      "output_file": "03-frontend-expert-zhou-qiming-local.m4a",
+      "style_target_zh": "明快、亲和、落地"
+    },
+    {
+      "order": 4,
+      "role_id": "backend-expert",
+      "local_voice": "Rocko (Chinese (China mainland))",
+      "rate_wpm": 158,
+      "output_file": "04-backend-expert-lu-xingyuan-local.m4a",
+      "style_target_zh": "稳健、低调、分析性强"
+    },
+    {
+      "order": 5,
+      "role_id": "design-master",
+      "local_voice": "Shelley (Chinese (China mainland))",
+      "rate_wpm": 168,
+      "output_file": "05-design-master-su-yingxue-local.m4a",
+      "style_target_zh": "温润、舒展、富有同理心"
+    },
+    {
+      "order": 6,
+      "role_id": "test-expert",
+      "local_voice": "Sandy (Chinese (China mainland))",
+      "rate_wpm": 166,
+      "output_file": "06-test-expert-gu-qingyan-local.m4a",
+      "style_target_zh": "清楚、冷静、证据导向"
+    },
+    {
+      "order": 7,
+      "role_id": "ai-engineer",
+      "local_voice": "Tingting",
+      "rate_wpm": 186,
+      "output_file": "07-ai-engineer-xin-che-local.m4a",
+      "style_target_zh": "敏捷、清晰、信息密度高"
+    },
+    {
+      "order": 8,
+      "role_id": "backend-training-architect",
+      "local_voice": "Grandpa (Chinese (China mainland))",
+      "rate_wpm": 150,
+      "output_file": "08-backend-training-shen-yanzhou-local.m4a",
+      "style_target_zh": "耐心、循序渐进、强调因果"
+    }
+  ]
+}

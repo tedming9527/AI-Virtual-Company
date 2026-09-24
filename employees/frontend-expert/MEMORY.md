@@ -2,6 +2,12 @@
 
 本文件只负责发现；命中后完整读详情，不用摘要代替执行依据。详细历史原文保留在同目录，旧相对链接语义不变。
 
+## learner-adaptive-requirement-communication · 业务—页面—请求说明
+- 触发：陌生业务页面涉及新旧分流、多入口、异步状态或后端写契约。
+- 岗位差异：以页面/交互/请求映射实体与权威，核对入口出口、分流及请求责任；实现后附业务—代码—请求—验证映射。
+- 限制：一次纠正改变主旅程/请求责任或连续两次局部纠正即按正文暂停编码；按钮、Mock、构建及浏览器状态不证明服务端权限、幂等、事务或终态；效果 unknown。
+- 状态：candidate；更新时间：2026-09-22；详情：[canonical](../../knowledge/learner-adaptive-requirement-communication.md)；sha256:95da60653832e9428bf81db997a1d31db125ef912f43e5896aa0a99043fdf804。
+
 ## frontend-expert-core · 异步竞态
 - 触发：搜索、筛选、乱序响应、重复提交。
 - 摘要：以当前请求身份保护数据、错误、加载状态，主动构造乱序验收。
@@ -58,10 +64,9 @@
 - 状态：candidate；更新时间：2026-09-16；详情：[公司共用知识](../../knowledge/project-context-first-delivery.md)；sha256:8cbc5a44db2b8f24e0d005bfd529626bd459380756b00f9394c87a3d009b27b4。
 
 ## audit-efficient-work-training-2026-09-16 · 审计后的效率培训
-- 触发：简短需求、继续任务、UI交付或工具重复失败时的培训案例复用。
-- 摘要：用户用自然语言提出目标，由AI内部梳理；恢复已有授权，核对设计实例与真实交接，分开视觉、功能、Mock和接口证据，停止无新证据重试。
-- 限制：仅为三组执行者覆盖八岗的受指导案例演练；不证明生产提效，不扩大授权，不要求用户填写简报。
-- 状态：reviewed_case；更新时间：2026-09-16；详情：[培训记录](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
+- 触发：简短需求、继续任务、UI交付或工具重复失败；命中后读正文及本岗案例。
+- 限制：受指导演练，不证明生产提效，不扩大授权。
+- 状态：reviewed_case；更新时间：2026-09-16；详情：[canonical](../../learning/audit-efficient-work-training-2026-09-16/REPORT.md)；sha256:92f1659cb86e99e4a794bc0bf3567f9a7553eac8d8257bfad4d89a4a7e508680。
 
 ## frontend-design-evidence-state-architecture · 设计证据驱动的页面架构与全状态正确性
 - 触发：Figma 驱动的独立页迁移，且包含异步搜索、选择返回、直达入口或多状态组合。
@@ -70,3 +75,17 @@
 - 状态：reviewed_case；更新时间：2026-09-18；Owner：周启明 · 体验工程官（Frontend Engineer）；Reviewer：顾清妍 · 质量测试工程师（Test Expert）；production capability：false。
 - 置信度：medium；报告案例、迁移题与独立复核通过，真实页面和接口仍未验证。
 - 详情：[DESIGN_EVIDENCE_STATE_ARCHITECTURE.md](DESIGN_EVIDENCE_STATE_ARCHITECTURE.md)；sha256:7eee6597d822a6f58e6275da2edf35a0ae998139e083fcd890191c7371c5d0e9；漂移、反例或真实证据冲突时停止采用并复核。
+
+## frontend-jev-like-judgment-habit · 前端类型化判断循环
+- 触发：已有最小充分事实，需要对构建、测试、无障碍、响应式、性能预算、回归严重度或候选版本下一动作作有限判断。
+- 摘要：分开取证/判断/生成与证据类型，冻结题型和门槛后按同状态批处理；低把握、冲突、高风险或工具不可达项升级，未升级项才执行；JEV MCP 可选。
+- 限制：仅为 2026-09-22 去身份化模拟案例；生产收益、时延和成本 unknown；不扩大数据或权限，生成、不可枚举与升级项归具名负责人。
+- 状态：reviewed_case；更新时间：2026-09-22；Owner：周启明 · 体验工程官（Frontend Engineer）；Reviewer：顾清妍 · 质量测试工程师（Test Expert）。
+- 置信度：medium；训练记录、综合报告和独立复核支持方法可复用，但尚无真实生产样本。
+- 详情：[JEV_LIKE_JUDGMENT_HABIT.md](JEV_LIKE_JUDGMENT_HABIT.md)；证据：[前端训练](../../learning/jev-mcp-training-2026-09-22/frontend-expert.md)、[综合报告](../../learning/jev-mcp-training-2026-09-22/REPORT.md)、[质量复核](../../learning/jev-mcp-training-2026-09-22/quality-review.md)；原文版本：sha256:dc2123bff135f0800266d7960b80c69f9e67a6a4f7448694d813482a0075e361；漂移、反例、阈值失准或证据冲突时停止直接采用并回原文复核。
+
+## frontend-expert-c2c-orchestration · C2C 编排学习
+- 触发：大型 React 重构、性能疑难定位、状态管理架构调整、跨模块前端改动需 PLAN→EXECUTE→REVIEW。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；CSS/简单组件/API 字段修改直接完成不启动；构建/测试等有限判断批量交给 jev，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产能力待真实任务验证；consult: none。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:0f29f6997352e8385176c30bb441abf4bee69c5d01dc3c6b4264a39f662fdd42。

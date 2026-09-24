@@ -1,0 +1,26 @@
+# 分类变更补偿任务：真实批次对账训练
+
+- id / created_at / source / request：2026-09-24-category-job-real-reconciliation / 2026-09-24T00:00:00+08:00 / codex / 开始培训
+- project：spring-test-web；`CategoryChangeEventJob`
+- scope / out_of_scope：一次真实 XXL-JOB 调度的批次日志与主库事件终态对账；不新增功能、不进入 RabbitMQ/Nacos/Sentinel、不由导师操作管理台或数据库。
+- sensitivity / authority：本地教学环境；用户授权培训，不授权导师人工触发任务、写入或清理验收数据。
+- requested_outcome：训练及验收边界：取得可复核的真实 Job 日志与数据库查询证据，或明确缺失证据。
+- level / reason / classifier / owner_confirmed：M / 涉及真实调度与数据库状态的集成验收 / 陈知行 · 路由官（Chief of Staff） / 沈砚舟 · 后端培训导师（资深后端架构师）
+- owner / executor / consult：沈砚舟 · 后端培训导师（资深后端架构师） / 当前 Codex 会话（模型、推理强度 unknown） / none
+- consult_status：none
+- consult_question / consult_evidence / consult_disposition：none / none / none
+- baseline：`master`，HEAD `9d883a4`，工作区干净。
+- context：`CategoryChangeEventJob` 记录 claimed、success、failed、retry、notUpdate；四类计数须与领取数守恒。课程事实源：`spring-test-web/docs/learning/PROGRESS.md`。
+- temporary_artifacts：none
+- retention_decision：retain
+- promotion_target：inbox/session-events/（本训练任务的最小审计记录）
+- decisions：先做运行证据闭环，再进入基础可观测性；由学员执行管理台与数据库操作。
+- acceptance：学员提供同一批次的 Job 日志与对应主库 `category_change_event` 查询结果；核对四类结果之和等于 `claimedCount`，并解释任何 `notUpdate`。
+- artifacts：`spring-test-web/docs/learning/PROGRESS.md`、`spring-test-web/docs/learning/TEACHING_STRATEGY.md`；无业务代码变更。
+- evidence：2026-09-24 10:40:23，XXL-JOB 日志：`claimedCount=1, success=1, failed=0, retry=0, notUpdate=0`，`handleCode=200`。主库事件 `132` 最终为 `SUCCESS`；从库 `1100` 最终为 `lesson-batch-reconcile-v1/category_version=1`；清理复核后从库恢复 `食品生鲜/0`，主库事件 `132` 不存在。首次 `claimedCount=0` 的根因是插入会话 `@@autocommit=0`，事件未提交。
+- status：verified
+- remaining：基础可观测性尚未开始；本课不修改业务代码。
+- knowledge：教学策略已补充跨连接实验的提交可见性与清理复核规则。
+- metrics：unknown
+- capability_handoff：用户独立预测批次计数守恒与成功终态；在引导下完成主从库查询、事务提交、Admin 触发、终态核对与清理。真实运行证据支持本次“任务证据与故障定位”观测，不外推为独立后端交付能力。
+- capability_handoff_status / receipt：incorporated / `memory/learner/CAPABILITY_PROFILE.md` 的 `2026-09-24-category-job-real-reconciliation` 观测。

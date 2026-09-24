@@ -1,0 +1,56 @@
+# 项目级测试/生产分支配置与发布链路改造
+
+- id: `2026-09-22-github-issue-monitor-project-release-branches`
+- created_at: `2026-09-22T15:47:16+08:00`
+- source: `codex`
+- request: 为个人项目开放当前测试分支、当前生产分支配置，默认 `test` / `main`，支持常见 `test`、`main`、`master_tsc`，由浏览器按仓库记忆；合并、测试部署和配套发布插件必须显示并使用实际分支。
+- project: `github-issue-monitor`；React 页面、刷新服务、部署脚本、`plugins/vanke-monitor-release`
+- scope: 项目级浏览器配置、分支比较与合并目标、测试部署目标、状态/确认提示、MCP 插件输出和测试
+- out_of_scope: 不提交、不推送、不实际合并或部署，不修改外部仓库分支规则
+- sensitivity: `internal`
+- authority: 用户已明确授权修复，并在 `2026-09-22` 回复“允许”，批准按原子交换方案修改及更新本机 github-issue-monitor 服务；随后回复“按建议修复”，授权修复 MCP GitHub 网络容错、更新缓存版本并重新安装本地插件；不包含提交、推送、业务合并或测试环境部署授权
+- requested_outcome: `implementation`
+- level: `M`
+- reason: 浏览器状态、HTTP 请求契约、服务端校验、Shell 参数和 MCP 插件共同变化，需要集成验收
+- classifier: 陈知行 · 路由官（Chief of Staff）
+- owner_confirmed: 周启明 · 体验工程官（Frontend Engineer）
+- owner: 周启明 · 体验工程官（Frontend Engineer）
+- executor: 当前 Codex 主会话（模型不可观测，记为 unknown）
+- consult: `none`
+- consult_status: `none`
+- consult_question: `none`
+- consult_evidence: `none`
+- consult_disposition: `none`
+- baseline: 当前目录无 Git 元数据；以实施前文件内容和测试结果为基线
+- context: 当前 UI、刷新服务、部署脚本与插件均把 `test/main` 写死；浏览器已有 localStorage 使用约定
+- temporary_artifacts: `none`
+- retention_decision: `retain`
+- promotion_target: `inbox/session-events/`
+- decisions: 默认保持 `test/main`；配置按 `repo` 键存浏览器；所有合并/部署请求显式携带目标分支；服务端验证分支名并把部署分支传给脚本；插件先读取 monitor 的项目分支配置再输出和调用
+- acceptance: 刷新后配置仍存在；确认框、按钮、运行状态和插件结果显示测试/生产/部署分支；自定义分支传到底层命令；默认值兼容旧数据；非法分支被拒绝；主项目与插件测试通过；MCP 远端只读操作有限重试，HTTP/2 framing 时按命令临时降级 HTTP/1.1，不持久改业务仓库配置，错误结果包含尝试次数/协议；已安装缓存与源码一致
+- artifacts: `src/App.jsx`; `refresh-server.mjs`; `deploy-test-only.sh`; `monitor.mjs`; `scripts/sync-runtime.sh`; `plugins/vanke-monitor-release/scripts/{release-core.mjs,server.mjs}`；配套测试与 README；Vite `dist/`
+- evidence: `2026-09-22T15:58:47+08:00`：主服务测试 7/7 通过；插件测试 10/10 通过；Vite 生产构建通过（仅保留既有大包提示）；Node/Bash 语法检查通过；本地浏览器验证选择器、`master_tsc` 动态部署文案、刷新记忆与确认框三类分支提示通过；已取消确认，未运行真实合并或部署；构建后已从现有运行副本恢复 `dist/data.json`，避免本地静态页丢失监控数据。`2026-09-22T16:43:05+08:00`：新增原子交换纯逻辑测试后主项目 11/11 通过，插件 10/10 通过，Vite 生产构建通过；浏览器实测 `test/main → main/test`、交换提示、部署按钮联动和刷新持久化通过，验收后恢复 `test/main`；当前构建文件与运行副本一致，LaunchAgent 和 Docker 均运行，本机及局域网入口均 HTTP 200。`2026-09-22T17:09:53+08:00`：插件增加远端 Git 最多三次有限重试，第二次起仅按命令使用 HTTP/1.1，读取/推送分别设 45/120 秒超时，认证类错误不重试，成功与失败均返回结构化协议/次数诊断；源码与安装缓存内测试均 13/13 通过，Node 语法与官方插件校验通过，缓存四个关键文件与源码逐项一致；已重装 `0.1.0+codex.20260922090355`，并移除 `summoner` 仓库遗留的本地 `http.version`；未提交、推送、合并或部署业务项目
+- status: `completed`
+- followup_at: `2026-09-22T16:36:00+08:00`
+- followup_requirement: 用户指出当前互斥禁用导致测试/生产分支无法直接反选；已按用户确认的原子交换方案完成修改、验证和服务更新。用户随后要求按诊断建议修复 MCP 网络容错及插件缓存版本漂移
+- followup_proposal: 下拉不再禁用另一字段当前值；若选择了对方当前分支，则前端一次性原子交换测试/生产分支并提示交换结果；若选择未占用的第三分支则只更新当前字段；服务端继续拒绝最终同值配置，浏览器和 monitor 仍以完整分支对一次提交
+- deployment_started_at: `2026-09-22T16:34:39+08:00`
+- deployment_verified_at: `2026-09-22T16:43:05+08:00`
+- deployment_authority: 用户明确要求“更新服务”；授权同步本机运行副本并重启 github-issue-monitor 服务，不包含业务项目合并或测试环境部署
+- completed_at: `2026-09-22T16:43:05+08:00`
+- started_at: `2026-09-22T15:47:16+08:00`
+- execution_receipt: 公司初始化、路由、任务登记和目标链路只读核对已完成；进入当前 Codex 主会话写入阶段
+- deployment_evidence: `scripts/sync-runtime.sh` 成功；运行副本的 monitor、refresh-server、合并/部署脚本、配置、Compose 与前端 index 哈希均匹配源码；刷新 LaunchAgent 以新 PID 55070 运行；Docker 容器保持运行并监听 `0.0.0.0:7778`/`[::]:7778`；`127.0.0.1:7778` 与 `10.39.1.15:7778` 均 HTTP 200；`/release-config` 返回新接口与默认 `test/main`
+- remaining: 用户需在新 Codex 任务中调用更新后的 MCP，以跨过插件进程热加载边界；无代码、安装或配置清理遗留项
+- reliability_batch_started_at: `2026-09-22T17:02:51+08:00`
+- reliability_batch_owner: 陆行远 · 可靠服务官（Backend Engineer）
+- reliability_batch_executor: 当前 Codex 主会话（模型不可观测，记为 unknown）
+- reliability_batch_completed_at: `2026-09-22T17:09:53+08:00`
+- reliability_batch_result: `vanke-monitor-release@github-issue-monitor` 已安装并启用，版本 `0.1.0+codex.20260922090355`；业务仓库未发生发布写入
+- activation_check_at: `2026-09-22T17:12:16+08:00`
+- activation_check: 当前任务只读调用 `get_current_release_status` 成功，但返回体缺少新版本必有的 `releaseConfig` 与 `deploymentBranch`，证明当前任务仍连接旧 MCP 进程；已安装缓存仅在新 Codex 任务创建时可靠加载，无需再次安装
+- knowledge: 采用 `frontend-project-architecture-discovery` 追踪页面、请求、服务、Shell 与插件链路；结论高度项目特定，不新增公司知识条目
+- metrics: started_at `2026-09-22T15:47:16+08:00`; completed_at `2026-09-22T16:43:05+08:00`; elapsed `55m49s`; rework_rounds `2`（测试定位断言修正；按用户反馈将互斥禁用重构为原子交换）；cost `unknown`
+- capability_handoff: M 级前端/发布链路任务；用户本人识别了团队分支规则漂移风险，并主动补充插件一致性和测试环境部署分支提示要求，体现跨入口发布契约意识；实现、代码和验证由 AI 完成，不能归为用户编码能力；其余能力结论 unknown
+- capability_handoff_status: `pending`
+- capability_handoff_receipt: 当前任务未启用多执行者/原生通知通道，留在原事件待沈砚舟 · 后端培训导师（资深后端架构师）后续处理
