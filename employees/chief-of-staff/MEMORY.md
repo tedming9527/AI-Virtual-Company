@@ -8,7 +8,7 @@
 - 限制：文件数不是复杂度；岗位称谓不是实际参与；权限不能由集体投票放大。
 - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:73e93cb41c0c47be8d0d622a848a4c30bb0ff3dae3630de119ccb8b267c1a6da；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:af8ac78ff4da40750057852c12c4754fc9091165c603d0db3339dd92396108b8；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## chief-of-staff-experience-transfer · 经验迁移责任门禁
 - 触发：知识迁移、跨岗协作、实现/验证/发布状态混合。
@@ -16,7 +16,7 @@
 - 限制：仅为 reviewed_case；具体签核链仍须现场核对，不证明生产路由能力。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:73e93cb41c0c47be8d0d622a848a4c30bb0ff3dae3630de119ccb8b267c1a6da。
+- 原文版本：sha256:af8ac78ff4da40750057852c12c4754fc9091165c603d0db3339dd92396108b8。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -49,6 +49,6 @@
 
 ## chief-of-staff-c2c-orchestration · C2C 编排学习
 - 触发：多执行者复杂任务编排、跨职能边界模糊大型任务、监督/预算等高风险首执、需综合多模块证据的复杂裁决。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；常规分级路由、单事件简报、S 级只读任务直接处理不启动；任务分级/触发判定/预算门禁/升级等 decision 批量交给 jev，升级项回路由官终裁。C2C 仅执行通道，任务分级/事件/consult 状态/TASK_CLOSEOUT/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记/未验证一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；常规分级路由、单事件简报、S 级只读任务直接处理不启动；任务分级/触发判定/预算门禁/升级等 decision 批量交给 jev，升级项回路由官终裁。C2C 仅执行通道，任务分级/事件/consult 状态/TASK_CLOSEOUT/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记/未验证一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产能力待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:35a0b2fb7c6bf1f5184c090cf23526270e0bcd76770fe2db3f7efe2ed5bb4ae8。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:af8ac78ff4da40750057852c12c4754fc9091165c603d0db3339dd92396108b8。

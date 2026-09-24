@@ -48,7 +48,7 @@ node "$eval_root/scripts/read-knowledge.mjs" "$eval_root" worker backend/relativ
 历史基线：learning/evaluations/2026-09-11-workflow-v1/REPORT.md；其中tools和fixtures只作为已审查种子复制到新快照，不能原地重跑改动历史证据。历史脚本是当时版本，先检查与当前ROSTER/必需文件兼容并补齐，不保证直接运行即适配所有未来版本。不能复用旧结果当新证据。
 
 ## 5. 发现、修复与最终门禁
-发现记录ID/严重性/文件版本/复现或推演/影响/修复授权/负责人/状态，模板见templates/KNOWLEDGE_CHANGE.md。
+发现记录ID/严重性/文件版本/复现或推演/影响/修复授权/负责人/状态，模板见templates/KNOWLEDGE_CHANGE.md。正式审计开始时先读取 `learning/audit-findings.md` 的 open/deferred 条目；已授权时按条目收敛，处理后在文件中更新状态、日期与负责人。
 关键授权或语义问题未解决，不能整体通过。先改事实源（仅已授权）→创建新快照→独立重测受影响项与一次基础回归。保留首次失败、修改、每次复测与新增风险。
 报告四层结论：结构校验、模型语义审查、fixture行为、真实项目效果。只比较同口径读取基线，同时报告全库基线与原本按岗位读取基线；实际Token未知不拿字符换算。
 归档manifest、测试输入/判据、实际产物、读取账本、命令结果、独立原报告和集成结论到learning/evaluations/<run_id>/，原事件链接它。不复制原始聊天或秘密。评测结论沉淀按KNOWLEDGE_MAINTENANCE.md，不把一次全绿写永久能力。

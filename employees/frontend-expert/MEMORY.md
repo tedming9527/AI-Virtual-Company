@@ -14,7 +14,7 @@
 - 限制：取消请求不独自保证正确；按钮禁用不证明服务端幂等。
 - 状态：reviewed_case；更新时间：2026-09-13；已通过无框架最小迁移题，生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:f0139e389c9d959fd800980ccb998b92fdf5cd55051874a5aaae0275e4a6ca46；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:9ddafa56090946e627f26add3ead62f943adb8710ff1959e59ebb0a805b24a28；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## frontend-page-state-validation · 页面状态分层验收
 - 触发：页面状态组合多、视觉快速调整、jsdom 页面测试维护成本上升。
@@ -30,7 +30,7 @@
 - 限制：仅为 reviewed_case；真实页面字段、全入口覆盖和关键旅程顺序未验证。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:f0139e389c9d959fd800980ccb998b92fdf5cd55051874a5aaae0275e4a6ca46。
+- 原文版本：sha256:9ddafa56090946e627f26add3ead62f943adb8710ff1959e59ebb0a805b24a28。
 
 ## frontend-page-architecture-visual-validation · 独立页迁移与设计实例核验
 - 触发：弹窗、抽屉或浮层迁为独立路由页，并需按 Figma 还原。
@@ -86,6 +86,6 @@
 
 ## frontend-expert-c2c-orchestration · C2C 编排学习
 - 触发：大型 React 重构、性能疑难定位、状态管理架构调整、跨模块前端改动需 PLAN→EXECUTE→REVIEW。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；CSS/简单组件/API 字段修改直接完成不启动；构建/测试等有限判断批量交给 jev，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；CSS/简单组件/API 字段修改直接完成不启动；构建/测试等有限判断批量交给 jev，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产能力待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:0f29f6997352e8385176c30bb441abf4bee69c5d01dc3c6b4264a39f662fdd42。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:9ddafa56090946e627f26add3ead62f943adb8710ff1959e59ebb0a805b24a28。

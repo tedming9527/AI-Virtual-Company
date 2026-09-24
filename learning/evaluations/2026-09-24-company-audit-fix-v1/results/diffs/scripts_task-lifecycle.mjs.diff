@@ -1,0 +1,33 @@
+diff --git a/scripts/task-lifecycle.mjs b/scripts/task-lifecycle.mjs
+index ade3bfc..0e1ad3e 100644
+--- a/scripts/task-lifecycle.mjs
++++ b/scripts/task-lifecycle.mjs
+@@ -112,6 +112,10 @@ export function run(args, { root = process.env.AI_VIRTUAL_COMPANY_ROOT || proces
+       model_verified: false, source: 'task-lifecycle',
+     });
+   };
++  // Durable closeout receipts go to inbox/session-events only when the task actually
++  // executed against an external supervised run (外部动作/可恢复持续任务, TASK_LIFECYCLE.md
++  // "命中持久任务记录触发条件"). Never-started temporary cards write no receipt.
++  const needsDurableReceipt = task => Boolean(task.external_run_id);
+   const mutate = command !== 'status' && (command !== 'cleanup' || options['--apply']);
+   let lock;
+   const lockPath = path.join(tmp, '.task-lifecycle.lock');
+@@ -134,7 +138,7 @@ export function run(args, { root = process.env.AI_VIRTUAL_COMPANY_ROOT || proces
+           if (!terminal.has(task.status)) { results.push({ id: folder, action: 'needs_attention', status: task.status }); continue; }
+           const destination = path.join(quarantine, `${folder}-${now}`);
+           if (options['--apply']) {
+-            saveReceipt(task); // Never move a task without its durable closeout.
++            if (needsDurableReceipt(task)) saveReceipt(task); // Durable closeout only for externally-executed tasks.
+             mkdir(quarantine);
+             inspect(destination);
+             if (fs.existsSync(destination)) throw new Error('Quarantine destination exists');
+@@ -214,7 +218,7 @@ export function run(args, { root = process.env.AI_VIRTUAL_COMPANY_ROOT || proces
+       task.closed_at = new Date(now).toISOString();
+       task.reason = options['--reason'].trim();
+       task.reason_sha256 = digest(task.reason);
+-      saveReceipt(task);
++      if (needsDurableReceipt(task)) saveReceipt(task);
+     }
+     atomicJSON(path.join(dir, 'task.json'), task);
+     return task;

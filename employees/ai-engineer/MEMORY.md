@@ -10,7 +10,7 @@
 - 限制：转载不是独立证据，保留规则不自动授权删除或发布。
 - 状态：reviewed_case；更新时间：2026-09-22；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:8bd1ecc592b14853135b8ffa30603333ad30fa1ace2bcc1a494167b6d7d61a4d；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:c3ef51b0b6f5a2a4d5e052f6793e6e263db46583f0b712b55fb9f6e521f82e5b；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## ai-engineer-experience-transfer · 来源与时间迁移门禁
 - 触发：迁移 AI 资料结论、模型状态或发布判断。
@@ -18,14 +18,14 @@
 - 限制：仅为 reviewed_case；页面时间锚点、逐条引用与删除/取消字段仍待核验。
 - 状态：reviewed_case；更新时间：2026-09-22；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:8bd1ecc592b14853135b8ffa30603333ad30fa1ace2bcc1a494167b6d7d61a4d。
+- 原文版本：sha256:c3ef51b0b6f5a2a4d5e052f6793e6e263db46583f0b712b55fb9f6e521f82e5b。
 
 ## ai-capability-source-link-radar · AI 能力扩展工具宽进严出门禁
 - 触发：发现可能扩展 AI 执行边界或降低使用门槛的仓库、npm 包或社区线索。
 - 摘要：20 个多样入口宽进，逐源留痕；实体类型与多入口证据分离；发现覆盖和发布门禁双审计；固定 candidate/hold/pending，用户自行判断。
 - 限制：verified_context 仅指 2026-09-19 本地门禁、一次 20 源运行与私有站版本 8 的历史记录；r0 未携带证据，本轮未重新认证运行或线上状态；不证明候选可靠、安全或适合生产；X 未连接，无后台调度。
 - 状态：verified_context；更新时间：2026-09-22；Owner：辛澈 · AI工程师；历史 Reviewer：independent-v5；本轮：辛澈 · AI工程师语义自审，独立复核待完成。
-- 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；体系见 [AI 能力扩展雷达](../../deliverables/ai-capability-radar/README.md)；sha256:8bd1ecc592b14853135b8ffa30603333ad30fa1ace2bcc1a494167b6d7d61a4d。
+- 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；体系见 [AI 能力扩展雷达](../../deliverables/ai-capability-radar/README.md)；sha256:c3ef51b0b6f5a2a4d5e052f6793e6e263db46583f0b712b55fb9f6e521f82e5b。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -56,6 +56,6 @@
 
 ## ai-engineer-c2c-orchestration · C2C 编排学习
 - 触发：内容系统架构级改动、复杂 AI 主题多源深度核验、大规模内容体系重构、首次搭建选题/核验管线需 PLAN→EXECUTE→REVIEW。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；单篇图文稿、简单选题、单条核验直接完成不启动；选题分诊、来源质量与发布门禁等有限判断批量交给 jev，升级项回本岗，对外发布仍须用户逐次批准。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；单篇图文稿、简单选题、单条核验直接完成不启动；选题分诊、来源质量与发布门禁等有限判断批量交给 jev，升级项回本岗，对外发布仍须用户逐次批准。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产收益待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:5ea856af73fe139d1e280747dce8c733f2f46ff9d9387bfb289f1ef69416c225。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:c3ef51b0b6f5a2a4d5e052f6793e6e263db46583f0b712b55fb9f6e521f82e5b。

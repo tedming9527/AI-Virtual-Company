@@ -1,0 +1,36 @@
+{
+  "entries": 57,
+  "requested": "all",
+  "errors": [
+    "chief-of-staff-core: STALE summary/source hash mismatch",
+    "test-expert-core: STALE summary/source hash mismatch",
+    "product-manager-core: STALE summary/source hash mismatch",
+    "frontend-expert-core: STALE summary/source hash mismatch",
+    "backend-expert-core: STALE summary/source hash mismatch",
+    "design-master-core: STALE summary/source hash mismatch",
+    "ai-engineer-core: STALE summary/source hash mismatch",
+    "backend-training-architect-core: STALE summary/source hash mismatch",
+    "backend-training-architect-vanke-critical-distillation: STALE summary/source hash mismatch",
+    "chief-of-staff-experience-transfer: STALE summary/source hash mismatch",
+    "product-manager-experience-transfer: STALE summary/source hash mismatch",
+    "frontend-expert-experience-transfer: STALE summary/source hash mismatch",
+    "backend-expert-experience-transfer: STALE summary/source hash mismatch",
+    "design-master-experience-transfer: STALE summary/source hash mismatch",
+    "test-expert-experience-transfer: STALE summary/source hash mismatch",
+    "ai-engineer-experience-transfer: STALE summary/source hash mismatch",
+    "ai-capability-source-link-radar: STALE summary/source hash mismatch",
+    "backend-training-architect-experience-transfer: STALE summary/source hash mismatch",
+    "backend-training-four-step-engineering-loop: STALE summary/source hash mismatch"
+  ],
+  "warnings": [
+    "chief-of-staff-c2c-orchestration: long summary, do not truncate limits",
+    "product-manager-c2c-orchestration: long summary, do not truncate limits",
+    "frontend-expert-c2c-orchestration: long summary, do not truncate limits",
+    "backend-expert-c2c-orchestration: long summary, do not truncate limits",
+    "design-master-c2c-orchestration: long summary, do not truncate limits",
+    "test-expert-c2c-orchestration: long summary, do not truncate limits",
+    "ai-engineer-c2c-orchestration: long summary, do not truncate limits",
+    "backend-training-architect-c2c-orchestration: long summary, do not truncate limits"
+  ],
+  "scope": "ID-bound structure, catalog coverage and drift only; not semantic certification"
+}

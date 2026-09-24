@@ -1,0 +1,37 @@
+{
+  "run_id": "2026-09-24-company-audit-fix-v1",
+  "verifier": "陈知行（路由官）独立验证者，全新上下文，未参与修复执行",
+  "snapshot_path": "/tmp/company-snap-n6dQg0",
+  "source_root": "/Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company",
+  "built_at_local": "2026-09-24 Asia/Shanghai",
+  "whitelist": "治理根目录*.md政策、employees/ROSTER.txt+8岗PROFILE/MEMORY/KNOWLEDGE、knowledge/INDEX.md+catalog.json+全部*.md、catalog引用的全部detail文件、learning/audit-findings.md、scripts/check-*+bootstrap+task-lifecycle+resolve-model-learning-request+supervisor-runtime、ASSET_REGISTRY.md登记的4个active skill整目录(codex-with-chatgpt/jev-use/company-skill-governance/ted-takeover)、platforms/REGISTRY.md、templates/EVALUATION_BRIEF+KNOWLEDGE_CHANGE+TASK_CLOSEOUT、memory/PROJECT_MEMORY_POLICY.md、learning/audit-efficient-work-training-2026-09-16/。未复制凭据/原始聊天/业务库。",
+  "manifest_files": 95,
+  "bootstrap": {
+    "cmd": "AI_VIRTUAL_COMPANY_ROOT=$SNAP zsh $SNAP/scripts/check-company-bootstrap.sh",
+    "exit": 0,
+    "stdout": [
+      "Active Skill sources and required metadata checked: 4 (bodies not loaded into session)",
+      "Platform/mode registry checked: 4 rows",
+      "Company bootstrap check passed: /tmp/company-snap-n6dQg0"
+    ]
+  },
+  "check_knowledge": {
+    "cmd": "node $SNAP/scripts/check-knowledge.mjs $SNAP",
+    "exit": 0,
+    "stdout": {
+      "entries": 58,
+      "requested": "all",
+      "errors": [],
+      "warnings": [],
+      "scope": "ID-bound structure, catalog coverage and drift only; not semantic certification"
+    }
+  },
+  "fidelity_vs_real_root": {
+    "real_root_check_knowledge": { "entries": 58, "errors": [], "warnings": [] },
+    "snapshot_check_knowledge": { "entries": 58, "errors": [], "warnings": [] },
+    "real_root_bootstrap": "passed",
+    "snapshot_bootstrap": "passed",
+    "verdict": "一致（保真通过）"
+  },
+  "build_notes": "首次快照白名单不完整（漏 catalog 引用的岗位 detail 文件与 ted-takeover skill 目录），bootstrap 报 INACTIVE ACTIVE SKILL: ted-takeover、check-knowledge 报 29 条 ENOENT；按 catalog.entries[*].detail 与 ASSET_REGISTRY active 行补齐后复测全绿。此为快照构建过程的收敛记录，非真实根缺陷。"
+}

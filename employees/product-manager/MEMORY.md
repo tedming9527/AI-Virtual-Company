@@ -14,7 +14,7 @@
 - 限制：点击率上涨不证明因果，同类样本仍可能混杂，实验需授权。
 - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:7ddd668dde87d8104d512481b00ff0c5dcd8f88a05e813ca58ecb2c671536860；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:25d9490fdadcb17db2a4fc59aaaa9c1822357a0b74e2da1697e98ddd0ae85836；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## product-manager-experience-transfer · 指标口径迁移门禁
 - 触发：用旧经验解释新指标或决定放量。
@@ -22,7 +22,7 @@
 - 限制：仅为 reviewed_case；统一分母模板和窗口参数尚未形成生产标准。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:7ddd668dde87d8104d512481b00ff0c5dcd8f88a05e813ca58ecb2c671536860。
+- 原文版本：sha256:25d9490fdadcb17db2a4fc59aaaa9c1822357a0b74e2da1697e98ddd0ae85836。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -57,6 +57,6 @@
 
 ## product-manager-c2c-orchestration · C2C 编排学习
 - 触发：大型跨模块多角色需求拆解、复杂技术方案评审、跨角色执行计划编排。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt，PM 保留问题框架/优先级/成功指标；单需求澄清、常规排序、指标口径直接完成不启动；需求分级/方案对比/计划门禁等判断批量交给 jev，PRD 生成仍归 PM。C2C 仅执行通道，任务分级/事件/consult 状态/TASK_CLOSEOUT/能力交接照常适用，PM 不因走 C2C 移交问题框架；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记/未验证一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt，PM 保留问题框架/优先级/成功指标；单需求澄清、常规排序、指标口径直接完成不启动；需求分级/方案对比/计划门禁等判断批量交给 jev，PRD 生成仍归 PM。C2C 仅执行通道，任务分级/事件/consult 状态/TASK_CLOSEOUT/能力交接照常适用，PM 不因走 C2C 移交问题框架；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记/未验证一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产能力待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:27ce05557b2471750268ea5b10eccfbe637779c468533717dc75f761e7bf9253。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:25d9490fdadcb17db2a4fc59aaaa9c1822357a0b74e2da1697e98ddd0ae85836。

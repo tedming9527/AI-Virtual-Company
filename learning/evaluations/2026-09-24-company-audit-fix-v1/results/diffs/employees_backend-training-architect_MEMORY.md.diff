@@ -1,0 +1,68 @@
+diff --git a/employees/backend-training-architect/MEMORY.md b/employees/backend-training-architect/MEMORY.md
+index 4e0dab3..1a0200a 100644
+--- a/employees/backend-training-architect/MEMORY.md
++++ b/employees/backend-training-architect/MEMORY.md
+@@ -14,7 +14,7 @@
+ - 限制：课程事实源课前必读；案例训练不改学员成绩；catch不必然提交。
+ - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
+ - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
+-- 原文版本：sha256:97d4a1f6ec4ee37c7220b24c5c23f5b526eb13848fc36eebecab6e6543b7ef76；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
++- 原文版本：sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+ 
+ ## backend-training-architect-vanke-critical-distillation · Vanke 后端链路评审
+ - 触发：Vanke后端代码学习、跨系统金额或可靠任务评审。
+@@ -22,7 +22,7 @@
+ - 限制：仅对应本地静态代码快照；未跑测试/数据库/外部系统，业务与财务口径须回事实源。
+ - 状态：reviewed_case；更新时间：2026-09-13；真实运行效果待验证。
+ - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；完整证据见 [学习产物](../../learning/2026-09-13-vanke-backend-project-distillation.md)。
+-- 原文版本：sha256:97d4a1f6ec4ee37c7220b24c5c23f5b526eb13848fc36eebecab6e6543b7ef76；远端、DDL或接口契约变化时回源码复核。
++- 原文版本：sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6；远端、DDL或接口契约变化时回源码复核。
+ 
+ ## backend-training-architect-experience-transfer · 学习迁移能力门禁
+ - 触发：把课程案例、导师答案或迁移题用于学员能力判断。
+@@ -30,7 +30,7 @@
+ - 限制：仅为 reviewed_case；真实代码回归、业务阈值和学员行为证据未完成。
+ - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
+ - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
+-- 原文版本：sha256:97d4a1f6ec4ee37c7220b24c5c23f5b526eb13848fc36eebecab6e6543b7ef76。
++- 原文版本：sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6。
+ 
+ ## project-context-first-delivery · 项目上下文优先交付
+ 
+@@ -50,30 +50,31 @@
+ - 摘要：按“预测→解释→实现→测试→迁移”组织一条纵向业务链，并将结果分别标记为独立完成、提示完成、复现或导师代做。
+ - 限制：静态审查和受指导案例不等于学员独立生产能力；代码、数据库、外部契约或课程事实变化时重新取证，返工改善效果仍为 unknown。
+ - 置信度：medium；案例、迁移题与独立语义复核通过，学员前瞻表现和预测效度仍未验证。
+-- 状态：reviewed_case；更新时间：2026-09-18；详情：[真实项目五段式后端教学](REAL_PROJECT_FIVE_STAGE_TEACHING.md)；sha256:3f369e360441fb3fe9b2f751136fd618feb79b7973904a46cbdbe02e8a565498。
++- 状态：reviewed_case；更新时间：2026-09-18；详情：[真实项目五段式后端教学](REAL_PROJECT_FIVE_STAGE_TEACHING.md)；sha256:06cf36c17c63036a3d614d73958b32a157231442e96bfe64033aa9793702d41e。
+ 
+ ## backend-training-four-step-engineering-loop · 四步法工程学习闭环
+ 
+ - 触发：陌生后端/Agent学习任务，或进度勾选准备升级为能力证据
+ - 摘要：四步法配合D0/D+2/D+7、渐隐示例与未见变体；服务端只接受标准阶段全集和非空证据
+ - 限制：仅为 reviewed_case；站点测试与发布不证明学员已掌握，固定间隔需按表现调整。
+-- 状态：reviewed_case；更新时间：2026-09-19；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；sha256:97d4a1f6ec4ee37c7220b24c5c23f5b526eb13848fc36eebecab6e6543b7ef76。
++- 状态：reviewed_case；更新时间：2026-09-19；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6。
+ 
+ ## backend-training-architect-jev-like-judgment-habit · JEV-like 判断习惯
+ 
+ - 触发：后端教学、练习验收、反馈分类或架构取舍中，已有事实需要类型化、批量判断或升级复核时。
+ - 摘要：按“分流→压缩状态→类型化→冻结选项→批处理→升级→分离来源→收缩输出”循环；JEV MCP 可选，生成任务与升级项仍由岗位负责人处理。
+ - 限制：仅为 2026-09-22 已复核模拟案例；生产收益 unknown，不扩大数据、权限、发布或不可逆操作授权。
+-- 状态：reviewed_case；更新时间：2026-09-22；详情：[JEV-like 判断习惯](JEV_LIKE_JUDGMENT_HABIT.md)；sha256:884d850e022e9f3f58f1afb81dde4f952c3cbd2ebc0bceae323d754c994a3c59。
++- 状态：reviewed_case；更新时间：2026-09-22；详情：[JEV-like 判断习惯](JEV_LIKE_JUDGMENT_HABIT.md)；sha256:3fd237155861d54beb24767d4fcb4c92b3eb3c6238fbb968ec5146f20344c314。
+ 
+ ## backend-training-architect-c2c-orchestration · C2C 编排学习
+ - 触发：复杂架构讲解、课程体系与跨模块练习设计、mephisto 跨系统业务分析、能力评估跨任务综合分析需 PLAN→EXECUTE→REVIEW。
+-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；单概念答疑、单个练习点评、日常教学直接完成不启动；练习通过判定、复盘评分、能力分级等有限判断批量交给 jev，升级项回本岗，教学内容生成归导师。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
++- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；单概念答疑、单个练习点评、日常教学直接完成不启动；练习通过判定、复盘评分、能力分级等有限判断批量交给 jev，升级项回本岗，教学内容生成归导师。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
+ - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产收益待真实任务验证；consult: none。
+-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:083261e221325e688dbbc69e67631edb3d1f8695147efb40c002989d0a7b3f5c。
++- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6。
+ 
+ ## backend-training-architect-macro-first-induction · 宏观先行跨课题教学规律
+ - 触发：任何新课题教学切入、架构讲解、故障边界教学、知识卡编写。
+ - 摘要：先讲第一性原理（一句话核心+推导+检验尺）统摄微观实现与术语；术语涉及时态必区分（当前/当时）；公认定义置于原理后印证。需求理解（09-22）与可观测性（09-24）两案例同向验证"微观由宏观统摄"。
+ - 限制：仅两个可比案例同向观察，生产能力待第三课题复核；不据两例声称全域提效。
+ - 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)。
++- 原文版本：sha256:703029dca69c21d3b0e6bdc086fb51435c79e713b093fccb23b26e676759ddd6。

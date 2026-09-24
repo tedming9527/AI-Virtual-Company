@@ -17,7 +17,7 @@ for (const role of roster) {
       continue;
     }
     const body = fs.readFileSync(file, 'utf8');
-    if (!body.includes('gpt-5.3-codex-spark')) errors.push(`${role}/${phase}: missing actual model`);
+    if (!body.includes('gpt-5.3-codex-spark')) errors.push(`${role}/${phase}: missing declared model string; runtime model remains unverified`);
     if (body.length < 600) warnings.push(`${role}/${phase}: unusually short output`);
     if (phase === 'extract' && !/触发|trigger/i.test(body)) errors.push(`${role}/${phase}: missing trigger`);
     if (phase === 'extract' && !/反例|失效|counterexample/i.test(body)) errors.push(`${role}/${phase}: missing counterexample or failure boundary`);

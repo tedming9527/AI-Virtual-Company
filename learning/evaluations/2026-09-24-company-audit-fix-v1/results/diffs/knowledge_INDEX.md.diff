@@ -1,0 +1,33 @@
+diff --git a/knowledge/INDEX.md b/knowledge/INDEX.md
+index ce2840f..61e2128 100644
+--- a/knowledge/INDEX.md
++++ b/knowledge/INDEX.md
+@@ -24,7 +24,7 @@
+ 
+ ## experience-internalization-v2 · 学习经验内化与迁移决策架构
+ - 触发：把复盘、培训或岗位经验用于新任务，或准备声明能力提升。
+-- 摘要：用三分身提取、质疑和迁移；责任/证据/执行/发布分层，unknown 阻断无证据外推。
++- 摘要：提取—质疑—迁移内化（"三分身"为 2026-09-13 历史训练法，不要求每次派生三个角色）；责任/证据/执行/发布分层，unknown 阻断无证据外推。（2026-09-24 审计修复）
+ - 限制：仅为 reviewed_case；本轮执行是 simulated，不证明生产能力或真实系统已实现统一状态模型。
+ - 状态：reviewed_case；索引核对日：2026-09-13；Owner：chief-of-staff；Reviewer：test-expert。
+ - 详情：[experience-internalization-v2.md](experience-internalization-v2.md)；sha256:87a43b850fb96fbc082118a67e9f6d9c26b171e457b29b6a0c645bc7c6fa2502。
+@@ -41,7 +41,7 @@
+ - 摘要：保留用户控制、可追溯性和不确定性；质量与控制指标分别定义。
+ - 限制：2026-09-09历史指导，现行交付政策优先；不据此扩权。
+ - 状态：stale；索引核对日：2026-09-11；Owner：chief-of-staff。
+-- 详情：[2026-09-09-ai-delivery-principles.md](2026-09-09-ai-delivery-principles.md)；sha256:f2ddee4fbeaca42c072e67f21ea8d14ef36112af498c7e104f754f83e55122a8。
++- 详情：[2026-09-09-ai-delivery-principles.md](2026-09-09-ai-delivery-principles.md)；sha256:d2740cee853386a0fc53c56364514c69c5413f9b31c7071c817f8a188fcc691c。
+ 
+ ## 2026-09-09-mephisto-author-review · 作者评审历史快照
+ - 触发：mephisto作者样本、导师适配。
+@@ -64,3 +64,10 @@
+ - 限制：治理决策非经验结论；MCP 暂缓仅在规则映射失效时再评估；平台登记只填已核实事实。
+ - 状态：verified_context；索引核对日：2026-09-24；Owner：chief-of-staff。
+ - 详情：[c2c-orchestration-route.md](c2c-orchestration-route.md)；sha256:a613c45f71362cc478297dc84fa12d6015716ec74d1f6abde40724000d9f45d3。
++
++## audit-findings · 公司审计发现积压
++- 触发：正式审计开始、登记新审计发现、判断某运行规则是否已在去重/收敛清单中。
++- 摘要：登记审计发现积压；AUD-2026-09-24-001/002 已于 2026-09-24 授权收敛修复（已关闭），后续发现按授权收敛并更新状态。
++- 限制：待收敛发现非已修复；未授权项不即时整改；下次审计按授权收敛并更新状态。
++- 状态：reviewed_case；索引核对日：2026-09-24；Owner：chief-of-staff。
++- 详情：[审计发现积压](../learning/audit-findings.md)；sha256:898ab26ff75b226771f5170e828eff04a2f3ad6b03b8c06d20d2150a3d28b990。

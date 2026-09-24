@@ -14,7 +14,7 @@
 - 限制：owner校验仅保护本地；fencing须下游支持；沙箱不证明生产。
 - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:4c712f28b498c119af14b31dd1ece6d77f3743614730e79b07548a57418c8f24；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:9b5c3d578ead42e92c2ebb6cbd778ec72014b50ff9e9d6a11b8387fb0a4da0d5；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## backend-expert-experience-transfer · 跨系统迁移门禁
 - 触发：跨系统重试、副作用或金额终态未知。
@@ -22,7 +22,7 @@
 - 限制：仅为 reviewed_case；生产 SLA、下游幂等和金额精度仍未知。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:4c712f28b498c119af14b31dd1ece6d77f3743614730e79b07548a57418c8f24。
+- 原文版本：sha256:9b5c3d578ead42e92c2ebb6cbd778ec72014b50ff9e9d6a11b8387fb0a4da0d5。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -51,6 +51,6 @@
 
 ## backend-expert-c2c-orchestration · C2C 编排学习
 - 触发：Spring 架构调整、Redis 并发/事务问题、性能 Debug、跨模块服务改动需 PLAN→EXECUTE→REVIEW。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；CRUD/DTO/Mapper 直接完成不启动；build/测试成败等有限判断批量交给 jev，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；CRUD/DTO/Mapper 直接完成不启动；build/测试成败等有限判断批量交给 jev，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产效果待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:60d194540bce7d30a5928ad1f1d4cfa5076f3c98a01a9948d97874f123b88391。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:9b5c3d578ead42e92c2ebb6cbd778ec72014b50ff9e9d6a11b8387fb0a4da0d5。

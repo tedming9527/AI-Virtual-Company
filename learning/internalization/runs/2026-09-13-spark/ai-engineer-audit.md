@@ -6,6 +6,8 @@ Outcome: 对 AI工程师迁移文档族做来源层级、时效性、事实边�
 
 actual_model: `gpt-5.3-codex-spark`
 
+> 2026-09-24 审计修复：actual_model 为当时文档声明值；运行模型未独立鉴证，保持 unknown。
+
 输入文件：
 - `learning/internalization/runs/2026-09-13-spark/ai-engineer-extract.md`
 - `learning/internalization/runs/2026-09-13-spark/ai-engineer-transfer.md`

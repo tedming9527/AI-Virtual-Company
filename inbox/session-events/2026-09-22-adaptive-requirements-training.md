@@ -11,6 +11,8 @@ owner: 沈砚舟 · 后端培训导师（资深后端架构师）
 consult: cross_functional_by_user_request
 status: verified
 ---
+> 2026-09-24 审计修复：front matter status: verified 仅指当次计划/知识交付（delivery_verified）；知识仍为 candidate，用户能力 no_evidence，真实效果与 actual_model 为 unknown；文中模型名为 requested_model，实际运行模型未独立鉴证。
+
 
 ## 执行与所有权
 

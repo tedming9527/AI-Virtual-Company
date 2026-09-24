@@ -1,0 +1,17 @@
+learning/evaluations/2026-09-24-company-audit-fix-v1/commands/COMMANDS.md
+learning/evaluations/2026-09-24-company-audit-fix-v1/fix-record/2026-09-24-audit-full-remediation.md
+learning/evaluations/2026-09-24-company-audit-fix-v1/fix-record/summary.md
+learning/evaluations/2026-09-24-company-audit-fix-v1/manifest/MANIFEST.txt
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/bootstrap-final.txt
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/check-knowledge-final.json
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diff-stat.txt
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/employees_backend-training-architect_MEMORY.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/employees_chief-of-staff_KNOWLEDGE.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/employees_chief-of-staff_MEMORY.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/employees_design-master_FIGMA_TRUST_EVIDENCE.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/employees_design-master_MEMORY.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/knowledge_catalog.json.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/knowledge_INDEX.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/learning_audit-findings.md.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/diffs/scripts_task-lifecycle.mjs.diff
+learning/evaluations/2026-09-24-company-audit-fix-v1/results/hashes.txt

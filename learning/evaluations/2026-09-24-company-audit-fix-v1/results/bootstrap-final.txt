@@ -1,0 +1,3 @@
+Active Skill sources and required metadata checked: 4 (bodies not loaded into session)
+Platform/mode registry checked: 4 rows
+Company bootstrap check passed: /Users/dongdeming/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company

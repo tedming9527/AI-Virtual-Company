@@ -1,0 +1,30 @@
+# 知识变更/修复单 · 2026-09-24 公司审计全量修复
+
+- issue_id / task_id / created_at：AUDIT-FIX-2026-09-24-v1 / 2026-09-24（承接 run 2026-09-24-company-audit-v1）
+- owner / actual_executor / reviewer（自审注明，未参与写none）：owner=陈知行（路由官）；actual_executor=陈知行（本轮唯一执行者，用户一次性授权）；reviewer=自审（无独立第二评审者，结构校验由 check-knowledge.mjs / check-company-bootstrap.sh 承担）。
+- trigger：漂移（19 条 STALE hash mismatch + 9 条 missing catalog entry）、去重（AUD-001 共享段跨 8 岗重复）、断链（AUD-002 8 条 c2c-orchestration 索引无目录）、P2/P3 33 项内容级精确修复。
+- affected_ids / inbound_references / policy_dependencies：
+  - affected_ids：knowledge/catalog.json（58 条）、knowledge/INDEX.md、learning/audit-findings.md；8 岗 employees/<role>/{KNOWLEDGE.md,MEMORY.md}；scripts/task-lifecycle.mjs(+test)、scripts/check-spark-internalization-rerun.mjs；PROJECT_BINDING_POLICY.md、templates/TASK_CLOSEOUT.md；knowledge/2026-09-09-ai-delivery-principles.md；design-master FIGMA_TRUST_EVIDENCE；bta JEV_LIKE_JUDGMENT_HABIT/REAL_PROJECT_FIVE_STAGE_TEACHING/NEXT_LESSON；memory/learner/CAPABILITY_PROFILE；schedule/{README.md,company-schedule.yaml}；skills/company-skill-governance/SKILL.md；learning/ 13 文件；inbox/output/deliverables 5 文件。
+  - policy_dependencies：EVALUATION_RUNBOOK.md、MEMORY_POLICY.md、TASK_LIFECYCLE.md、skills/codex-with-chatgpt/SKILL.md、platforms/REGISTRY.md。
+- source_version / source_hash / observed_evidence：冻结规格 fix-spec-2026-09-24.md（逐节执行）；修复前基线 check-knowledge 报 19 STALE + 9 missing + 1 audit-findings STALE（合计 errors 29）；修复后 entries=58、errors=[]、warnings=[]。
+- authority：用户 2026-09-24 一次性授权：①移除过期审计；②全量修复（AUD-001/002 收敛、19 STALE 语义复核后 hash 同步、macro-first-induction 登记、P2/P3 33 项、过期条目标记加固）。不授权删除历史文件、不改写治理政策正文语义、不删业务数据。
+- validity_action：candidate→reviewed_case（结构一致）；过期条目维持 stale 保留，不删除。
+- proposed_change / why_not_other_alternatives：见 summary.md 逐项。为何不整段重写：规格限定精确修复 + hash 同步，整段重写会引入未授权语义漂移。
+- preserved_before / proposed_after / concurrent_change_check：
+  - preserved_before：所有历史文件保留；过期结论以"就地加注/横幅"而非改写正文。
+  - proposed_after：见 diff-stat.txt（51 files changed, +289/-104）。
+  - concurrent_change_check：§0 git status 仅规格列明的已知改动，无并发漂移，可安全写入。
+- adoption_example / rejection_example：
+  - adoption：缺 C2C 节点时先查 platforms/REGISTRY.md 共享状态，规则见 codex-with-chatgpt/SKILL.md，不再各岗重试。
+  - rejection：不得据本次 check-knowledge 全绿宣称八岗已具生产能力；不得把 requested_model 当 actual_model 认证。
+- structural_checks / semantic_review / runtime_scope：
+  - structural_checks：node scripts/check-knowledge.mjs . → errors=[]/warnings=[]；AI_VIRTUAL_COMPANY_ROOT=<root> zsh scripts/check-company-bootstrap.sh → passed；node --test scripts/task-lifecycle.test.mjs → 8 pass / 0 fail。
+  - semantic_review：19 STALE 经逐条复核——语义仍准确（漂移仅因 C2C 小节追加导致 hash 变化），故只同步 hash 不改结论；experience-internalization-v2 按主责修正做 catalog summary ↔ INDEX 三处联动。
+  - runtime_scope：仅文档/目录/脚本条件调用修复；未触碰生产业务数据。
+- decision / updated_index_and_hash / published_status：AUD-001/002 已修复/已关闭；33 项 P2/P3 全部落地；全部 detail sha256 已实算同步 catalog 与各岗 MEMORY/INDEX（见 results/hashes.txt）。
+- rollback_scope / residual_risks / next_review_trigger：
+  - rollback_scope：git checkout 上述 51 个改动文件即可回退（未 commit）。
+  - residual_risks：无结构性残留；历史 learning/ 文件结论仍为历史快照，执行以现行政策为准。
+  - next_review_trigger：下次正式审计按 EVALUATION_RUNBOOK 复核 REGISTRY/SKILL 事实源是否变更。
+- repair_round / stop_reason：第 1 轮全量修复；stop_reason=目标 errors=[] 已达成。
+- reuse_result：check-knowledge 全绿 + bootstrap 通过 + task-lifecycle 测试 8/8，可作为后续"先改内容、后实算 hash 回填 catalog/MEMORY/INDEX"的标准流程复用。

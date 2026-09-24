@@ -1,5 +1,7 @@
 timezone: Asia/Shanghai
 weekly_learning_and_all_hands:
+  # schedule_state（2026-09-24 审计修复）：enabled 为期望状态；当前是否真实运行以 launchctl/thread 回执为准，未观测时 observed_state: unknown。
+  # luna/sol/astra 为 fast/balanced/deep 复杂度档位别名；实际模型映射随用户模型下限与平台适配层核验日期而定，不硬编码为已生效。
   enabled: true
   day: sunday
   time: "20:00"

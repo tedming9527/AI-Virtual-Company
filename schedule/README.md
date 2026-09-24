@@ -7,6 +7,6 @@
 
 本轮在当前 Mac 安装本地 LaunchAgent，label 为 `com.ai-virtual-company.tmp-cleanup`，间隔 86400 秒。绝对路径和 Node 安装位置只保存在本机 LaunchAgents 配置，不作为跨设备公司规则；换机后须重新安装并核验。实际状态通过 `launchctl print gui/$(id -u)/com.ai-virtual-company.tmp-cleanup` 检查。未加载或执行失败时，按 ROUTER 在下次公司任务开工机会性清理，不能声称后台成功。机器休眠、关机、iCloud 不可读时不保证准点；日志在本机临时目录。没有变化不发送消息。
 
-The source of truth is `company-schedule.yaml` (default: Sunday 20:00 Asia/Shanghai). A Codex thread automation is also created for the weekly run.
+The source of truth is `company-schedule.yaml` (default: Sunday 20:00 Asia/Shanghai). A Codex thread automation for the weekly run is desired_state; its last_observed_state and observed_at are recorded locally and remain unknown until a fresh thread receipt.（2026-09-24 审计修复）
 
 For an optional local macOS fallback, copy `com.ai-virtual-company.weekly.plist.template` to `~/Library/LaunchAgents/com.ai-virtual-company.weekly.plist`, replace `__ROOT__` with this folder’s absolute path, then load it with `launchctl bootstrap gui/$(id -u) ...`. The fallback creates an inbox event; it deliberately does not impersonate or scrape any conversation.

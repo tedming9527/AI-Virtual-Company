@@ -1,0 +1,10 @@
+--- /tmp/tb_pre.py	2026-09-24 16:33:25
++++ token_budget.py	2026-09-24 16:33:07
+@@ -7,5 +7,5 @@
+     """
+     cjk = len(re.findall(r'[\u4e00-\u9fff]', text))
+     other = re.sub(r'[\u4e00-\u9fff]', '', text)
+-    # 缺陷：ASCII 未按每 4 字符折算，直接每个字符计 1
+-    return cjk + other
++    ascii_tokens = (len(other) + 3) // 4  # ASCII 每 4 字符计 1 token，向上取整
++    return cjk + ascii_tokens

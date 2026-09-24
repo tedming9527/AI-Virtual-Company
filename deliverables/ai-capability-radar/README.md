@@ -13,6 +13,8 @@ Owner：辛澈 · AI工程师；质量顾问：顾清妍 · 质量测试工程�
 
 每轮 discovery 必须生成 `discoveries/*.json`，逐源记录：`source_id`、查询时间、查询词/主题、执行状态、实际审阅命中数。`not_connected`（目前包括 X）只能记录 unavailable，不能伪装为成功。至少尝试 10 个来源、覆盖至少 5 个来源 family。
 
+历史 2026-09-19 v5 账本：attempts 仅留 query/raw_hit_count，命中清单、观察通道与 lead→hit 映射为 evidence-gap，不补造；下一版再补受控证据字段。（2026-09-24 审计修复）
+
 线索账本还必须记录统一 `entity_key`、优先级、筛选结论和漏收/排除原因。用户点名对象为 `user_nominated`，必须进入 eligible，或给出明确 omission reason；不能静默消失。`run.discovery.funnel` 必须能从账本复算：成功源原始命中 → 去重实体 → eligible → candidate → published。
 
 ## 实体与多入口证据

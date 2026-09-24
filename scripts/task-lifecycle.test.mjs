@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { run } from './task-lifecycle.mjs';
 import { supervise, status, cancel } from './supervisor-runtime.mjs';
 
@@ -91,15 +92,38 @@ test('traversal, nested symlinks and lock conflicts refuse mutation',t=>{
   assert.throws(()=>f.call(['create','new']),/lock conflict/);
   assert.throws(()=>f.call(['cleanup','--force']),/Unexpected/);
 });
-test('damaged reason, identity, or receipt failure prevents isolation',t=>{
+test('durable receipt written only for externally-executed tasks', async t=>{
   const f=fixture(t);
-  for(const id of ['reason','identity','receipt']) {
+  // negative: created and cancelled before ever starting => no durable inbox receipt
+  f.call(['create','light']);
+  f.call(['close','light','--status','cancelled','--reason','Superseded before start']);
+  assert.equal(fs.existsSync(path.join(f.root,'inbox/session-events/tmp-light.json')),false);
+  // positive: completed against a real supervised run => receipt persisted with duration
+  f.call(['create','ran']);
+  const r=await f.launch('runreceipt');
+  f.call(['start','ran','--receipt',r.receipt]);
+  await r.promise;
+  f.call(['close','ran','--status','completed','--reason',' Ran ok '],NOW+1000);
+  const receipt=JSON.parse(fs.readFileSync(path.join(f.root,'inbox/session-events/tmp-ran.json')));
+  assert.equal(receipt.status,'completed'); assert.equal(receipt.model_verified,false); assert.equal(receipt.duration_ms,1000);
+});
+test('damaged reason, identity, or receipt failure prevents isolation', t=>{
+  const f=fixture(t);
+  // Never-started cards (no external run) need no durable receipt.
+  for(const id of ['reason','identity']) {
     f.call(['create',id]); f.call(['close',id,'--status','cancelled','--reason','Not needed']);
   }
-  for(const id of ['reason','identity']) {
-    const p=f.task(id),data=JSON.parse(fs.readFileSync(p));
-    data[id==='reason'?'reason':'id']='altered'; fs.writeFileSync(p,JSON.stringify(data));
-  }
-  const p=path.join(f.root,'inbox/session-events/tmp-receipt.json'); fs.unlinkSync(p); fs.mkdirSync(p);
+  const rp=f.task('reason'), rd=JSON.parse(fs.readFileSync(rp)); rd.reason='altered'; fs.writeFileSync(rp,JSON.stringify(rd));
+  const ip=f.task('identity'), idata=JSON.parse(fs.readFileSync(ip)); idata.id='altered'; fs.writeFileSync(ip,JSON.stringify(idata));
+  // A task that DID execute externally needs its durable receipt; corrupting that slot refuses isolation.
+  f.call(['create','receipt']);
+  const qp=f.task('receipt'), qd=JSON.parse(fs.readFileSync(qp));
+  const reason='Done externally';
+  qd.status='cancelled'; qd.external_run_id='supervision:xrun/job'; qd.reason=reason;
+  qd.reason_sha256=createHash('sha256').update(reason).digest('hex');
+  qd.closed_at=new Date(NOW).toISOString();
+  fs.writeFileSync(qp,JSON.stringify(qd));
+  const receiptPath=path.join(f.root,'inbox/session-events/tmp-receipt.json');
+  fs.mkdirSync(receiptPath,{recursive:true}); // corrupt: receipt slot is a directory, not a file
   assert.equal(f.call(['cleanup','--apply'],NOW+8*DAY).results.filter(x=>x.action==='refused').length,3);
 });

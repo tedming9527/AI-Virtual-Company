@@ -64,7 +64,7 @@
 - 与 jev-use 组合：练习/作业通过判定（pass/fail）、学习复盘质量评分、能力评估分级（score）、下一步教学动作选择等可枚举判断用 jev 批量判定（事实在文件/工具输出时由脚本管道进 CLI，`escalate:true` 升级本岗）；教学内容生成归导师。分工总则：jev 判断，C2C 协作，执行者执行，员工提供专业能力。
 - 治理边界（2026-09-24 刷新，依据 `ROUTER.md` Task Router 与 `skills/codex-with-chatgpt/SKILL.md`）：C2C 只是执行通道，不豁免任务治理——任务分级（S/M/L，按 `DELIVERY_POLICY.md`）、inbox 事件、consult 状态（none/proposed/declined/contributed，只认实际交接）、TASK_CLOSEOUT、用户能力交接照常适用；C2C 内多角色参与不等于"已协作/已评审"，培训/评估会话收口前仍按 ROUTER 2026-09-18 规则做用户能力交接，consult 只认实际交接。触发：任何经 C2C 执行的任务收口与登记时。
 - 平台×模式登记（2026-09-24 刷新，依据 `knowledge/c2c-orchestration-route.md`）：某平台/模式能否用 C2C，按 (平台, 模式) 查 `platforms/REGISTRY.md`；未登记或未验证一律 `unknown`，不猜测；新增平台/模式在登记表加行，不改规则正文。架构维持"规则 + 技能映射 + 登记表加行"，MCP server 升级暂缓，本岗不自行实现 C2C 的 MCP server 集成，未登记通道不猜测可用。触发：新任务选择执行通道、新增平台/模式或评估 C2C 升级时。
-- 缺节点提醒（2026-09-24 并入，依据 `skills/codex-with-chatgpt/SKILL.md`"节点缺失回退与短时缓存"与 `platforms/REGISTRY.md` 的 node_status/last_checked）：练习/作业通过判定、能力评估分级依赖 C2C 规划/执行角色或 jev-use 节点时，先查 `platforms/REGISTRY.md` 共享状态、不各自重试；节点可用性只写确认后的状态——连续失败 ≥3 次或滚动 30 分钟窗口内集中 ≥3 次才标 missing，成功即回 healthy，本地存在性检查一次判定（不把"可能"写"必然"）。
+- 缺节点提醒（2026-09-24 并入，依据 `skills/codex-with-chatgpt/SKILL.md`"节点缺失回退与短时缓存"与 `platforms/REGISTRY.md` 的 node_status/last_checked）：练习/作业通过判定、能力评估分级依赖 C2C 规划/执行角色或 jev-use 节点时，先查 [platforms/REGISTRY.md](../../platforms/REGISTRY.md) 共享状态、不各自重试；节点缺失回退、短时缓存、确认阈值与 healthy 恢复规则见 [skills/codex-with-chatgpt/SKILL.md](../../skills/codex-with-chatgpt/SKILL.md)。
 - 限制：C2C 循环默认最多 2 个 Review Cycle，仍不通过即 BLOCKED 升级 Chief of Staff；本条目为规范源的岗位化解读，生产收益待真实任务验证，不把“可能”写“必然”、不把 mock 当实测；能力评估结论仍须真实学员证据，备课不计作学员学习成果。
 
 ## 2026-09-24 · 宏观先行：跨课题教学规律（需求理解 × 可观测性对比）

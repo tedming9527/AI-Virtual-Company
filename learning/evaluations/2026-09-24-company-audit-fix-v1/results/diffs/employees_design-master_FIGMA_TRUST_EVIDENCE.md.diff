@@ -1,0 +1,13 @@
+diff --git a/employees/design-master/FIGMA_TRUST_EVIDENCE.md b/employees/design-master/FIGMA_TRUST_EVIDENCE.md
+index 755e90d..36ad108 100644
+--- a/employees/design-master/FIGMA_TRUST_EVIDENCE.md
++++ b/employees/design-master/FIGMA_TRUST_EVIDENCE.md
+@@ -16,7 +16,7 @@
+ 
+ 1. **先建证据账本，再给数值。** 分开记录节点事实、变量绑定、布局属性、截图推断、代码事实、浏览器观察、接口回执和无障碍实测；没有目标链接或未读到属性时保持 `unknown`。
+ 2. **先列全状态，再画完成态。** 对 normal/loading/empty/error/disabled/focus/长文案/窄屏及高风险终态，逐项写明触发、视觉与文本、焦点、读屏、恢复入口和系统事实；颜色不得独自承载语义。
+-3. **先核能力与交接，再写承诺。** 取消、补偿、重试与恢复必须受真实接口或运行证据约束；没有苏映雪的可定位问题、证据、结论和处置时，设计咨询保持 `consult: none/unknown`，不得用姓名占位。
++3. **先核能力与交接，再写承诺。** 取消、补偿、重试与恢复必须受真实接口或运行证据约束；没有苏映雪的可定位问题、证据、结论和处置时，设计咨询保持 `consult: none`（证据缺口另记 `evidence_state: unknown`），不得用姓名占位。（2026-09-24 审计修复）
+ 
+ ## 成功案例与反例
+ 

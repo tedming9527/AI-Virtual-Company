@@ -13,6 +13,8 @@ consult_status: contributed
 status: complete
 ---
 
+## 当前状态（2026-09-24 审计修复）：本任务已收口（r2 完成、AI-01 已授权修复）；下方“待执行”为初始历史计划，保留作轨迹。
+
 ## 固定输入与边界
 
 - run_id：`2026-09-22-company-capability-ai-efficiency-v1`
@@ -48,7 +50,7 @@ status: complete
 - development-experience E09/E10：作为问题历史证据；是否升级、合并或撤回由独立审计决定。
 - `chief-verifiable-task-orchestration`：用于区分角色、执行、证据、发布与授权状态。
 
-## 待执行
+## 初始待执行计划（历史，已收口）
 
 - 冻结当前 r0 快照与清单。
 - 派发三类独立审计并登记真实执行回执。

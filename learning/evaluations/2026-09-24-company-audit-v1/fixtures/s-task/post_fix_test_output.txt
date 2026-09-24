@@ -1,0 +1,8 @@
+test_mixed_cjk_ascii (test_token_budget.TestEstimateTokens.test_mixed_cjk_ascii) ... ok
+test_pure_ascii (test_token_budget.TestEstimateTokens.test_pure_ascii) ... ok
+test_pure_cjk (test_token_budget.TestEstimateTokens.test_pure_cjk) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK

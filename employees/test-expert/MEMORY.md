@@ -14,7 +14,7 @@
 - 限制：构建成功不等于整体功能通过，知识数量不代表实战提效。
 - 状态：reviewed_case；更新时间：2026-09-11；生产效果待验证。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；包含原有历史约定，只有相关时读取。
-- 原文版本：sha256:8530d64d823c968f33a8f2b6e153e8d8c56974d724d05ed38bef18742a9199fb；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
+- 原文版本：sha256:ea855981586f58ea9d14978f03a237442c04319faa0a63946fad029189fa0bf2；漂移/冲突须回原文复核，不能直接执行陈旧摘要。
 
 ## test-expert-experience-transfer · 同层证据迁移门禁
 - 触发：将测试、案例或结构检查结论迁移到新环境。
@@ -22,7 +22,7 @@
 - 限制：仅为 reviewed_case；真实运行和 unknown 采集枚举未落地。
 - 状态：reviewed_case；更新时间：2026-09-13；生产能力 false。
 - 详情：[KNOWLEDGE.md](KNOWLEDGE.md)；共用规则见 [experience-internalization-v2](../../knowledge/experience-internalization-v2.md)。
-- 原文版本：sha256:8530d64d823c968f33a8f2b6e153e8d8c56974d724d05ed38bef18742a9199fb。
+- 原文版本：sha256:ea855981586f58ea9d14978f03a237442c04319faa0a63946fad029189fa0bf2。
 
 ## project-context-first-delivery · 项目上下文优先交付
 
@@ -51,6 +51,6 @@
 
 ## test-expert-c2c-orchestration · C2C 编排学习
 - 触发：跨模块测试策略设计、疑难回归/可靠性定位、AI 评测体系搭建、测试架构重构需 PLAN→EXECUTE→REVIEW。
-- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；跑已有测试、新增单用例、简单断言修改、常规冒烟直接完成不启动；build/测试成败、缺陷严重度、发布门禁、回归范围等有限判断批量交给 jev，证据须真实执行、mock 不算实测，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点（C2C 规划/执行角色或 jev-use）时先查 platforms/REGISTRY.md 共享状态、不各自重试，节点可用性只写确认后状态（连续失败 ≥3 次或滚动 30 分钟窗口集中 ≥3 次才标 missing，成功即回 healthy）。
+- 摘要：命中 C2C 触发且成本门禁通过才启动 codex-with-chatgpt；跑已有测试、新增单用例、简单断言修改、常规冒烟直接完成不启动；build/测试成败、缺陷严重度、发布门禁、回归范围等有限判断批量交给 jev，证据须真实执行、mock 不算实测，升级项回本岗。C2C 仅执行通道，分级/事件/consult/收口/能力交接照常适用；平台×模式能否用 C2C 查 platforms/REGISTRY.md，未登记一律 unknown；缺节点先查 platforms/REGISTRY.md 共享状态、不各自重试；规则见 codex-with-chatgpt/SKILL.md。
 - 限制：循环上限 2 个 Review Cycle，超限 BLOCKED 升级 CoS；岗位化解读、生产效果待真实任务验证；consult: none。
-- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:b6ab67e167c26e5d5fb94134f2076df91b8e1dc5d3035ca3dc305a6e54e7d719。
+- 状态：reviewed_case；更新时间：2026-09-24；详情：[KNOWLEDGE.md](KNOWLEDGE.md)；原文版本：sha256:ea855981586f58ea9d14978f03a237442c04319faa0a63946fad029189fa0bf2。

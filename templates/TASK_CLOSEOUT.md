@@ -17,7 +17,7 @@
 - acceptance：开始前明确可观察结果与验收者
 - artifacts：准确路径、版本、实际变更范围
 - evidence：检查命令/结果/时间/环境；已验证、未验证分别列
-- status：planned / running / partial / blocked / verified；实现、验证、发布分开记
+- status：queued / planned / running / partial / blocked / cancelled / failed / completed / verified；执行终态、产物验收、发布三者分开记；cancelled/failed 是合法终态，不得挤入 verified（2026-09-24 审计修复，与 DELIVERY_POLICY.md 终态对齐）
 - remaining：已知缺陷、未知风险、回退（L必填）、下一步与负责人
 - knowledge：条目ID/路径、采用或拒绝理由、新候选或none
 - metrics：按METRICS_POLICY填写可观测值，未知写unknown

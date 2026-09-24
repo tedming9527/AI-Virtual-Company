@@ -1,0 +1,44 @@
+test_mixed_cjk_ascii (test_token_budget.TestEstimateTokens.test_mixed_cjk_ascii) ... ERROR
+test_pure_ascii (test_token_budget.TestEstimateTokens.test_pure_ascii) ... ERROR
+test_pure_cjk (test_token_budget.TestEstimateTokens.test_pure_cjk) ... ERROR
+
+======================================================================
+ERROR: test_mixed_cjk_ascii (test_token_budget.TestEstimateTokens.test_mixed_cjk_ascii)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/test_token_budget.py", line 11, in test_mixed_cjk_ascii
+    self.assertEqual(estimate_tokens("你好 hello world"), 5)
+                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/token_budget.py", line 11, in estimate_tokens
+    return cjk + other
+           ~~~~^~~~~~~
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+
+======================================================================
+ERROR: test_pure_ascii (test_token_budget.TestEstimateTokens.test_pure_ascii)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/test_token_budget.py", line 15, in test_pure_ascii
+    self.assertEqual(estimate_tokens("abcdefghijklmnopqrst"), 5)
+                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/token_budget.py", line 11, in estimate_tokens
+    return cjk + other
+           ~~~~^~~~~~~
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+
+======================================================================
+ERROR: test_pure_cjk (test_token_budget.TestEstimateTokens.test_pure_cjk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/test_token_budget.py", line 7, in test_pure_cjk
+    self.assertEqual(estimate_tokens("你好世界"), 4)
+                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/private/tmp/ted-audit-2026-09-24-wvepg37p/fixtures/s-task/token_budget.py", line 11, in estimate_tokens
+    return cjk + other
+           ~~~~^~~~~~~
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+FAILED (errors=3)

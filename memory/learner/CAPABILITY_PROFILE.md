@@ -205,7 +205,7 @@ Owner：沈砚舟 · 后端培训导师（资深后端架构师）
 - task_ref：`2026-09-19-career-dashboard`
 - task_level：L
 - result_scope：默认隐藏的三档求职报价实验、四步法工程改编、D0/D+2/D+7 复盘、服务端验证闸门、稳定语义阶段迁移和 D1 集成测试
-- attribution：`ai_or_employee_done`（AI 审计角色与沈砚舟完成方案、代码、测试及发布；不计为用户本人后端或 AI 能力）
+- attribution：`ai_or_employee`；assistance_level：`ai_or_employee_done`（AI 审计角色与沈砚舟完成方案、代码、测试及发布；不计为用户本人后端或 AI 能力）（2026-09-24 审计修复）
 - user_preference：敏感薪资默认隐藏；学习指导需要理论依据、可执行任务和专业审计，审计问题先修复再优化
 - capability_effect：`no_evidence`；站点和计划改进不提升用户个人能力，后续以用户亲自完成、解释、运行和未见变体为准
 - market_value_boundary：个人市场价值仍为 `unknown`；20–24K、25–29K、30–34K 只是低置信度分批投递报价实验
