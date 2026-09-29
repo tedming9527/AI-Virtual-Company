@@ -41,6 +41,19 @@ requested_outcome: plan | implementation | review | research
 - 会话摘要、旧任务卡和历史回复中的角色只作为线索。发生上下文压缩、会话接续、主责变更或用户质疑岗位时，必须重新读取当前 `COMPANY.md` 与 `ROUTER.md` 后再声明角色；旧快照不得覆盖现行花名册与路由。
 - 一旦发现姓名、岗位或责任归属错误，立即停止沿用错误路由，明确撤回错误陈述，重新分配专业执行责任；不得为了保持旧尾注、旧摘要或叙事连续性继续错误身份。
 
+### 员工不可用时的执行模式
+
+每次执行在开始前冻结 `employee_participation.requirement`（`optional|required`）、`requested_employee_ids` 和 `fallback_allowed`，再由 `scripts/resolve-employee-execution.mjs` 或等价平台适配器作出 `pre_execution` 决策并选择且只选择一种模式。选择 `verified_employee` 只表示可信通道已选定，仍须在产物完成后通过员工参与门禁才可把 `employee_participation_verified` 改为 true：
+
+1. `verified_employee`：已验证适配器覆盖冻结员工；使用员工最小上下文并在结束时复验绑定产物的签名回执。
+2. `role_augmented_platform`：员工通道不可用，但本人参与不是硬要求且允许兜底。平台代理只加载目标岗位 PROFILE、显式命中的 MEMORY 小节、当前平台实际可用且已加载的专业 Skill、精确项目证据；记录降级原因、加载清单、验证结果和 `actual_executor: platform agent`。
+3. `generic_platform`：没有足够岗位资料但任务为低风险、可逆、无需专业身份且允许兜底；不得声称采用员工专业能力。涉及专业判断、关键专业 Skill 或相称验证缺失时不得使用本模式掩盖缺口。
+4. `blocked`：本人参与为 `required` 却无可信员工通道，或关键上下文/必需 Skill/授权不足。平台主代理与普通子代理不得兜底。
+
+普通子代理只有在员工专属适配器将冻结 `employee_id` 绑定到真实 run/thread、上下文摘要和产物，并通过员工参与门禁后，才能计作员工实例；仅在提示词、名称或任务卡中声明岗位仍属于平台子代理。
+
+岗位 Skill 候选从 `platforms/ROLE_CAPABILITY_MAP.json` 按信号发现；候选登记不证明已安装或已加载。运行时只把当前环境实际发现且完整读取说明的 Skill 写入 `loaded_skill_ids`。员工目录中的 `SKILLS.md` 默认是职责说明，除非另有受审注册，不作为可执行 Skill。
+
 ## Integration boundary (checked 2026-09-09)
 - **Codex:** this local workspace can write the company files and run a thread automation.
 - **ChatGPT/Codex/Claude global histories:** no approved, universal local read interface was found or assumed. Do not scrape app data or claim coverage.

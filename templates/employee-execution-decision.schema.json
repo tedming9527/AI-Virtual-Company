@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ted.example/schemas/employee-execution-decision.v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "task_id", "employee_id", "role_id", "decision_stage", "execution_mode", "actual_executor", "employee_participation_verified", "fallback_used", "reason", "adapter_attempt", "role_context"],
+  "properties": {
+    "schema": { "const": "ted.employee-execution-decision.v1" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "employee_id": { "type": "string", "pattern": "^ted:employee:[a-z][a-z0-9-]*$" },
+    "role_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "decision_stage": { "const": "pre_execution" },
+    "execution_mode": { "enum": ["verified_employee", "role_augmented_platform", "generic_platform", "blocked"] },
+    "actual_executor": { "type": ["string", "null"] },
+    "employee_participation_verified": { "const": false },
+    "fallback_used": { "type": "boolean" },
+    "reason": { "type": "string", "minLength": 1 },
+    "adapter_attempt": { "type": "object" },
+    "role_context": { "type": "object" }
+  }
+}

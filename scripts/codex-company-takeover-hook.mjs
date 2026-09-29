@@ -35,7 +35,7 @@ function companySignature(message) {
   if (typeof message !== 'string') return null;
   const finalLine = message.trimEnd().split('\n').at(-1);
   if (/^以上内容由 Ted 公司的[^等\n]{1,30}等人为您提供$/.test(finalLine)) return 'employee';
-  if (/^以上内容由 Ted 公司提供；任务主责：[^；\n]{1,30}；实际执行者：platform agent$/.test(finalLine)) return 'platform';
+  if (/^以上内容由 Ted 公司提供；任务主责：[^；\n]{1,30}；实际执行者：platform agent(?:；岗位能力参考：[^；\n]{1,80}（资料增强，非本人参与）)?$/.test(finalLine)) return 'platform';
   return null;
 }
 
@@ -66,7 +66,7 @@ function context(input) {
     `当前 Codex 会话：${input.session_id || 'unknown'}；事件：${input.hook_event_name}.`,
     '本轮必须按 INITIALIZATION_POLICY.md 完成事实源加载、路由和任务登记后再执行。',
     '不得把 hook 已激活等同于任务已受监管；监管声明必须另行通过 scripts/supervision-gate.mjs 的实时证据门禁。',
-    '公司最终回复尾注必须匹配执行证据：无具名员工本人回执时写“以上内容由 Ted 公司提供；任务主责：{主责实名}；实际执行者：platform agent”；仅在员工参与门禁通过后使用员工提供式尾注。'
+    '公司最终回复尾注必须匹配执行证据：无具名员工本人回执时写“以上内容由 Ted 公司提供；任务主责：{主责实名}；实际执行者：platform agent”；岗位增强模式实际加载具名岗位资料时可追加“岗位能力参考：{名字 + 岗位}（资料增强，非本人参与）”；仅在员工参与门禁通过后使用员工提供式尾注。'
   ].join('\n');
 }
 

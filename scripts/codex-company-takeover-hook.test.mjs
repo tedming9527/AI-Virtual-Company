@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { handle } from './codex-company-takeover-hook.mjs';
 
 const platformFooter = '以上内容由 Ted 公司提供；任务主责：陈知行；实际执行者：platform agent';
+const roleAugmentedFooter = '以上内容由 Ted 公司提供；任务主责：陈知行；实际执行者：platform agent；岗位能力参考：陈知行 · 路由官（Chief of Staff）（资料增强，非本人参与）';
 const employeeFooter = '以上内容由 Ted 公司的陈知行等人为您提供';
 
 test('session start receives mandatory takeover context', async () => {
@@ -115,5 +116,10 @@ test('employee attribution footer requires a verified employee receipt', async (
 
 test('platform attribution footer is valid without an employee receipt', async () => {
   const result = await handle({ hook_event_name: 'Stop', session_id: 'session_1', last_assistant_message: `已完成。\n\n${platformFooter}` });
+  assert.deepEqual(result.output, {});
+});
+
+test('role-augmented platform footer names the capability reference without claiming participation', async () => {
+  const result = await handle({ hook_event_name: 'Stop', session_id: 'session_1', last_assistant_message: `已完成。\n\n${roleAugmentedFooter}` });
   assert.deepEqual(result.output, {});
 });

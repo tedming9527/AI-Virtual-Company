@@ -25,8 +25,20 @@ test('loads task contract, profile and only explicit memory sections', async t =
   assert.match(result.manifest_digest, /^sha256:/);
 });
 
+test('role-augmented context names the platform executor and does not claim employee participation', async t => {
+  const dir = await fixture(); t.after(() => rm(dir, { recursive: true, force: true }));
+  const result = await buildEmployeeContext(brief, 'ted:employee:test-expert', { root: dir, execution_mode: 'role_augmented_platform', knowledge_ids: ['relevant-case'], loaded_skill_ids: ['jev-use'], max_bytes: 8000 });
+  assert.equal(result.actual_executor, 'platform agent');
+  assert.equal(result.employee_participation_verified, false);
+  assert.equal(result.target_role_employee_id, 'ted:employee:test-expert');
+  assert.equal('employee_id' in result, false);
+  assert.equal(result.chunks.find(item => item.kind === 'role_profile')?.source_ref, 'employees/test-expert/PROFILE.md');
+  assert.deepEqual(result.chunks.find(item => item.kind === 'loaded_professional_skills')?.content, ['jev-use']);
+});
+
 test('fails closed when required brief or context budget is insufficient', async t => {
   const dir = await fixture(); t.after(() => rm(dir, { recursive: true, force: true }));
   await assert.rejects(buildEmployeeContext({ ...brief, authority: '' }, 'ted:employee:test-expert', { root: dir }), /incomplete_task_brief/);
   await assert.rejects(buildEmployeeContext(brief, 'ted:employee:test-expert', { root: dir, knowledge_ids: ['relevant-case'], max_bytes: 1024 }), /context_budget_insufficient/);
+  await assert.rejects(buildEmployeeContext(brief, 'ted:employee:test-expert', { root: dir, execution_mode: 'generic_platform' }), /invalid_execution_mode/);
 });

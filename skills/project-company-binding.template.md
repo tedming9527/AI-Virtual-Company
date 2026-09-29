@@ -19,4 +19,4 @@ At the start of every new task, act through Chief of Staff:
 
 This instruction governs coordination only; project-local instructions and user requests retain their applicable precedence.
 
-End each company-facing final response with evidence-matched attribution: without a verified named-employee receipt, `以上内容由 Ted 公司提供；任务主责：{该任务既定主责实名}；实际执行者：platform agent`; only with `employee_participation_verified: true`, `以上内容由 Ted 公司的{该任务既定主责实名}等人为您提供`. The owner is taken from the frozen route, never invented.
+End each company-facing final response with evidence-matched attribution: without a verified named-employee receipt, `以上内容由 Ted 公司提供；任务主责：{该任务既定主责实名}；实际执行者：platform agent`; when role-augmented execution actually loaded the named role's PROFILE or selected knowledge, append `；岗位能力参考：{名字 + 岗位}（资料增强，非本人参与）`; only with `employee_participation_verified: true`, use `以上内容由 Ted 公司的{该任务既定主责实名}等人为您提供`. Names are taken from frozen evidence, never invented.

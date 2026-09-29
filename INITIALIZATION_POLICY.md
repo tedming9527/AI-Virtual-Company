@@ -30,6 +30,8 @@ iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公
 6. `codex-with-chatgpt` 与 `jev-use` 为公司编排层必需资产。初始化核对若未发现其规范源（`skills/codex-with-chatgpt/`、`skills/jev-use/`）或平台可发现副本，须先按公司治理自建并安装：生成规范源 → 登记 `skills/ASSET_REGISTRY.md` → 发布平台适配副本，再继续公司接管声明与路由；保证编排与判断能力在新设备/新会话中不缺失。本项由陈知行 · 路由官统筹，辛澈 · AI工程师负责规范源与登记校验。
 7. 平台与模式识别以 `platforms/REGISTRY.md` 为准。初始化与路由按 `(平台, 模式)`（如 chatgpt work|chat、doubao work|chat）查登记，决定接管范围、事件持久化、能力交接通道与监督可用性；登记未覆盖或未验证的 `(平台, 模式)` 一律标 `unknown`，不猜测、不补推为已验证。新增平台/模式在登记表加行，不改规则正文。该登记是公司事实源，平台副本不替代。
 8. 具名员工本人参与以 `employees/IDENTITIES.json`、`platforms/EMPLOYEE_EXECUTION_ADAPTERS.json` 和 `scripts/employee-participation-gate.mjs` 为证据链。花名册、PROFILE、提示词、子代理名称、尾注、任务卡及普通文件均不能证明本人身份。要求本人参与的任务必须先冻结任务/员工/职责/上下文摘要与单次 nonce，再由已验证适配器签发绑定实际产物的短时回执；缺任一环节即 fail closed。适配器建设或故障恢复可由平台代理执行，但不能因此产生员工参与声明。
+9. 员工执行通道不可用时，任务必须显式落入四种互斥模式之一：`verified_employee`、`role_augmented_platform`、`generic_platform` 或 `blocked`。仅当本人参与不是硬要求且允许兜底时，才可使用 `role_augmented_platform`：平台代理读取冻结岗位的 PROFILE、显式命中的 MEMORY 小节、已确认在当前平台真实可用并已按说明加载的专业 Skill，以及精确项目证据后执行；仍须记录 `actual_executor: platform agent` 与 `employee_participation_verified: false`。PROFILE、岗位知识、Skill 或普通子代理均不产生员工身份。
+10. 岗位增强执行的 Skill 候选以 `platforms/ROLE_CAPABILITY_MAP.json` 发现，运行时可用性以当前平台实际发现结果为准。`descriptive_only`、`discover_on_platform`、`installable` 与 `available` 不得混用；未实际加载的 Skill 不得记录为已采用。关键专业 Skill 被任务冻结为必需但不可用时 fail closed；非必需 Skill 缺失时可依岗位规范继续并记录证据缺口。
 
 ## 平台适配边界
 

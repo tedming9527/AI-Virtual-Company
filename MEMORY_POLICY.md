@@ -18,6 +18,8 @@ Each entry is dated, concise, has a source/owner and a confidence label. Employe
 ## Continuous accumulation
 For each completed, non-trivial routed task, retain only its compact outcome/decision, reusable lesson when present, minimal verification evidence and owner. 没有可复用结论时不创建知识或学习条目；任务记录是否保留由 ROUTER 与 DELIVERY_POLICY 的触发条件决定。Store domain lesson details in the responsible employee’s `KNOWLEDGE.md`, with summaries in `MEMORY.md`; promote shared, stable lessons to `knowledge/`. Weekly curation deduplicates, expires time-sensitive facts and rejects raw transcript dumping.
 
+`verified_employee` 产生的可复用经验仍须按证据与复核规则入库。`role_augmented_platform` 或 `generic_platform` 产生的结论不得直接写成员工经验；需要保留时标记 `produced_by: platform agent`、目标岗位、证据与 `adoption_status: pending_employee_review`，放入原任务记录或受控候选入口。只有该员工后来经可信适配器实际参与，并对候选作出 `adopted`、`revised` 或 `rejected` 的可复核处置后，才可将采用内容写入员工 KNOWLEDGE/MEMORY；拒绝项保留最小纠错证据，不强造成长。
+
 ## Project short-term memory
 Employees may retain a scoped, expiring project handoff in `memory/projects/` so they can resume the same project. It is isolated from company knowledge, defaults to a 14-day lifetime, and must be revalidated on re-entry. See `memory/PROJECT_MEMORY_POLICY.md`.
 

@@ -7,4 +7,4 @@
 - Codex 的 sandbox、approval、hooks、model、plugins 和 MCP 保留在 Codex 本地配置中，不从 Claude 权限表机械转换。
 - Codex 项目级指令使用仓库根目录或相应子目录中的 `AGENTS.md` / `AGENTS.override.md`；`.codex/` 保留给 Codex 的项目本地配置、日志或 Hook 等平台文件，不把 `.Codex/AGENTS.md` 当作默认发现位置。
 - 修改代码后优先使用当前环境可用的验证、review 或 simplify skill。
-- 公司回复尾注必须与员工身份回执一致：无已验证员工回执时标明任务主责和 `actual executor: platform agent`；只有 `employee_participation_verified: true` 时才使用具名员工提供式尾注。
+- 公司回复尾注必须与员工身份回执一致：无已验证员工回执时标明任务主责和 `actual executor: platform agent`；岗位增强模式确实加载具名岗位资料时追加“岗位能力参考：{名字 + 岗位}（资料增强，非本人参与）”；只有 `employee_participation_verified: true` 时才使用具名员工提供式尾注。

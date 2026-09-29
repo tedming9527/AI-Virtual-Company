@@ -6,8 +6,11 @@
 - requested_outcome：实现 / 设计 / 评审 / 训练及验收边界
 - level / reason / classifier / owner_confirmed：S/M/L、理由、初分者、主责复核
 - owner / executor / consult：主责岗位、实际智能体；没有顾问写none
-- employee_participation_required / receipt：是否强制具名员工本人参与；为 true 时填写 `employee-participation-gate` 的已验证回执摘要，缺失则保持 blocked，不得以平台子代理兜底
+- employee_participation：`requirement: optional|required`、`requested_employee_ids`、`fallback_allowed`；required 时缺已验证回执保持 blocked
+- execution_mode / actual_executor：`verified_employee` / `role_augmented_platform` / `generic_platform` / `blocked`；平台代理兜底必须写 `actual_executor: platform agent`
+- employee_channel_attempt / receipt：适配器、结果、原因；只有员工参与门禁通过才填写已验证回执并声明员工参与
 - context_manifest / budget：最小上下文 manifest 摘要、实际字节数与预算；只列显式命中项，后续增量读取另记版本
+- role_context：实际加载的 PROFILE、MEMORY 小节、`loaded_skill_ids`、精确项目证据；候选但未加载的 Skill 不得列入
 - consult_status：`none` / `proposed` / `declined` / `contributed`
 - consult_question / consult_evidence / consult_disposition：咨询问题、实际交接或证据、主责如何采纳或拒绝；consult 为 none 时明确写 none
 - baseline：代码提交/文件版本/环境；不适用说明
@@ -22,6 +25,7 @@
 - status：queued / planned / running / partial / blocked / cancelled / failed / completed / verified；执行终态、产物验收、发布三者分开记；cancelled/failed 是合法终态，不得挤入 verified（2026-09-24 审计修复，与 DELIVERY_POLICY.md 终态对齐）
 - remaining：已知缺陷、未知风险、回退（L必填）、下一步与负责人
 - knowledge：条目ID/路径、采用或拒绝理由、新候选或none
+- experience_candidate：`produced_by`、`target_role`、证据和 `adoption_status`；平台代理候选必须为 `pending_employee_review`，不得直接记成员工成长
 - metrics：按METRICS_POLICY填写可观测值，未知写unknown
 - capability_handoff：M/L 或培训会话填写；任务领域/难度、用户本人贡献、提示层级、独立判断与修订、同层证据、观察到的能力/缺口、unknown
 - capability_handoff_status / receipt：`not_required` / `pending` / `delivered` / `no_evidence` / `incorporated` / `discarded`；填写真实消息、agent 回执或档案记录位置，不能把文档登记冒充通知

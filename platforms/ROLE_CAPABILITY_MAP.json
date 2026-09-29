@@ -1,0 +1,60 @@
+{
+  "schema": "ted.role-capability-map.v1",
+  "roles": [
+    {
+      "role_id": "chief-of-staff",
+      "skills": [
+        { "skill_id": "codex-with-chatgpt", "source": "company", "status": "available", "signals": ["跨模块", "架构", "疑难调试", "大范围重构", "计划执行评审"] },
+        { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["判断", "分流", "门禁", "成败检查", "多方案选择"] }
+      ]
+    },
+    {
+      "role_id": "product-manager",
+      "skills": [
+        { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["优先级", "有限方案选择", "验收分级"] }
+      ]
+    },
+    {
+      "role_id": "frontend-expert",
+      "skills": [
+        { "skill_id": "development-experience", "source": "platform", "status": "discover_on_platform", "signals": ["前端实现", "重构", "调试", "框架升级"] },
+        { "skill_id": "react-scoped-styles", "source": "platform", "status": "discover_on_platform", "signals": ["React样式", "CSS", "Less", "SCSS"] },
+        { "skill_id": "figma-reader", "source": "platform", "status": "discover_on_platform", "signals": ["Figma链接", "设计稿读取"] }
+      ]
+    },
+    {
+      "role_id": "backend-expert",
+      "skills": [
+        { "skill_id": "development-experience", "source": "platform", "status": "discover_on_platform", "signals": ["后端实现", "重构", "调试", "框架升级"] },
+        { "skill_id": "java-code-explainer", "source": "platform", "status": "discover_on_platform", "signals": ["Java代码解释", "Java目录", "架构讲解"] }
+      ]
+    },
+    {
+      "role_id": "design-master",
+      "skills": [
+        { "skill_id": "figma-reader", "source": "platform", "status": "discover_on_platform", "signals": ["Figma链接", "设计节点", "设计稿核对"] }
+      ]
+    },
+    {
+      "role_id": "test-expert",
+      "skills": [
+        { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["测试成败", "验收门禁", "风险分级", "回归判定"] }
+      ]
+    },
+    {
+      "role_id": "ai-engineer",
+      "skills": [
+        { "skill_id": "company-skill-governance", "source": "company", "status": "available", "signals": ["Skill治理", "能力登记", "工具审计"] },
+        { "skill_id": "codex-with-chatgpt", "source": "company", "status": "available", "signals": ["复杂AI编排", "跨模块AI任务"] },
+        { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["来源分级", "事实门禁", "有限判断"] }
+      ]
+    },
+    {
+      "role_id": "backend-training-architect",
+      "skills": [
+        { "skill_id": "java-code-explainer", "source": "platform", "status": "discover_on_platform", "signals": ["Java教学", "目录讲解", "架构学习"] },
+        { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["作业判定", "能力分级", "下一步教学动作"] }
+      ]
+    }
+  ]
+}

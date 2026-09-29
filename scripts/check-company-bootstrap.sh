@@ -30,7 +30,9 @@ required_files=(
   skills/jev-use/SKILL.md
   platforms/REGISTRY.md
   platforms/EMPLOYEE_EXECUTION_ADAPTERS.json
+  platforms/ROLE_CAPABILITY_MAP.json
   templates/employee-participation-receipt.schema.json
+  templates/employee-execution-decision.schema.json
   memory/PROJECT_MEMORY_POLICY.md
   scripts/resolve-model-learning-request.mjs
   TASK_LIFECYCLE.md
@@ -84,7 +86,7 @@ fi
 
 # Validate stable employee identities and adapter metadata without treating an
 # unverified adapter as available.
-if [[ -r "$COMPANY_ROOT/employees/IDENTITIES.json" && -r "$COMPANY_ROOT/platforms/EMPLOYEE_EXECUTION_ADAPTERS.json" ]]; then
+if [[ -r "$COMPANY_ROOT/employees/IDENTITIES.json" && -r "$COMPANY_ROOT/platforms/EMPLOYEE_EXECUTION_ADAPTERS.json" && -r "$COMPANY_ROOT/platforms/ROLE_CAPABILITY_MAP.json" ]]; then
   if ! node --input-type=module - "$COMPANY_ROOT" <<'NODE'
 import fs from 'node:fs';
 import path from 'node:path';
@@ -92,6 +94,7 @@ const root = fs.realpathSync(process.argv[2]);
 const roles = fs.readFileSync(path.join(root, 'employees/ROSTER.txt'), 'utf8').split(/\r?\n/).filter(Boolean);
 const identities = JSON.parse(fs.readFileSync(path.join(root, 'employees/IDENTITIES.json'), 'utf8'));
 const adapters = JSON.parse(fs.readFileSync(path.join(root, 'platforms/EMPLOYEE_EXECUTION_ADAPTERS.json'), 'utf8'));
+const capabilityMap = JSON.parse(fs.readFileSync(path.join(root, 'platforms/ROLE_CAPABILITY_MAP.json'), 'utf8'));
 let failed = false;
 const seenEmployee = new Set(), seenRole = new Set(), activeRoles = new Set(roles);
 if (identities.schema !== 'ted.employee-identities.v1' || !Array.isArray(identities.employees)) failed = true;
@@ -105,8 +108,20 @@ for (const item of adapters.adapters || []) {
   if (!/^[a-z][a-z0-9-]*$/.test(item.adapter_id || '') || !['verified','unverified','unavailable'].includes(item.status) || item.verification !== 'ed25519' || !Array.isArray(item.employee_ids)) failed = true;
   if (item.status === 'verified' && (!item.key_id || !item.public_key_pem || item.employee_ids.some(id => !seenEmployee.has(id)))) failed = true;
 }
+const capabilityRoles = new Set();
+if (capabilityMap.schema !== 'ted.role-capability-map.v1' || !Array.isArray(capabilityMap.roles)) failed = true;
+for (const item of capabilityMap.roles || []) {
+  if (!activeRoles.has(item.role_id) || capabilityRoles.has(item.role_id) || !Array.isArray(item.skills)) failed = true;
+  capabilityRoles.add(item.role_id);
+  const skillIds = new Set();
+  for (const skill of item.skills || []) {
+    if (!/^[a-z][a-z0-9-]*$/.test(skill.skill_id || '') || skillIds.has(skill.skill_id) || !['company','platform'].includes(skill.source) || !['available','discover_on_platform','installable','unavailable','descriptive_only'].includes(skill.status) || !Array.isArray(skill.signals) || skill.signals.some(value => typeof value !== 'string' || !value.trim())) failed = true;
+    skillIds.add(skill.skill_id);
+  }
+}
+if (capabilityRoles.size !== activeRoles.size) failed = true;
 if (failed) console.error('INVALID EMPLOYEE IDENTITY OR ADAPTER REGISTRY');
-else console.log('Employee identities and execution adapters checked: ' + seenEmployee.size + ' employees');
+else console.log('Employee identities, execution adapters, and role capabilities checked: ' + seenEmployee.size + ' employees');
 process.exitCode = failed ? 1 : 0;
 NODE
   then

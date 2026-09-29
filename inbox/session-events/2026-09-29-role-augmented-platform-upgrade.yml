@@ -1,0 +1,55 @@
+id: 2026-09-29-role-augmented-platform-upgrade
+created_at: 2026-09-29T12:02:56+08:00
+source: codex
+request: 升级公司规则，在员工通道不可用时由平台代理加载岗位资料和真实可用专业 Skill 进行替代性处理，并明确能力参考与实际执行者
+scope: 公司治理规则、执行模式解析器、最小上下文构建器、岗位能力映射、尾注门禁和测试
+out_of_scope: 建设或验证真实员工专属适配器；安装新 Skill；提交、推送或发布
+sensitivity: internal
+authority: 用户明确授权按已确认方案执行升级
+requested_outcome: implementation
+level: M
+reason: 跨规则、运行时决策、上下文契约和 Hook 验证的兼容性升级
+primary_owner: 陈知行 · 路由官（Chief of Staff）
+implementation_owner: 陈知行 · 路由官（Chief of Staff）（逻辑责任分配）
+reviewer: none
+consult_status: none
+execution_mode: role_augmented_platform
+actual_executor: platform agent
+employee_participation_verified: false
+employee_participation:
+  requirement: optional
+  requested_employee_ids:
+    - ted:employee:chief-of-staff
+  fallback_allowed: true
+role_context:
+  profile: employees/chief-of-staff/PROFILE.md
+  memory_sections: []
+  loaded_skill_ids: []
+  methodology_skill_ids:
+    - development-experience
+  note: 已加载陈知行岗位 PROFILE；development-experience 是平台实施方法 Skill，不冒充陈知行的专业 Skill 或本人参与
+acceptance:
+  - 四种执行模式互斥且 required 参与失败时 fail closed
+  - 岗位增强上下文只加载 PROFILE、显式 MEMORY 和已加载 Skill ID
+  - 平台经验不得直接计成员工成长
+  - 尾注可展示岗位能力参考且明确非本人参与
+status: verified
+artifacts:
+  - INITIALIZATION_POLICY.md、ROUTER.md、COMPANY.md、MEMORY_POLICY.md、KNOWLEDGE_POLICY.md
+  - platforms/ROLE_CAPABILITY_MAP.json
+  - scripts/resolve-employee-execution.mjs
+  - scripts/build-employee-context.mjs
+  - templates/employee-execution-decision.schema.json、templates/TASK_CLOSEOUT.md
+  - scripts/codex-company-takeover-hook.mjs
+evidence:
+  - node --test scripts/*.test.mjs：103/103 通过
+  - scripts/check-company-bootstrap.sh：8 名员工、适配器、岗位能力、4 个公司 Skill 和 4 个平台模式检查通过
+  - git diff --check：通过
+  - 全局配置同步：Codex 与 Claude 已更新
+  - 本任务真实模式解析：role_augmented_platform；actual_executor platform agent；employee_participation_verified false
+remaining:
+  - 真实员工专属适配器仍为 unverified，本次未建设或宣称员工本人参与
+  - 变更尚未提交或推送
+knowledge: 正式规则与运行时契约已直接更新；未生成员工经验条目
+experience_candidate: none
+capability_handoff_status: no_evidence
