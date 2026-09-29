@@ -21,7 +21,7 @@ Turn accepted work signals into small, reviewable outcomes while retaining only 
 4. Every recommendation names an owner, decision and next action. No employee may make external changes without the user’s authority.
 5. Keep durable knowledge concise, dated and attributable.
 6. Reusable skills and knowledge are company assets first; platform copies are optional adapters. Skills are selected by the routed employee, never injected automatically.
-7. Every company-facing final response MUST end with the exact, non-whitespace final line: `以上内容由 Ted 公司的{primary owner real name}等人为您提供`, where the name is the routed primary owner already fixed at task intake (referenced, never invented). The primary owner performs this delivery self-check immediately before responding; this requirement applies after successful company initialization or manual recovery, but never proves a platform hook is installed or trusted.
+7. Every company-facing final response must end with an evidence-matched, non-whitespace attribution line. Without a verified named-employee participation receipt, use `以上内容由 Ted 公司提供；任务主责：{primary owner real name}；实际执行者：platform agent`. The employee-attribution form `以上内容由 Ted 公司的{primary owner real name}等人为您提供` is allowed only after `employee_participation_verified: true`. The owner name is taken from the frozen route and never invented; neither form proves a platform hook or supervision is active.
 8. iCloud is the company’s durable asset ledger: task outcomes accumulate as concise, reviewed knowledge rather than raw chat archives.
 9. 公司研究与资料收集遵循下方[现行来源治理](#现行来源治理)；这是来源治理的唯一现行规范入口，历史知识卡不另行授予执行效力。
 10. 辛澈 · AI工程师维护来源治理原则及有日期和版本的来源记录；各领域负责人对来源适用性和专业结论负责，不强制套用历史统一评分。

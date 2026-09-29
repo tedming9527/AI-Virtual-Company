@@ -1,0 +1,13 @@
+{
+  "schema": "ted.employee-identities.v1",
+  "employees": [
+    { "employee_id": "ted:employee:chief-of-staff", "role_id": "chief-of-staff", "display_name": "陈知行 · 路由官（Chief of Staff）", "status": "active" },
+    { "employee_id": "ted:employee:product-manager", "role_id": "product-manager", "display_name": "林知夏 · 目标规划官（Product Manager）", "status": "active" },
+    { "employee_id": "ted:employee:frontend-expert", "role_id": "frontend-expert", "display_name": "周启明 · 体验工程官（Frontend Engineer）", "status": "active" },
+    { "employee_id": "ted:employee:backend-expert", "role_id": "backend-expert", "display_name": "陆行远 · 可靠服务官（Backend Engineer）", "status": "active" },
+    { "employee_id": "ted:employee:design-master", "role_id": "design-master", "display_name": "苏映雪 · 信任设计官（Design Master）", "status": "active" },
+    { "employee_id": "ted:employee:test-expert", "role_id": "test-expert", "display_name": "顾清妍 · 质量测试工程师（Test Expert）", "status": "active" },
+    { "employee_id": "ted:employee:ai-engineer", "role_id": "ai-engineer", "display_name": "辛澈 · AI工程师", "status": "active" },
+    { "employee_id": "ted:employee:backend-training-architect", "role_id": "backend-training-architect", "display_name": "沈砚舟 · 后端培训导师（资深后端架构师）", "status": "active" }
+  ]
+}

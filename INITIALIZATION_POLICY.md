@@ -23,12 +23,13 @@ iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公
 ## 基础加载与条件加载
 
 1. 声称公司接管、路由岗位或使用公司知识前，先取得 `company_ready`，并读取 `AGENTS.md`、`COMPANY.md`、`ROUTER.md`、`MEMORY_POLICY.md`、`KNOWLEDGE_POLICY.md` 与 `skills/ASSET_REGISTRY.md`。资产登记只用于发现公司 Skill；不自动加载 Skill 正文。
-2. Codex 的全局适配器必须要求每个新会话先由陈知行 · 路由官（Chief of Staff）按 `COMPANY.md` 与 `ROUTER.md` 指定一名主责员工，并仅在有实质价值时指定至多一名顾问；首个实质回复须声明主责、咨询和交付目标。`/root` 等平台主代理只表示执行容器，不是员工分配。该规则的规范源为 `assets/imports/2026-09-09/ai-config/targets/codex.md`，同步目标为 `~/.codex/AGENTS.md`；不得只改适配器副本。初始化失败时仅将公司初始化部分记为 `blocked`，停止公司接管及员工分配声明；普通任务仍按已有授权、权限和项目约束继续，明确依赖公司治理的部分才暂停。
+2. Codex 的全局适配器必须要求每个新会话先由陈知行 · 路由官（Chief of Staff）按 `COMPANY.md` 与 `ROUTER.md` 指定一名主责员工，并仅在有实质价值时指定至多一名顾问；首个实质回复须声明主责、咨询和交付目标。路由记录还必须区分任务主责、专业执行者和验证者；代码、Git、构建或发布任务的专业执行者必须匹配对应工程岗位，不能把产品主责描述成前端或后端开发。`/root` 等平台主代理只表示执行容器，不是员工分配，也不得自称花名册员工；初始化成功后可以读取花名册和路由事实源进行岗位匹配、协调与实际可用通道内的派发。逻辑指定不等于实际参与，只有可复核的派发回执、回应、交接或产物才能声明员工已执行、评审或贡献；无员工执行通道时可在已有授权内由平台代理执行，但必须如实标记实际执行者。发生上下文压缩、会话接续、用户质疑岗位或责任变化时，声明角色前重新核对当前 `COMPANY.md` 与 `ROUTER.md`，不得以旧摘要代替事实源。该规则的规范源为 `assets/imports/2026-09-09/ai-config/targets/codex.md`，同步目标为 `~/.codex/AGENTS.md`；不得只改适配器副本。初始化失败时仅将公司初始化部分记为 `blocked`，停止公司接管及员工分配声明；普通任务仍按已有授权、权限和项目约束继续，明确依赖公司治理的部分才暂停。
 3. 仅在信号命中时加载下列规则：项目绑定/迁移/恢复读取 `PROJECT_BINDING_POLICY.md`；模型预算或学习读取 `LEARNING_POLICY.md`；监督或多执行者读取 `SUPERVISION_POLICY.md`；临时任务生命周期读取 `TASK_LIFECYCLE.md`；交付、度量、独立评测和知识维护分别读取对应政策或手册。
 4. 岗位知识先读主责的 `PROFILE.md` 与 `MEMORY.md`；仅在目录命中时读详情。摘要必须提供触发、可执行结论、关键限制、状态/时效和详情链接；摘要不授权行动，也不替代安全、授权或原始证据。
 5. 条件加载不取消授权边界：外部或破坏性写入须有用户授权；未知模型、绑定、执行回执或计量一律标为 `unknown`、`blocked` 或 `partial`，不得补推为已执行。
 6. `codex-with-chatgpt` 与 `jev-use` 为公司编排层必需资产。初始化核对若未发现其规范源（`skills/codex-with-chatgpt/`、`skills/jev-use/`）或平台可发现副本，须先按公司治理自建并安装：生成规范源 → 登记 `skills/ASSET_REGISTRY.md` → 发布平台适配副本，再继续公司接管声明与路由；保证编排与判断能力在新设备/新会话中不缺失。本项由陈知行 · 路由官统筹，辛澈 · AI工程师负责规范源与登记校验。
 7. 平台与模式识别以 `platforms/REGISTRY.md` 为准。初始化与路由按 `(平台, 模式)`（如 chatgpt work|chat、doubao work|chat）查登记，决定接管范围、事件持久化、能力交接通道与监督可用性；登记未覆盖或未验证的 `(平台, 模式)` 一律标 `unknown`，不猜测、不补推为已验证。新增平台/模式在登记表加行，不改规则正文。该登记是公司事实源，平台副本不替代。
+8. 具名员工本人参与以 `employees/IDENTITIES.json`、`platforms/EMPLOYEE_EXECUTION_ADAPTERS.json` 和 `scripts/employee-participation-gate.mjs` 为证据链。花名册、PROFILE、提示词、子代理名称、尾注、任务卡及普通文件均不能证明本人身份。要求本人参与的任务必须先冻结任务/员工/职责/上下文摘要与单次 nonce，再由已验证适配器签发绑定实际产物的短时回执；缺任一环节即 fail closed。适配器建设或故障恢复可由平台代理执行，但不能因此产生员工参与声明。
 
 ## 平台适配边界
 

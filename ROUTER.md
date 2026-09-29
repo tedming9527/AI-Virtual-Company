@@ -29,6 +29,18 @@ requested_outcome: plan | implementation | review | research
 | 明确监督、全员/名单/单人模型预算、多执行者任务 | Chief of Staff | AI Engineer |
 | cross-functional or ambiguous | Chief of Staff | relevant specialists |
 
+### 角色与执行责任门禁（2026-09-29）
+
+- 每次路由必须分别确定 `primary_owner`（对交付结果负责）、`implementation_owner`（执行专业工作）和 `reviewer`（提供相称验证，可为 `none`）。三者可以是同一人，但只有岗位能力与任务类型匹配时才能合并，不能因为某人已是任务主责就推定其具备代码、设计、测试或后端执行身份。
+- 涉及业务仓库代码、Git 历史、构建或发布时，`implementation_owner` 必须是对应领域工程岗位：前端仓库由周启明 · 体验工程官（Frontend Engineer）负责，后端仓库由陆行远 · 可靠服务官（Backend Engineer）负责；林知夏 · 目标规划官（Product Manager）负责需求、范围和验收口径，不得被描述为前端或后端工程师。
+- 平台主代理、线程名和执行容器不属于花名册员工，不得使用“我是某岗位”或自行认领员工身份。公司初始化成功后，平台主代理可以读取当前花名册与路由事实源，代表陈知行 · 路由官（Chief of Staff）完成岗位匹配、任务登记、协调和实际可用通道内的派发；对外只能陈述经核验的任务路由、责任分工和实际执行通道。
+- 逻辑指定不等于实际参与。被登记为 `primary_owner`、`implementation_owner`、`reviewer` 或顾问，只说明责任路由；只有取得可复核的派发回执、回应、交接或产物，才能声明该员工已参与、执行、评审或贡献。没有真实回执时，必须注明“逻辑责任分配”，顾问状态保持 `none` 或 `proposed`。
+- 任务一旦登记 `employee_participation_required: true`，具名员工本人必须通过 `scripts/employee-participation-gate.mjs` 的可信回执门禁；缺少已验证的员工专属适配器、签名回执或绑定产物时必须 `blocked`，不得由平台代理或普通子代理兜底。只有未要求本人参与的恢复、适配器建设或普通任务，才可在既有授权内由平台代理代执行并记录 `actual_executor: platform agent`；无论何种情况都不得把平台代理操作归功于逻辑指定员工。
+- 员工本人参与与运行监督是两个正交状态：前者证明具名身份及其产物，后者证明运行中的监督心跳；任何一方不得推出另一方。任务冻结参与要求后，结束前必须复验全部必需回执。
+- 派发默认使用最小上下文清单：任务目标、成功标准、授权与禁止范围、冻结角色、该员工责任、验收标准、当前事实/决策/未决项及精确证据引用；只加载该员工 `PROFILE.md` 和显式命中的 `MEMORY.md` 小节，详情按缺口增量读取。不得发送完整聊天、未筛选日志、完整仓库或全员知识；关键字段超预算时必须 `context_budget_insufficient`，不能静默裁剪。
+- 会话摘要、旧任务卡和历史回复中的角色只作为线索。发生上下文压缩、会话接续、主责变更或用户质疑岗位时，必须重新读取当前 `COMPANY.md` 与 `ROUTER.md` 后再声明角色；旧快照不得覆盖现行花名册与路由。
+- 一旦发现姓名、岗位或责任归属错误，立即停止沿用错误路由，明确撤回错误陈述，重新分配专业执行责任；不得为了保持旧尾注、旧摘要或叙事连续性继续错误身份。
+
 ## Integration boundary (checked 2026-09-09)
 - **Codex:** this local workspace can write the company files and run a thread automation.
 - **ChatGPT/Codex/Claude global histories:** no approved, universal local read interface was found or assumed. Do not scrape app data or claim coverage.

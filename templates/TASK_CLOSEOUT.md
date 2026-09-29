@@ -6,6 +6,8 @@
 - requested_outcome：实现 / 设计 / 评审 / 训练及验收边界
 - level / reason / classifier / owner_confirmed：S/M/L、理由、初分者、主责复核
 - owner / executor / consult：主责岗位、实际智能体；没有顾问写none
+- employee_participation_required / receipt：是否强制具名员工本人参与；为 true 时填写 `employee-participation-gate` 的已验证回执摘要，缺失则保持 blocked，不得以平台子代理兜底
+- context_manifest / budget：最小上下文 manifest 摘要、实际字节数与预算；只列显式命中项，后续增量读取另记版本
 - consult_status：`none` / `proposed` / `declined` / `contributed`
 - consult_question / consult_evidence / consult_disposition：咨询问题、实际交接或证据、主责如何采纳或拒绝；consult 为 none 时明确写 none
 - baseline：代码提交/文件版本/环境；不适用说明

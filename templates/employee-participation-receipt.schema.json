@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ted.example/schemas/employee-participation-receipt.v1.json",
+  "title": "Ted employee participation receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "receipt_id", "task_id", "employee_id", "role_id", "participation_kind", "adapter_id", "adapter_run_id", "issued_at", "expires_at", "nonce", "request_digest", "context_manifest_digest", "output_digest", "artifact_refs", "key_id", "signature"],
+  "properties": {
+    "schema": { "const": "ted.employee-participation-receipt.v1" },
+    "receipt_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$" },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$" },
+    "employee_id": { "type": "string", "pattern": "^ted:employee:[a-z][a-z0-9-]*$" },
+    "role_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "participation_kind": { "enum": ["owner", "implementation", "review", "consult"] },
+    "adapter_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "adapter_run_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "nonce": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+    "request_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "context_manifest_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "output_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "artifact_refs": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "type": "object", "additionalProperties": false, "required": ["ref", "digest"], "properties": { "ref": { "type": "string", "minLength": 1, "maxLength": 300 }, "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" } } },
+    "key_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$" },
+    "signature": { "type": "string", "pattern": "^[A-Za-z0-9+/]+={0,2}$" }
+  }
+}

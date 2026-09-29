@@ -1,0 +1,17 @@
+{
+  "schema": "ted.employee-execution-adapters.v1",
+  "adapters": [
+    {
+      "adapter_id": "codex-native-collaboration",
+      "platform": "codex",
+      "mode": "desktop",
+      "status": "unverified",
+      "verification": "ed25519",
+      "key_id": null,
+      "public_key_pem": null,
+      "employee_ids": [],
+      "max_receipt_age_ms": 300000,
+      "reason": "原生子代理可返回 run 回执，但当前没有平台可验证的具名员工 subject 绑定。"
+    }
+  ]
+}

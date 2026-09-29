@@ -93,6 +93,8 @@ function bootstrap(t) {
   for (const file of source.match(/required_files=\(([\s\S]*?)\)/)[1].trim().split(/\s+/)) f.write(file, 'fixture\n');
   for (const directory of ['employees', 'knowledge', 'skills', 'memory', 'inbox', 'schedule']) fs.mkdirSync(path.join(f.root, directory), { recursive: true });
   f.write('employees/ROSTER.txt', '');
+  f.write('employees/IDENTITIES.json', JSON.stringify({ schema: 'ted.employee-identities.v1', employees: [] }));
+  f.write('platforms/EMPLOYEE_EXECUTION_ADAPTERS.json', JSON.stringify({ schema: 'ted.employee-execution-adapters.v1', adapters: [] }));
   f.write('skills/ASSET_REGISTRY.md', '| 资产 ID | 规范源 | 用途 | 调用策略 | 维护人 | 状态 |\n| `demo` | `skills/demo/` | fixture | 显式 | fixture | active |\n');
   f.write('skills/demo/SKILL.md', '---\nname: demo\ndescription: A fixture skill.\n---\nBODY_NOT_FOR_SESSION\n');
   return { ...f, check: () => spawnSync('zsh', [script], { encoding: 'utf8', env: { ...process.env, AI_VIRTUAL_COMPANY_ROOT: f.root } }) };

@@ -23,11 +23,14 @@ required_files=(
   knowledge/catalog.json
   templates/TASK_CLOSEOUT.md
   employees/ROSTER.txt
+  employees/IDENTITIES.json
   skills/project-company-binding.template.md
   skills/ASSET_REGISTRY.md
   skills/codex-with-chatgpt/SKILL.md
   skills/jev-use/SKILL.md
   platforms/REGISTRY.md
+  platforms/EMPLOYEE_EXECUTION_ADAPTERS.json
+  templates/employee-participation-receipt.schema.json
   memory/PROJECT_MEMORY_POLICY.md
   scripts/resolve-model-learning-request.mjs
   TASK_LIFECYCLE.md
@@ -77,6 +80,38 @@ if [[ -r "$COMPANY_ROOT/employees/ROSTER.txt" ]]; then
       failed=1
     fi
   done
+fi
+
+# Validate stable employee identities and adapter metadata without treating an
+# unverified adapter as available.
+if [[ -r "$COMPANY_ROOT/employees/IDENTITIES.json" && -r "$COMPANY_ROOT/platforms/EMPLOYEE_EXECUTION_ADAPTERS.json" ]]; then
+  if ! node --input-type=module - "$COMPANY_ROOT" <<'NODE'
+import fs from 'node:fs';
+import path from 'node:path';
+const root = fs.realpathSync(process.argv[2]);
+const roles = fs.readFileSync(path.join(root, 'employees/ROSTER.txt'), 'utf8').split(/\r?\n/).filter(Boolean);
+const identities = JSON.parse(fs.readFileSync(path.join(root, 'employees/IDENTITIES.json'), 'utf8'));
+const adapters = JSON.parse(fs.readFileSync(path.join(root, 'platforms/EMPLOYEE_EXECUTION_ADAPTERS.json'), 'utf8'));
+let failed = false;
+const seenEmployee = new Set(), seenRole = new Set(), activeRoles = new Set(roles);
+if (identities.schema !== 'ted.employee-identities.v1' || !Array.isArray(identities.employees)) failed = true;
+for (const item of identities.employees || []) {
+  if (!/^ted:employee:[a-z][a-z0-9-]*$/.test(item.employee_id || '') || !activeRoles.has(item.role_id) || seenEmployee.has(item.employee_id) || seenRole.has(item.role_id) || item.status !== 'active' || typeof item.display_name !== 'string' || !item.display_name.trim()) failed = true;
+  seenEmployee.add(item.employee_id); seenRole.add(item.role_id);
+}
+if (seenRole.size !== activeRoles.size) failed = true;
+if (adapters.schema !== 'ted.employee-execution-adapters.v1' || !Array.isArray(adapters.adapters)) failed = true;
+for (const item of adapters.adapters || []) {
+  if (!/^[a-z][a-z0-9-]*$/.test(item.adapter_id || '') || !['verified','unverified','unavailable'].includes(item.status) || item.verification !== 'ed25519' || !Array.isArray(item.employee_ids)) failed = true;
+  if (item.status === 'verified' && (!item.key_id || !item.public_key_pem || item.employee_ids.some(id => !seenEmployee.has(id)))) failed = true;
+}
+if (failed) console.error('INVALID EMPLOYEE IDENTITY OR ADAPTER REGISTRY');
+else console.log('Employee identities and execution adapters checked: ' + seenEmployee.size + ' employees');
+process.exitCode = failed ? 1 : 0;
+NODE
+  then
+    failed=1
+  fi
 fi
 
 # Inspect canonical active assets and their discovery metadata only. This does
@@ -152,18 +187,18 @@ for (const line of reg.split(/\r?\n/)) {
   if (/^-+$/.test(cells[0])) continue; // separator row
   if (cells[0] === 'platform') continue; // header row
   try {
-    if (cells.length !== 12) throw Error('row must have 12 cells, got ' + cells.length);
+    if (cells.length !== 13) throw Error('row must have 13 cells, got ' + cells.length);
     const [platform, mode] = cells;
     const key = platform + '\u0000' + mode;
     if (!/^[a-z][a-z0-9-]*$/.test(platform) || !/^[a-z][a-z0-9-]*$/.test(mode) || seen.has(key))
       throw Error('invalid or duplicate platform/mode row');
     seen.add(key);
-    for (let i = 2; i <= 7; i++) {
+    for (let i = 2; i <= 8; i++) {
       if (!STATUS.has(cells[i])) throw Error('invalid status value: ' + cells[i]);
     }
-    if (!STATUS.has(cells[9])) throw Error('invalid node_status value: ' + cells[9]);
-    if (cells[10] !== 'unknown' && !/^\d{4}-\d{2}-\d{2}$/.test(cells[10]))
-      throw Error('invalid last_checked value: ' + cells[10]);
+    if (!STATUS.has(cells[10])) throw Error('invalid node_status value: ' + cells[10]);
+    if (cells[11] !== 'unknown' && !/^\d{4}-\d{2}-\d{2}$/.test(cells[11]))
+      throw Error('invalid last_checked value: ' + cells[11]);
     rows++;
   } catch (err) {
     failed = true;

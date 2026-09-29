@@ -23,6 +23,8 @@
 
 ## 监督声明门禁
 
+`supervision_live` 与 `employee_participation_verified` 相互独立。前者只证明运行监督，后者只由 `scripts/employee-participation-gate.mjs` 对冻结路由、可信适配器、签名、时效、nonce、最小上下文摘要和实际产物摘要校验后产生。任务同时要求二者时必须分别通过；本地进程、原生子代理 task name、岗位提示词或人工填写的 `actual_executor` 均不能证明具名员工本人参与。
+
 公司任务声称“已受监管”前，必须使用 `scripts/supervision-gate.mjs` 将公司任务 ID 绑定到真实的 `supervision:RUN_ID/TASK_ID` 回执，并立即执行 `assert-supervised TASK_ID`。未登记、回执无效、目标未运行、监督器失联或心跳超过门限时，门禁输出 `alert: true`、`claim_allowed: false` 并以非零状态退出；此时只能报告未登记、未接通或需要处理，禁止宣称已受监管、运行中或持续监督。
 
 该门禁只能验证当前已接入的本地进程监督器，不能枚举 Codex 侧栏、读取全局会话或把人工登记当成平台心跳。原生 Codex/Work/智能体任务没有真实状态适配器时保持 blocked。告警在显式 `check` / `assert-supervised` 或受控巡检时产生；没有已连接的通知通道时，不声称已主动推送告警。
