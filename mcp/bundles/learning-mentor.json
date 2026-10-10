@@ -1,0 +1,10 @@
+{
+  "schema": "ted.mcp-bundle.v1",
+  "id": "learning-mentor",
+  "required": ["ted-mac-assistant"],
+  "recommended": ["ted-remote-mcp"],
+  "failure_policy": {
+    "unrelated_task": "not-loaded",
+    "required_capability": "blocked-scope-only"
+  }
+}

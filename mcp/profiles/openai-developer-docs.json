@@ -1,0 +1,11 @@
+{
+  "schema": "ted.mcp-profile.v1",
+  "id": "openai-developer-docs",
+  "transport": "streamable-http",
+  "runtime": "remote",
+  "source": { "kind": "official-service", "url": "https://developers.openai.com/mcp" },
+  "environment": { "required_names": [], "optional_names": [] },
+  "network": { "mode": "host-managed", "direct_fallback": null },
+  "verification": ["tools-list", "official-doc-search"],
+  "local_overlay_required": false
+}

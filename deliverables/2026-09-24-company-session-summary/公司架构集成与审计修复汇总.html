@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ted 公司会话汇总 · 2026-09-24</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E6E78'/%3E%3Cpath d='M9 21V11h3l4 6 4-6h3v10h-3v-6l-4 6-4-6v6z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#eef1f2; --card:#ffffff; --ink:#16202b; --muted:#5a6573;
+    --line:#e2e7e9; --accent:#0e6e78; --accent-soft:#e2f0f1;
+    --amber:#a0742a; --amber-soft:#f6efe0; --ok:#1f7a4d; --ok-soft:#e4f2ea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-text-size-adjust:100%;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Noto Sans SC",-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;font-size:16px;font-weight:400;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:0 18px 40px;}
+  .serif{font-family:"Noto Serif SC","Songti SC",serif;}
+
+  /* ===== Header ===== */
+  header.hero{padding:44px 0 26px;border-bottom:1px solid var(--line);margin-bottom:28px;}
+  .eyebrow{font-size:12.5px;letter-spacing:.18em;color:var(--accent);font-weight:500;text-transform:uppercase;margin-bottom:16px;}
+  h1{font-size:27px;font-weight:700;line-height:1.35;letter-spacing:.01em;margin-bottom:14px;}
+  .meta{font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;}
+  .meta b{color:var(--ink);font-weight:500;}
+
+  /* ===== Metric strip ===== */
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:34px;}
+  .metric{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;}
+  .metric .num{font-size:26px;font-weight:700;line-height:1.1;letter-spacing:-.01em;}
+  .metric .num small{font-size:15px;font-weight:500;color:var(--muted);margin-left:2px;}
+  .metric .lbl{font-size:12.5px;color:var(--muted);margin-top:5px;}
+  .metric.ok .num{color:var(--ok);}
+  .metric.acc .num{color:var(--accent);}
+
+  /* ===== Section headings ===== */
+  section{margin-bottom:34px;}
+  h2{font-size:19px;font-weight:600;letter-spacing:.01em;margin-bottom:6px;display:flex;align-items:baseline;gap:10px;}
+  h2 .idx{font-size:13px;color:var(--accent);font-weight:500;font-family:"Noto Serif SC",serif;}
+  .sec-note{font-size:13.5px;color:var(--muted);margin-bottom:18px;}
+
+  /* ===== Timeline ===== */
+  .tl{display:grid;grid-template-columns:64px 22px 1fr;row-gap:0;}
+  .tl .t{font-size:12px;color:var(--muted);padding-top:2px;text-align:right;padding-right:12px;line-height:1.5;}
+  .tl .mid{position:relative;justify-self:center;width:2px;background:var(--line);}
+  .tl .dot{position:absolute;top:3px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--accent);box-sizing:border-box;}
+  .tl .ev{padding:0 0 22px 14px;}
+  .tl .ev:last-child{padding-bottom:2px;}
+  .tl .ev h3{font-size:15px;font-weight:600;margin-bottom:3px;line-height:1.45;}
+  .tl .ev p{font-size:13.5px;color:var(--muted);line-height:1.6;}
+  .tl .row:last-child .mid{background:transparent;}
+
+  /* ===== Fix list ===== */
+  .fix{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .fix .row{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .fix .row:last-child{border-bottom:none;}
+  .tag{flex:0 0 auto;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;margin-top:2px;}
+  .tag.aud{background:var(--accent-soft);color:var(--accent);}
+  .tag.stale{background:var(--amber-soft);color:var(--amber);}
+  .tag.p2{background:#eceaf4;color:#4c4380;}
+  .fix .body h4{font-size:14.5px;font-weight:600;margin-bottom:2px;}
+  .fix .body p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+  /* ===== Residual callout ===== */
+  .note{background:var(--amber-soft);border:1px solid #e7dcc2;border-left:3px solid var(--amber);border-radius:10px;padding:15px 16px;}
+  .note h4{font-size:14px;font-weight:600;margin-bottom:8px;color:#6f511c;}
+  .note ul{list-style:none;}
+  .note li{font-size:13px;color:#5f4d28;padding-left:16px;position:relative;margin-bottom:7px;line-height:1.6;}
+  .note li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--amber);}
+  .note li:last-child{margin-bottom:0;}
+
+  .ok-banner{background:var(--ok-soft);border:1px solid #cde6d7;border-radius:10px;padding:15px 16px;font-size:14px;color:#1c5e3d;display:flex;gap:10px;align-items:flex-start;}
+  .ok-banner .badge{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center;margin-top:1px;}
+
+  footer{margin-top:40px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+  footer .sig{font-size:14px;color:var(--ink);font-weight:500;margin-top:10px;}
+
+  @media (min-width:560px){
+    .metrics{grid-template-columns:repeat(4,1fr);}
+    .tl{grid-template-columns:78px 22px 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Hero ===== -->
+  <header class="hero">
+    <div class="eyebrow">Ted AI 智能科技 · 会话汇总</div>
+    <h1 class="serif">C2C 编排接入、公司审计与全量修复</h1>
+    <div class="meta">
+      <span>日期 <b>2026-09-24</b></span>
+      <span>主责 <b>陈知行 · 路由官</b></span>
+      <span>形态 <b>架构集成 + 审计收口</b></span>
+    </div>
+  </header>
+
+  <!-- ===== Metrics ===== -->
+  <div class="metrics">
+    <div class="metric ok"><div class="num">0</div><div class="lbl">知识告警（修复前 29）</div></div>
+    <div class="metric acc"><div class="num">58</div><div class="lbl">知识目录条目</div></div>
+    <div class="metric acc"><div class="num">11<small>/11</small></div><div class="lbl">hook 测试全绿</div></div>
+    <div class="metric"><div class="num">33</div><div class="lbl">P2/P3 精确修复</div></div>
+  </div>
+
+  <!-- ===== Timeline ===== -->
+  <section>
+    <h2 class="serif"><span class="idx">01</span>工作时间轴</h2>
+    <p class="sec-note">从能力接入到审计全绿，按阶段推进。</p>
+    <div class="tl">
+      <div class="row" style="display:contents;">
+        <div class="t">阶段一</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>安装并登记 C2C 与 jev</h3><p>codex-with-chatgpt 自建规范源并登记（维护人陈知行）；jev-use 补齐登记（维护人辛澈），纳入初始化缺失先装。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段二</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>真实小任务验证共存</h3><p>spring-test-web 产出 RedisControllerTest 8 用例；修复既有 CategoryChangeEventJobTest 脱节；jev PLAN/EXEC 门实测通过。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段三</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>路由规则与治理边界</h3><p>Task Router 写入 ROUTER（四步判定 + 成本门禁 + 2 轮上限 + BLOCKED 升级）；明确 C2C 不豁免任务分级与收口。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段四</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>平台×模式登记</h3><p>platforms/REGISTRY.md 登记 chatgpt/doubao 的 work|chat，未验证一律 unknown；doubao work 实测 healthy。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段五</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>节点缺失回退与短时缓存</h3><p>退避 1s→5s→30s→2min→5min；连续≥3 次才标 missing；共享状态不写个人记忆。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段六</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>末行签名动态化</h3><p>固定串改为“以上内容由 Ted 公司的{既定主责}等人为您提供”，jev 裁定路由引用（置信度 1.0），hook 改正则。</p></div>
+      </div>
+      <div class="row" style="display:contents;">
+        <div class="t">阶段七</div><div class="mid"><span class="dot"></span></div>
+        <div class="ev"><h3>公司审计 + 全量修复</h3><p>九项矩阵实测通过；过期条目合规处置；29 条告警逐条收敛至 0，独立验证与冷启动回归通过。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Fix summary ===== -->
+  <section>
+    <h2 class="serif"><span class="idx">02</span>修复落地</h2>
+    <p class="sec-note">29 条告警全部处理，errors 归零。</p>
+    <div class="fix">
+      <div class="row">
+        <span class="tag aud">AUD-001</span>
+        <div class="body"><h4>共享规则段跨岗重复</h4><p>8 岗 KNOWLEDGE/MEMORY 的 C2C 共享段收敛为一行指针，权威细节保留单一事实源。</p></div>
+      </div>
+      <div class="row">
+        <span class="tag aud">AUD-002</span>
+        <div class="body"><h4>记忆/目录漂移</h4><p>catalog 补齐 8 条 c2c-orchestration 条目，sha 实算，8 条目录告警归零。</p></div>
+      </div>
+      <div class="row">
+        <span class="tag stale">STALE ×19</span>
+        <div class="body"><h4>哈希漂移逐条语义复核</h4><p>core / experience-transfer 等经核对摘要仍准确，同步正确 sha，未机械改值掩盖错误。</p></div>
+      </div>
+      <div class="row">
+        <span class="tag aud">macro</span>
+        <div class="body"><h4>macro-first-induction 登记</h4><p>经培训岗核对判为合法教学条目，补 catalog 与 MEMORY 索引。</p></div>
+      </div>
+      <div class="row">
+        <span class="tag p2">P2/P3 ×33</span>
+        <div class="body"><h4>历史审计项精确修复</h4><p>按 09-22 全局映射逐项最小改动，含 catalog↔INDEX 联动与持久回执条件化（测试 8/8）。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Status + residuals ===== -->
+  <section>
+    <div class="ok-banner"><span class="badge"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span><div><b>当前审计全绿</b>：bootstrap 通过、check-knowledge 58 条 errors=0/warnings=0、AUD-001/002 已关闭。</div></div>
+  </section>
+
+  <section>
+    <div class="note">
+      <h4>如实保留的边界（非缺陷）</h4>
+      <ul>
+        <li>未执行 git commit（授权范围外，改动保留工作区）。</li>
+        <li>语义认证为抽样（4 条 STALE + 冷启动），未对 58 条逐条语义审计。</li>
+        <li>能力交接无用户技术行为证据、本会话无通知通道，记为 pending。</li>
+        <li>平台运行时鉴证（hook 安装/信任/事件注入）保持 unknown，非文件可修。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div>归档：learning/evaluations/2026-09-24-company-audit-v1 与 …-audit-fix-v1；事件 inbox/session-events/2026-09-24-audit-full-remediation.md。</div>
+    <div class="sig serif">以上内容由 Ted 公司的陈知行等人为您提供</div>
+  </footer>
+
+</div>
+</body>
+</html>

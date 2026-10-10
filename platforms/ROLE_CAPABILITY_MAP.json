@@ -45,6 +45,7 @@
       "role_id": "ai-engineer",
       "skills": [
         { "skill_id": "company-skill-governance", "source": "company", "status": "available", "signals": ["Skill治理", "能力登记", "工具审计"] },
+        { "skill_id": "mcp-first-use", "source": "company", "status": "available", "signals": ["MCP首次启用", "MCP配置", "MCP代理", "MCP环境变量", "MCP漂移修复"] },
         { "skill_id": "codex-with-chatgpt", "source": "company", "status": "available", "signals": ["复杂AI编排", "跨模块AI任务"] },
         { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["来源分级", "事实门禁", "有限判断"] }
       ]
@@ -53,6 +54,7 @@
       "role_id": "backend-training-architect",
       "skills": [
         { "skill_id": "java-code-explainer", "source": "platform", "status": "discover_on_platform", "signals": ["Java教学", "目录讲解", "架构学习"] },
+        { "skill_id": "ted-learning-sync", "source": "platform", "status": "discover_on_platform", "signals": ["导师检查点", "执行事实", "学习任务同步", "Ted Mac Assistant"] },
         { "skill_id": "jev-use", "source": "company", "status": "available", "signals": ["作业判定", "能力分级", "下一步教学动作"] }
       ]
     }

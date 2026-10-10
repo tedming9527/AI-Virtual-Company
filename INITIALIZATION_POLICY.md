@@ -17,6 +17,7 @@ iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公
 | `binding_active` | 当前会话实际加载项目绑定指令 | 当前回合按公司治理路由 | hook 已验证、此前会话已覆盖 |
 | `platform_hook_verified` | 当前平台实际注入可验证标记，且该适配器已按平台契约验收 | 当前入口 hook 已验证 | 组织级不可关闭、任务受监管 |
 | `supervision_live` | 实际执行回执与新鲜心跳均通过监督门禁 | 当前任务正在受监管 | 后台通知已送达、其他任务受监管 |
+| `mcp_runtime_governance_ready` | 公司 MCP 注册表/Profile/Bundle/Launcher/首次配置 Skill 结构通过；当前任务必需 MCP 的本机 Overlay 另行核验 | MCP 治理规范可用 | 每个 MCP 已联网、旧会话已重载、所有外部能力可用 |
 
 缺少 `platform_hook_verified` 时，不得声称“平台强制接管”；但 `company_ready` 与 `binding_active` 已具备时，仍可按用户已授权范围工作。只有用户明确要求平台强制、不可绕过或持续监督时，缺失对应状态才是阻断条件。
 
@@ -32,6 +33,8 @@ iCloud 中的 `AI-Virtual-Company` 是公司规则、岗位档案、知识与公
 8. 具名员工本人参与以 `employees/IDENTITIES.json`、`platforms/EMPLOYEE_EXECUTION_ADAPTERS.json` 和 `scripts/employee-participation-gate.mjs` 为证据链。花名册、PROFILE、提示词、子代理名称、尾注、任务卡及普通文件均不能证明本人身份。要求本人参与的任务必须先冻结任务/员工/职责/上下文摘要与单次 nonce，再由已验证适配器签发绑定实际产物的短时回执；缺任一环节即 fail closed。适配器建设或故障恢复可由平台代理执行，但不能因此产生员工参与声明。
 9. 员工执行通道不可用时，任务必须显式落入四种互斥模式之一：`verified_employee`、`role_augmented_platform`、`generic_platform` 或 `blocked`。仅当本人参与不是硬要求且允许兜底时，才可使用 `role_augmented_platform`：平台代理读取冻结岗位的 PROFILE、显式命中的 MEMORY 小节、已确认在当前平台真实可用并已按说明加载的专业 Skill，以及精确项目证据后执行；仍须记录 `actual_executor: platform agent` 与 `employee_participation_verified: false`。PROFILE、岗位知识、Skill 或普通子代理均不产生员工身份。
 10. 岗位增强执行的 Skill 候选以 `platforms/ROLE_CAPABILITY_MAP.json` 发现，运行时可用性以当前平台实际发现结果为准。`descriptive_only`、`discover_on_platform`、`installable` 与 `available` 不得混用；未实际加载的 Skill 不得记录为已采用。关键专业 Skill 被任务冻结为必需但不可用时 fail closed；非必需 Skill 缺失时可依岗位规范继续并记录证据缺口。
+11. MCP 运行治理以 `mcp/REGISTRY.json`、对应 Profile/Bundle、`skills/mcp-first-use/` 和 `scripts/mcp-launch` 为事实源。首次启用或命令、版本、权限、环境、网络策略漂移时，按 Skill 核对随包资料和维护者官方文档，生成本机 Overlay 并完成分层验收；文档内容不授权执行、连接账号或注入密钥。公司目录只保存环境变量名称、逻辑来源和脱敏证据，不保存密钥值、私人账号、机器绝对路径或代理认证。
+12. 公司初始化必须验证 MCP 治理资产与 Profile/Bundle 结构，但不逐个联网。未配置或不可达的 MCP 与当前任务无关时记 `degraded`、`pending` 或 `not-loaded`；当前任务明确依赖时仅阻断对应范围。需要代理的 MCP 必须由本机 Overlay fail closed，禁止失败后静默直连。Hook 可发现新增或漂移，不能替代 Launcher 的运行时执行证据，也不能证明已打开的旧会话已重载。
 
 ## 平台适配边界
 
@@ -43,7 +46,7 @@ Codex hook 只在实际受信任、当前平台契约与回归测试均已验证
 
 ## 完整性、迁移与变更
 
-`scripts/check-company-bootstrap.sh` 只检查跨平台公司事实源、花名册和公司 Skill 规范源；它通过不等于平台 hook 已安装或已生效。平台适配器使用独立的、平台内可复验的验收，不把平台私有配置加入跨设备 bootstrap 门槛。
+`scripts/check-company-bootstrap.sh` 先检查跨平台公司事实源、花名册和公司 Skill 规范源；经用户长期授权，它随后把 Ted Mac Assistant 作为可选本机基础设施执行外部项目快进同步、App 存在性检查和 MCP 源码指纹更新。该可选步骤失败不影响 `company_ready`，不自动安装 App，遇 tracked 改动、错误 remote 或分叉时 fail closed；它通过不等于平台 hook、MCP 旧会话重载或实时工具已验证。平台适配器使用独立的、平台内可复验的验收，不把平台私有配置加入跨设备事实源门槛。
 
 初始化失败时停止公司接管声明，按下方沟通边界报告实际影响；不得编辑平台副本来替代公司事实源。新增/退役岗位同步 `employees/ROSTER.txt`、`COMPANY.md` 与 `ROUTER.md`。修改事实源后才更新适配器；涉及目录结构或必需资产时，同步更新完整性检查并完成一次冷启动验证。
 

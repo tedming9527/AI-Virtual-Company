@@ -91,15 +91,26 @@ function bootstrap(t) {
   const script = path.join(scripts, 'check-company-bootstrap.sh');
   const source = fs.readFileSync(script, 'utf8');
   for (const file of source.match(/required_files=\(([\s\S]*?)\)/)[1].trim().split(/\s+/)) f.write(file, 'fixture\n');
-  for (const directory of ['employees', 'knowledge', 'skills', 'memory', 'inbox', 'schedule']) fs.mkdirSync(path.join(f.root, directory), { recursive: true });
+  f.write('scripts/mcp-governance.mjs', "if (process.argv[2] !== 'check-company') process.exitCode = 2;\n");
+  for (const directory of source.match(/required_dirs=\(([^)]*)\)/)[1].trim().split(/\s+/)) {
+    fs.mkdirSync(path.join(f.root, directory), { recursive: true });
+  }
   f.write('employees/ROSTER.txt', '');
   f.write('employees/IDENTITIES.json', JSON.stringify({ schema: 'ted.employee-identities.v1', employees: [] }));
   f.write('platforms/EMPLOYEE_EXECUTION_ADAPTERS.json', JSON.stringify({ schema: 'ted.employee-execution-adapters.v1', adapters: [] }));
   f.write('platforms/ROLE_CAPABILITY_MAP.json', JSON.stringify({ schema: 'ted.role-capability-map.v1', roles: [] }));
   f.write('skills/ASSET_REGISTRY.md', '| 资产 ID | 规范源 | 用途 | 调用策略 | 维护人 | 状态 |\n| `demo` | `skills/demo/` | fixture | 显式 | fixture | active |\n');
   f.write('skills/demo/SKILL.md', '---\nname: demo\ndescription: A fixture skill.\n---\nBODY_NOT_FOR_SESSION\n');
-  return { ...f, check: () => spawnSync('zsh', [script], { encoding: 'utf8', env: { ...process.env, AI_VIRTUAL_COMPANY_ROOT: f.root } }) };
+  return { ...f, check: (...args) => spawnSync('zsh', [script, ...args], { encoding: 'utf8', env: { ...process.env, AI_VIRTUAL_COMPANY_ROOT: f.root } }) };
 }
+
+test('core-only bootstrap skips optional infrastructure checks used outside session hooks', t => {
+  const f = bootstrap(t);
+  const result = f.check('--core-only');
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Company bootstrap check passed/);
+  assert.doesNotMatch(result.stderr, /OPTIONAL INFRASTRUCTURE/);
+});
 
 test('active skill source and required discovery metadata are enforced without body output', t => {
   const f = bootstrap(t);

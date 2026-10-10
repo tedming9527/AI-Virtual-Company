@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ted.local/schemas/mcp-profile.schema.json",
+  "type": "object",
+  "required": ["schema", "id", "transport", "runtime", "source", "environment", "network", "verification", "local_overlay_required"],
+  "properties": {
+    "schema": { "const": "ted.mcp-profile.v1" },
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "transport": { "enum": ["stdio", "streamable-http"] },
+    "runtime": { "enum": ["node", "python", "java", "native", "remote", "local-service"] },
+    "source": { "type": "object" },
+    "environment": {
+      "type": "object",
+      "required": ["required_names", "optional_names"],
+      "properties": {
+        "required_names": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" }, "uniqueItems": true },
+        "optional_names": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" }, "uniqueItems": true }
+      }
+    },
+    "network": {
+      "type": "object",
+      "required": ["mode", "direct_fallback"],
+      "properties": {
+        "mode": { "enum": ["proxy-required", "local-only", "host-managed", "platform-managed"] },
+        "direct_fallback": { "type": ["boolean", "null"] }
+      }
+    },
+    "verification": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+    "local_overlay_required": { "type": "boolean" }
+  }
+}

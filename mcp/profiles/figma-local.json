@@ -1,0 +1,11 @@
+{
+  "schema": "ted.mcp-profile.v1",
+  "id": "figma-local",
+  "transport": "streamable-http",
+  "runtime": "local-service",
+  "source": { "kind": "official-local-app", "product": "Figma Desktop" },
+  "environment": { "required_names": [], "optional_names": [] },
+  "network": { "mode": "local-only", "direct_fallback": false },
+  "verification": ["localhost-only", "tools-list"],
+  "local_overlay_required": true
+}

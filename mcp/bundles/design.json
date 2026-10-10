@@ -1,0 +1,10 @@
+{
+  "schema": "ted.mcp-bundle.v1",
+  "id": "design",
+  "required": ["figma-local"],
+  "recommended": ["computer-use"],
+  "failure_policy": {
+    "unrelated_task": "not-loaded",
+    "required_capability": "blocked-scope-only"
+  }
+}

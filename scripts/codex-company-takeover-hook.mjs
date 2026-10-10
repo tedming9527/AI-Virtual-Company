@@ -12,7 +12,7 @@ const companyRoot = realpathSync(process.env.AI_VIRTUAL_COMPANY_ROOT || scriptRo
 const emit = value => process.stdout.write(`${JSON.stringify(value)}\n`);
 
 function bootstrap() {
-  return spawnSync(path.join(companyRoot, 'scripts/check-company-bootstrap.sh'), [], {
+  return spawnSync(path.join(companyRoot, 'scripts/check-company-bootstrap.sh'), ['--core-only'], {
     cwd: companyRoot,
     env: { ...process.env, AI_VIRTUAL_COMPANY_ROOT: companyRoot },
     encoding: 'utf8',

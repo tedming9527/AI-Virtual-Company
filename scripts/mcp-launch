@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -ne 1 ]; then
+  echo "usage: mcp-launch <profile-id>" >&2
+  exit 64
+fi
+
+profile_id=$1
+case "$profile_id" in
+  ''|*[!a-z0-9-]*|[0-9-]*)
+    echo "invalid MCP profile id" >&2
+    exit 64
+    ;;
+esac
+
+config_root=${MCP_LAUNCH_CONFIG_ROOT:-"$HOME/.config/mcp-launch"}
+overlay="$config_root/profiles/$profile_id/launch"
+
+if [ ! -f "$overlay" ] || [ -L "$overlay" ]; then
+  echo "MCP profile overlay is missing or unsafe: $profile_id" >&2
+  exit 78
+fi
+
+owner=$(stat -f '%Su' "$overlay" 2>/dev/null || stat -c '%U' "$overlay" 2>/dev/null || true)
+mode=$(stat -f '%Lp' "$overlay" 2>/dev/null || stat -c '%a' "$overlay" 2>/dev/null || true)
+if [ "$owner" != "$(id -un)" ]; then
+  echo "MCP profile overlay has the wrong owner: $profile_id" >&2
+  exit 77
+fi
+case "$mode" in
+  *[2367]|*[2367][0-9])
+    echo "MCP profile overlay is group/world writable: $profile_id" >&2
+    exit 77
+    ;;
+esac
+
+exec "$overlay"

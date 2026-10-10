@@ -1,0 +1,43 @@
+{
+  "id": "2026-10-10-mcp-runtime-governance",
+  "created_at": "2026-10-10T00:00:00+08:00",
+  "source": "codex",
+  "request": "将常用与必要配套 MCP 的首次配置、代理、环境和运行时门禁纳入公司资料库及初始化强逻辑",
+  "scope": "company MCP registry, profiles, bundles, skill, launcher, bootstrap and local Jev overlay",
+  "sensitivity": "internal; local secrets remain outside company root",
+  "requested_outcome": "implementation",
+  "level": "M",
+  "primary_owner": "辛澈 · AI工程师",
+  "implementation_owner": "辛澈 · AI工程师（逻辑责任分配）",
+  "reviewer": "顾清妍 · 质量测试工程师（逻辑责任分配）",
+  "consult": "none",
+  "actual_executor": "platform agent",
+  "status": "partial",
+  "acceptance": [
+    "company MCP assets validate without secret values or machine paths",
+    "bootstrap validates governance structure without requiring live network",
+    "Jev runs through the generic launcher and passes independent MCP live verification",
+    "unrelated MCP configurations are not rewritten without evidence"
+  ],
+  "outcome": {
+    "implementation": "verified",
+    "target_client_reload": "pending",
+    "company_profiles": 5,
+    "company_bundles": 3,
+    "jev_local_overlay": "ready",
+    "unrelated_mcp_runtime_changes": "none"
+  },
+  "evidence": [
+    "scripts/check-company-bootstrap.sh passed with MCP governance validation",
+    "scripts/mcp-governance.test.mjs passed",
+    "local audit reports company-required jev overlay ready",
+    "Codex jev command resolves to mcp-launch jev",
+    "independent MCP initialize, tools/list and read-only TypeSafe jev-1.13.0 call passed through launcher"
+  ],
+  "remaining": [
+    "restart Codex or create a new client session and verify its newly spawned jev MCP process",
+    "task-triggered Figma and Ted Mac Assistant overlays remain pending until those workflows require launcher enforcement",
+    "skill-creator quick_validate could not import PyYAML; company bootstrap independently validated skill frontmatter and registry metadata"
+  ],
+  "capability_handoff_status": "no_evidence"
+}

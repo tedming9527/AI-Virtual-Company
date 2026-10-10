@@ -1,0 +1,50 @@
+{
+  "schema": "ted.mcp-registry.v1",
+  "updated_at": "2026-10-10",
+  "entries": [
+    {
+      "id": "jev",
+      "purpose": "Typed judgment and one-off action gating",
+      "steward": "ai-engineer",
+      "profile": "mcp/profiles/jev.json",
+      "classification": "company-required",
+      "first_use_skill": "mcp-first-use"
+    },
+    {
+      "id": "openai-developer-docs",
+      "purpose": "Official OpenAI and Codex documentation retrieval",
+      "steward": "ai-engineer",
+      "profile": "mcp/profiles/openai-developer-docs.json",
+      "classification": "recommended"
+    },
+    {
+      "id": "figma-local",
+      "purpose": "Local Figma desktop design context",
+      "steward": "design-master",
+      "profile": "mcp/profiles/figma-local.json",
+      "classification": "task-triggered"
+    },
+    {
+      "id": "ted-mac-assistant",
+      "purpose": "Authorized local mentor execution facts and learning updates",
+      "steward": "chief-of-staff",
+      "profile": "mcp/profiles/ted-mac-assistant.json",
+      "classification": "task-triggered"
+    },
+    {
+      "id": "ted-remote-mcp",
+      "purpose": "OAuth-protected remote read access for ChatGPT and cloud automations",
+      "steward": "backend-training-architect",
+      "profile": "mcp/profiles/ted-remote-mcp.json",
+      "classification": "task-triggered",
+      "first_use_skill": "mcp-first-use"
+    },
+    {
+      "id": "computer-use",
+      "purpose": "Local UI automation bridge",
+      "steward": "ai-engineer",
+      "profile": "mcp/profiles/computer-use.json",
+      "classification": "platform-managed"
+    }
+  ]
+}

@@ -2,6 +2,16 @@
 set -eu
 
 COMPANY_ROOT="${AI_VIRTUAL_COMPANY_ROOT:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/AI-Virtual-Company}"
+CORE_ONLY=0
+
+case "${1:-}" in
+  --core-only) CORE_ONLY=1 ;;
+  "") ;;
+  *)
+    print -u2 "Usage: $0 [--core-only]"
+    exit 2
+    ;;
+esac
 
 required_files=(
   AGENTS.md
@@ -39,9 +49,19 @@ required_files=(
   scripts/task-lifecycle.mjs
   SUPERVISION_POLICY.md
   scripts/supervisor-runtime.mjs
+  BOOTSTRAP.md
+  infrastructure/ted-mac-assistant.md
+  scripts/ted-mac-assistant-bootstrap.sh
+  scripts/check-ted-remote-mcp.mjs
+  mcp/REGISTRY.json
+  mcp/schemas/mcp-profile.schema.json
+  mcp/runbooks/FIRST_USE.md
+  skills/mcp-first-use/SKILL.md
+  scripts/mcp-launch
+  scripts/mcp-governance.mjs
 )
 
-required_dirs=(employees knowledge skills memory inbox schedule platforms)
+required_dirs=(employees knowledge skills memory inbox schedule platforms infrastructure mcp mcp/profiles mcp/bundles mcp/schemas mcp/runbooks)
 
 failed=0
 for item in "${required_files[@]}"; do
@@ -185,6 +205,15 @@ if (( failed )); then
   exit 1
 fi
 
+if ! node "$COMPANY_ROOT/scripts/mcp-governance.mjs" check-company; then
+  failed=1
+fi
+
+if (( failed )); then
+  print -u2 "Company bootstrap check failed: $COMPANY_ROOT"
+  exit 1
+fi
+
 # Validate platform/mode registry structure only (facts stay in the fact source).
 if [[ -r "$COMPANY_ROOT/platforms/REGISTRY.md" ]]; then
   if ! node --input-type=module - "$COMPANY_ROOT" <<'NODE'
@@ -234,3 +263,32 @@ if (( failed )); then
 fi
 
 print "Company bootstrap check passed: $COMPANY_ROOT"
+
+# Session hooks need a fast, deterministic fact-source check. Optional local
+# infrastructure may access external projects or the network, so it must not
+# participate in the hook's synchronous timeout or change one session from a
+# bootstrap-failure state to a footer-enforcement state between events.
+if (( CORE_ONLY )); then
+  exit 0
+fi
+
+# Ted Mac Assistant is separately recoverable local infrastructure. The owner
+# authorised initialization to refresh its external project and MCP adapter.
+# Failure remains optional and never invalidates the company fact source.
+if ! "$COMPANY_ROOT/scripts/ted-mac-assistant-bootstrap.sh" ensure --quiet; then
+  print -u2 "OPTIONAL INFRASTRUCTURE NOT READY: Ted Mac Assistant project/App/MCP (run scripts/ted-mac-assistant-bootstrap.sh ensure)"
+else
+  print "Ted Mac Assistant project and MCP adapter ready; live tools require a new client session and separate runtime verification"
+fi
+
+# Remote MCP is optional runtime infrastructure. The check is read-only,
+# proxy-fail-closed by default, and never deploys or changes authorization.
+PROJECTS_ROOT="${TED_PROJECTS_ROOT:-$HOME/Documents/ted-projects}"
+PROJECT_ROOT="$PROJECTS_ROOT/ted-personal-execution-system"
+LOCAL_REVISION=""
+if [[ -d "$PROJECT_ROOT/.git" ]]; then
+  LOCAL_REVISION="$(git -C "$PROJECT_ROOT" rev-parse HEAD 2>/dev/null || true)"
+fi
+if ! TED_EXECUTION_LOCAL_REVISION="$LOCAL_REVISION" node "$COMPANY_ROOT/scripts/check-ted-remote-mcp.mjs"; then
+  print -u2 "OPTIONAL INFRASTRUCTURE NOT READY: Ted Remote MCP metadata is incompatible or misconfigured"
+fi

@@ -21,6 +21,7 @@
 
 ## 使用规则
 - 初始化/路由先查本表对应 `(platform, mode)`；缺失或值为 `unknown` 的能力，不得当作已验证使用。
+- MCP 治理状态另由 `mcp/REGISTRY.json` 和本机 Overlay 审计产生；平台行中的执行通道不证明具体 MCP 已经过 Launcher、取得密钥或通过代理。当前平台未登记 MCP 生命周期 Hook 时保持 unknown，由首次配置 Skill 与 Launcher 兜底，不补推为平台原生强制。
 - 同一平台不同模式的保证不同：`platform_hook_verified`、事件持久化、能力交接通道均按模式判定。
 - 节点可用性（`node_status` / `last_checked`）由"失败计数 + 退避 + 确认阈值"写入，非单次失败写入；TTL 到期强制重探；本地存在性检查豁免退避与阈值。
 - 未来平台/模式：在本表加行并登记能力；未登记一律 `unknown`。

@@ -1,0 +1,11 @@
+{
+  "schema": "ted.mcp-profile.v1",
+  "id": "computer-use",
+  "transport": "stdio",
+  "runtime": "native",
+  "source": { "kind": "platform-managed", "product": "Codex Desktop" },
+  "environment": { "required_names": [], "optional_names": [] },
+  "network": { "mode": "platform-managed", "direct_fallback": null },
+  "verification": ["platform-discovery"],
+  "local_overlay_required": false
+}

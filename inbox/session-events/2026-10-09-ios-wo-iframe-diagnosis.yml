@@ -1,0 +1,33 @@
+id: 2026-10-09-ios-wo-iframe-diagnosis
+created_at: 2026-10-09T00:00:00+08:00
+source: codex
+request: Diagnose why a specific WO material iframe remains blank and makes no observed API request on iOS while other orders work in the same environment.
+scope: flexible iframe entry and Amumu material-index initialization
+sensitivity: internal
+requested_outcome: diagnosis
+level: M
+primary_owner: 周启明 · 体验工程官（Frontend Engineer）
+implementation_owner: 周启明 · 体验工程官（Frontend Engineer）
+reviewer: none
+consult: none
+consult_status: none
+consult_question: none
+consult_evidence: none
+consult_disposition: none
+actual_executor: platform agent
+execution_mode: role_augmented_platform
+employee_participation_verified: false
+loaded_role_profile: employees/frontend-expert/PROFILE.md
+status: running
+acceptance:
+  - Separate parent iframe rendering evidence from child document navigation and Amumu initialization evidence.
+  - Identify the smallest discriminating iOS-side evidence needed before proposing a code change.
+outcome: The parent has created an iframe with a valid WO code, but the available evidence does not prove that its child document did not navigate. The WO bootstrap depends on the child detecting the host-app user agent and then replacing its own route with orderNo/workOrderCode/businessScene.
+evidence:
+  - Screenshot DOM contains an iframe src with repairOrderCode=WO202610080005 and enter=zhyt.
+  - Flexible passes only repairOrderCode and enter to the child; its layout gives the iframe full remaining page height.
+  - Amumu recognizes WO via /^WO\\d+$/i, which matches the captured order code.
+  - Amumu only enriches the route to businessScene=REPAIR_WO when platform.isInZhuYingTai is true; that flag is derived from the VKStaffAssistant user-agent token.
+  - The authentication router guard runs before the page component and can also stop the page from mounting.
+remaining: No child-frame Document request, redirect chain, console error, or child-frame user-agent/route values were captured. Root cause remains unconfirmed.
+next_action: Flexible temporary iframe diagnostics were committed as 0038b95, merged to test by PR #59, and test deployment was triggered. Await deployment completion, then collect the staged iOS reproduction logs.

@@ -22,6 +22,23 @@
 - learning/2026-09-11-delivery-retraining.md：案例、交叉质疑、迁移题及边界；chief-of-staff与test-expert的MEMORY保存可检索索引。真实任务效果待验证。
 
 ## Canonical ownership
+### MCP 运行治理 · 2026-10-10
+
+- 规范源：`mcp/`、`skills/mcp-first-use/`、`scripts/mcp-launch` 与 `scripts/mcp-governance.mjs`；维护人：辛澈 · AI工程师。
+- 用途：登记常用及配套 MCP 的来源、环境变量名称、网络策略、Bundle 与验收；首次启用或漂移时生成本机 Overlay，日常启动由 Launcher 确定性执行。
+- 公司目录禁止保存密钥值、私人账号、代理认证和机器绝对路径；本机 Overlay 与 secret provider 不属于同步事实源。
+- 初始化只校验治理资产与结构，不逐个联网；当前任务必需的 MCP 未就绪时仅阻断对应范围，不把无关外部能力故障扩大成公司 bootstrap 失败。
+
+### Ted Mac Assistant 与导师插件 · 2026-09-30
+
+- 来源：用户要求落地 Menu Bar First 并将插件纳入公司资产、接入客户端初始化。
+- 基础设施主责：陈知行 · 路由官（Chief of Staff）；实际实现/验证：platform agent；无具名员工参与回执。
+- 2026-10-10 单一事实源：Mac、Android、Cloud、MCP 与 `ted-learning-sync` 均由 `$TED_PROJECTS_ROOT/ted-personal-execution-system/` 维护。公司不再保存插件/Skill 源码副本，只保留初始化、路由、权限和 MCP Profile；初始化安全同步该项目并按插件源码指纹更新本机市场。
+- 能力（1.5）：本机 SQLite/领域事件、项目/里程碑/行动、阶段一主两辅、持久番茄与投入图、截止原生通知、主题、私有本机 MCP 和加密事件备份。Calendar/Reminders 运行集成已退役，旧外部数据保留。入口：`scripts/ted-mac-assistant-bootstrap.sh`；运维：`infrastructure/ted-mac-assistant.md`。
+- 扩展资产位于上述独立项目的 `apps/ted-execution-cloud/` 与 `apps/ted-execution-android/`。GitHub 由用户自行维护，本次未初始化、提交或推送；源码迁移与自动化测试不代表真实登录、跨端同步或生产 APK 已验收。
+- 初始化已获长期授权同步项目、检查 App 并更新本机 MCP；不自动安装 App。支持当前 Codex 本地插件机制，ChatGPT 桌面加载仍须当前版本工具发现验收；网页/云端无受认证远程 MCP 时 unavailable，不自动发布公网桥或上传凭据。
+- 业务所有权：专属学习/事业导师；其他员工只能检查基础设施，不因此获得学习提醒、计划或 Scheduler 权限。插件安装不证明原定时任务已调用。
+
 The company is the canonical steward of reusable skills, knowledge, role guidance and cross-project practices. Platform copies may remain as execution adapters; they are not deleted automatically.
 
 ## Imported 2026-09-09

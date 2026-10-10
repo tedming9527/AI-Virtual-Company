@@ -1,0 +1,19 @@
+{
+  "schema": "ted.mcp-profile.v1",
+  "id": "jev",
+  "transport": "stdio",
+  "runtime": "node",
+  "source": { "kind": "official-package", "package": "jev-use" },
+  "environment": {
+    "required_names": ["TYPESAFE_API_KEY"],
+    "optional_names": ["JEV_BACKEND", "JEV_MODEL"]
+  },
+  "network": {
+    "mode": "proxy-required",
+    "proxy_variables": ["HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"],
+    "runtime_adapter": "node-use-env-proxy",
+    "direct_fallback": false
+  },
+  "verification": ["cli-smoke", "mcp-initialize", "tools-list", "readonly-live-call"],
+  "local_overlay_required": true
+}
