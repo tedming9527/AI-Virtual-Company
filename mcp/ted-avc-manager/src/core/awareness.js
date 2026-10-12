@@ -3,7 +3,7 @@ import { existsSync, readdirSync, lstatSync, readFileSync, writeFileSync, append
 import { join, resolve, relative, basename, sep, isAbsolute, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
-import { discoverSkills, personalProject } from './local-assets.js';
+import { discoverSkills, personalProject, nativeSkillRoots } from './local-assets.js';
 
 const hash = data => createHash('sha256').update(data).digest('hex');
 const types = ['skill', 'knowledge', 'framework', 'role'];
@@ -41,7 +41,7 @@ export function skillRoots(root, options = {}) {
   if (options.externalRoots) return [...new Set(options.externalRoots.map(p => resolve(p)))];
   const home = options.home || homedir();
   return [...new Set([
-    join(home, '.codex', 'skills'), join(home, '.agents', 'skills'),
+    ...nativeSkillRoots(home),
     join(root, '.codex', 'skills'), join(root, '.agents', 'skills'),
     join(personal, '.codex', 'skills'), join(personal, '.agents', 'skills'),
   ].map(p => resolve(p)))];
