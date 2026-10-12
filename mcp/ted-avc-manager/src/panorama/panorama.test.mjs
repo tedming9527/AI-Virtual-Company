@@ -27,3 +27,12 @@ test('public input refuses linked package metadata and knowledge catalogs before
  assert.throws(()=>buildPanoramaModel(root,{view:'public'}),/symlink/);
  assert.ok(!fs.existsSync(path.join(root,'panorama/index.html')));
 });
+
+test('external cached skill discovery is separate from native client listed and enabled states',t=>{
+ const root=fixture(t), external=path.join(root,'cache/skills'),dir=path.join(external,'external-demo');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'SKILL.md'),'# External demo');
+ fs.writeFileSync(path.join(root,'runtime/native-skill-index.json'),JSON.stringify({fetchedAt:'2026-10-13T00:00:00Z',entries:[{path:path.join(dir,'SKILL.md'),enabled:false}]}));
+ const model=buildPanoramaModel(root,{view:'local',externalRoots:[external]}),skill=model.skills.find(s=>s.name==='external-demo');
+ assert.equal(skill.management,'discovered-unregistered');assert.equal(skill.nativeClientListed,true);assert.equal(skill.nativeEnabled,false);
+ const html=renderPanorama(model);assert.ok(html.includes('已列出 · 已禁用'));assert.ok(html.includes('本机外部 · 文件发现'));assert.ok(!html.includes('本机已安装'));
+ fs.writeFileSync(path.join(root,'runtime/native-skill-index.json'),'INVALID_PRIVATE_NATIVE_STATE');assert.equal(buildPanoramaModel(root,{view:'public'}).skills,undefined);
+});
