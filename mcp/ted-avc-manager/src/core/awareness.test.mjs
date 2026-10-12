@@ -87,3 +87,12 @@ test('bounded watcher detects native root creation and disposal stops further up
   watcher.dispose(); const before = callbacks;
   await new Promise(resolve => setTimeout(resolve, 300)); assert.equal(callbacks, before);
 });
+
+test('real published knowledge catalog supports both standalone packs and role documents',()=>{
+ const root=path.resolve('.'),result=listAssets(root,{}, {externalRoots:[]});
+ const entries=result.assets.filter(a=>a.id.startsWith('general:knowledge-entry:'));
+ assert.equal(entries.length,50);
+ assert.equal(entries.filter(a=>a.load.type==='knowledge').length,5);
+ assert.equal(entries.filter(a=>a.load.type==='role').length,45);
+ assert.ok(entries.every(a=>fs.existsSync(path.join(root,'packs',a.load.type,a.load.name,a.load.entry))));
+});

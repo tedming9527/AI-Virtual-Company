@@ -39,7 +39,7 @@ function deployment(root, file) {
   if (!Array.isArray(settings.bootstrapTools) || settings.bootstrapTools.some(tool => !MCP_TOOL.test(tool) || tool.endsWith('__task_closeout'))) throw new Error('bootstrapTools must explicitly name ted-avc-manager introspection/load/task_begin tools');
   if (!Number.isInteger(settings.maxToolCalls) || settings.maxToolCalls < 1 || settings.maxToolCalls > 10000) throw new Error('execution.maxToolCalls must be 1..10000');
   if (settings.allowedTools !== undefined && (!Array.isArray(settings.allowedTools) || settings.allowedTools.some(tool => typeof tool !== 'string' || !/^[a-zA-Z0-9_.:-]+$/.test(tool)))) throw new Error('execution.allowedTools must list exact native tool names');
-  if (settings.requiredAssets !== undefined && (!Array.isArray(settings.requiredAssets) || settings.requiredAssets.some(id => typeof id !== 'string' || !/^(general:(skill|knowledge|framework|role)|local-custom:skill):[a-z][a-z0-9-]*$/.test(id)))) throw new Error('execution.requiredAssets must list canonical asset identities');
+  if (settings.requiredAssets !== undefined && (!Array.isArray(settings.requiredAssets) || settings.requiredAssets.some(id => typeof id !== 'string' || !/^(general:(skill|knowledge|framework|role)|local-custom:skill):[a-z0-9][a-z0-9-]*$/.test(id)))) throw new Error('execution.requiredAssets must list canonical asset identities');
   return { project, settings, root: canonical, catalogVersion: read(join(canonical, 'bootstrap.json')).version };
 }
 function binding(root, input) {
@@ -129,7 +129,7 @@ export function beginTask(root, input, deploymentFile) {
   if (d.settings.allowedTools && input.allowedTools.some(tool => !d.settings.allowedTools.includes(tool))) throw new Error('Task tool outside deployment-approved tool set');
   if (input.requiredAssets !== undefined && !Array.isArray(input.requiredAssets)) throw new Error('requiredAssets must be an array');
   const requiredAssets = [...new Set([...(d.settings.requiredAssets || []), ...(input.requiredAssets || [])])].sort();
-  if (requiredAssets.some(id=>!/^general:(skill|knowledge|framework|role):[a-z][a-z0-9-]*$/.test(id) && !/^local-custom:skill:[a-z][a-z0-9-]*$/.test(id))) throw new Error('Invalid required asset identity');
+  if (requiredAssets.some(id=>!/^general:(skill|knowledge|framework|role):[a-z0-9][a-z0-9-]*$/.test(id) && !/^local-custom:skill:[a-z0-9][a-z0-9-]*$/.test(id))) throw new Error('Invalid required asset identity');
   const contract = { role: input.role, goal: input.goal, allowedTools: [...new Set(input.allowedTools)].sort(), maxToolCalls: input.maxToolCalls, requiredAssets };
   return locked(d.root, key.taskId, paths => {
     if (existsSync(paths.task)) {
@@ -147,7 +147,7 @@ export function beginTask(root, input, deploymentFile) {
 export function loadAsset(root, input, deploymentFile) {
   const d = deployment(root, deploymentFile), key = binding(d.root, input);
   if (!['general', 'local-custom'].includes(input.source)) throw new Error('Asset source must be general or registered local-custom');
-  if (!['skill', 'knowledge', 'framework', 'role'].includes(input.type) || !/^[a-z][a-z0-9-]*$/.test(input.name || '')) throw new Error('Invalid asset identity');
+  if (!['skill', 'knowledge', 'framework', 'role'].includes(input.type) || !/^[a-z0-9][a-z0-9-]*$/.test(input.name || '')) throw new Error('Invalid asset identity');
   const entry = input.entry || (input.type === 'role' ? 'PROFILE.md' : 'SKILL.md');
   if (typeof entry !== 'string' || !entry.endsWith('.md') || isAbsolute(entry) || /[\0\r\n]/.test(entry) || entry.split(/[\\/]/).some(part => !part || part === '.' || part === '..')) throw new Error('Only a safe pack-relative document may be loaded');
   let directory, registryEntry;

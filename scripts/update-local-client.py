@@ -4,7 +4,7 @@
 Call from the bound checkout. Personal data is never copied, removed or published.
 Hook trust and native activation must be verified separately through the client API.
 """
-import argparse, hashlib, json, pathlib, re, shlex, shutil, subprocess, datetime
+import argparse, hashlib, json, pathlib, re, shlex, shutil, subprocess, datetime, os
 p=argparse.ArgumentParser();p.add_argument('tag');p.add_argument('--node',default=shutil.which('node'));p.add_argument('--codex-home',default=str(pathlib.Path.home()/'.codex'));a=p.parse_args()
 if not re.fullmatch(r'v\d+\.\d+\.\d+',a.tag):p.error('Expected exact semver release tag')
 root=pathlib.Path.cwd().resolve();home=pathlib.Path(a.codex_home).resolve();version=a.tag[1:];cache=root/'runtime/cache/client-update'/version;cache.mkdir(parents=True,exist_ok=True)
@@ -48,14 +48,15 @@ if bridge.exists():
  shutil.copytree(root/'packs/skill/ted-avc-manager',bridge,dirs_exist_ok=True)
 else:shutil.copytree(root/'packs/skill/ted-avc-manager',bridge)
 command='cd '+shlex.quote(str(root))+' && exec '+shlex.quote(node)+' '+shlex.quote(str(pkg/'src/cli.js'))+' server'
-subprocess.run(['codex','mcp','add','ted-avc-manager','--','/bin/sh','-c',command],check=True)
-subprocess.run(['codex','mcp','remove','pack-manager'],check=True)
+client_env={**os.environ,'CODEX_HOME':str(home)}
+subprocess.run(['codex','mcp','add','ted-avc-manager','--env','CODEX_HOME='+str(home),'--','/bin/sh','-c',command],check=True,env=client_env)
+subprocess.run(['codex','mcp','remove','pack-manager'],check=True,env=client_env)
 # The currently running session may cache the modern v1.1.1 footer command.
 # Back up its immutable entry, then replace that one known entry with an explicit
 # forwarding shim. It has no legacy takeover logic. New sessions use the new path.
 old=pathlib.Path.home()/'.local/lib/avc-pack-manager/1.1.1/src/codex-hook.js'
 compat=None
-if old.is_file():
+if home == (pathlib.Path.home()/'.codex').resolve() and old.is_file():
  backup=cache/'v1.1.1-codex-hook.original.js'
  if not backup.exists():shutil.copy2(old,backup)
  target=pkg/'src/codex-hook.js'
