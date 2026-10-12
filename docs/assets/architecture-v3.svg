@@ -7,7 +7,7 @@
 <rect x='320' y='78' width='640' height='30' rx='10' fill='#e2e8f0'/>
 <rect x='320' y='93' width='640' height='15' fill='#e2e8f0'/>
 <text x='332' y='98' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>L0 用户入口</text>
-<text x='332' y='128' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>自然语言 + 命令协议：github://owner/repo[@branch|@tag] + 动作词（初始化/升级/检查/同步/体检/配置/导入/全景图）</text>
+<text x='332' y='128' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>自然语言 / URI 动作词：初始化 · 检查 · 升级 · 同步 · 体检 · 导入 · 全景图</text>
 <rect x='60' y='170' width='560' height='92' rx='10' fill='#ede9fe' stroke='#7c3aed' stroke-width='1.5'/>
 <rect x='60' y='170' width='560' height='30' rx='10' fill='#ede9fe'/>
 <rect x='60' y='185' width='560' height='15' fill='#ede9fe'/>
@@ -50,7 +50,7 @@
 <rect x='445' y='418' width='390' height='330' rx='10' fill='#dcfce7' stroke='#16a34a' stroke-width='1.5'/>
 <rect x='445' y='418' width='390' height='30' rx='10' fill='#dcfce7'/>
 <rect x='445' y='433' width='390' height='15' fill='#dcfce7'/>
-<text x='457' y='438' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>个人目录 · 部署配置（可跨机器同步，不入 git）</text>
+<text x='457' y='438' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>个人目录 · 部署配置（跨设备另验，不入 git）</text>
 <text x='457' y='468' font-size='12' font-weight='700' fill='#16a34a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>&lt;personal-root&gt;/</text>
 <text x='457' y='487' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>.personal-manifest.json · README · memory/（全局）</text>
 <text x='457' y='506' font-size='12' font-weight='700' fill='#16a34a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>projects/&lt;slug&gt;/（slug=仓库名）</text>
@@ -89,15 +89,14 @@
 <rect x='60' y='822' width='210' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>
 <text x='70' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>候选源</text>
 <text x='70' y='860' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>ai-config 内容拆解</text>
-<text x='70' y='875' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>本地自定义角色</text>
-<text x='70' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>外部工具导入</text>
-<text x='70' y='905' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>本地技能/知识演化</text>
+<text x='70' y='875' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>本地自定义资产</text>
+<text x='70' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>外部导入与本地演化</text>
 <line x1='270' y1='855' x2='292' y2='855' stroke='#7c3aed' stroke-width='2' marker-end='url(#arr)'/>
 <rect x='296' y='822' width='210' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>
-<text x='306' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>① 自动打标</text>
+<text x='306' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>① 规则初筛</text>
 <text x='306' y='860' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>通用候选 / 个人特有</text>
 <text x='306' y='875' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>待人工确认</text>
-<text x='306' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>（规则+LLM，给理由）</text>
+<text x='306' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>（LLM 初筛须另验）</text>
 <line x1='506' y1='855' x2='528' y2='855' stroke='#7c3aed' stroke-width='2' marker-end='url(#arr)'/>
 <rect x='532' y='822' width='210' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>
 <text x='542' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>② 台账</text>
@@ -107,9 +106,9 @@
 <line x1='742' y1='855' x2='764' y2='855' stroke='#7c3aed' stroke-width='2' marker-end='url(#arr)'/>
 <rect x='768' y='822' width='210' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>
 <text x='778' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>③ 人工复核</text>
-<text x='778' y='860' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>周期 LLM 初筛</text>
+<text x='778' y='860' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>核对来源与真实证据</text>
 <text x='778' y='875' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>+ 人工确认</text>
-<text x='778' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>（并入定期分析节奏）</text>
+<text x='778' y='890' font-size='11' fill='#475569' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>（标签不是发布许可）</text>
 <line x1='978' y1='855' x2='1000' y2='855' stroke='#7c3aed' stroke-width='2' marker-end='url(#arr)'/>
 <rect x='1004' y='822' width='210' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>
 <text x='1014' y='842' font-size='13' font-weight='700' fill='#5b21b6' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>④ 转正</text>
@@ -127,9 +126,9 @@
 <rect x='650' y='924' width='590' height='112' rx='10' fill='#f1f5f9' stroke='#475569' stroke-width='1.5'/>
 <rect x='650' y='924' width='590' height='30' rx='10' fill='#f1f5f9'/>
 <rect x='650' y='939' width='590' height='15' fill='#f1f5f9'/>
-<text x='662' y='944' font-size='13' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>反馈双通道 + 四治理循环</text>
-<text x='662' y='974' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>使用日志 PR：免审自动合并（必过 schema 校验门），累计后按窗口删除</text>
-<text x='662' y='993' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>晋升/转正 PR：人审合并、打新 tag</text>
-<text x='662' y='1012' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>四循环：版本（下发）· 回传（信任分层）· 评分（LLM+实证）· 改进（PDCA）</text>
-<text x='662' y='1031' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>异常（成功率骤降）即时触发治理，不等周期</text>
+<text x='662' y='944' font-size='13' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>反馈契约（部分实现待验）</text>
+<text x='662' y='974' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>日志 schema 已实现；自动合并与消费调度待验</text>
+<text x='662' y='993' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>候选 PR 经复核；tag + CI + Pages 已接通</text>
+<text x='662' y='1012' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>评分与异常模块可用；真实回传闭环待验</text>
+<text x='662' y='1031' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>隐藏加载、模型 token / cost 与完整监督为 unknown</text>
 </svg>
