@@ -1,10 +1,11 @@
 {
   "type": "skill",
   "name": "ai-workflow-checklist",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "displayName": "AI 工作流验收清单"
 }
