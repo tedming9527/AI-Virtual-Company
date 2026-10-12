@@ -91,15 +91,17 @@ export function listAssets(root, filter = {}, options = {}) {
   for (const s of discovered.skills) assets.push({ ...s,
     description: String(readFileSync(s.entry, 'utf8').match(/^description:\s*(.+)$/m)?.[1] || '').slice(0, 600),
     discovery: 'metadata-only', placement: s.source === 'external-installed' ? 'native-skill-directory' : 'managed-project-directory', nativeInstalled: 'unverified', loaded: false });
-  const knowledgeFile = join(root, 'packs/knowledge/catalog.json');
+  const knowledgeFile = safePath(root,join(root, 'packs/knowledge/catalog.json'));
   if (existsSync(knowledgeFile)) {
     const knowledge = JSON.parse(readFileSync(knowledgeFile, 'utf8'));
     for (const entry of knowledge.entries || []) {
-      const roleDir = join(root, 'packs/role', entry.owner), detail = safePath(roleDir, join(root, entry.detail));
+      const match=/^packs\/(knowledge|role)\/([a-z0-9][a-z0-9-]*)\/(.+\.md)$/.exec(entry.detail || '');
+      if(!match){warnings.push('Invalid knowledge detail identity: '+entry.id);continue;}
+      const bundleType=match[1], bundleName=match[2], roleDir=safePath(root,join(root,'packs',bundleType,bundleName)), detail=safePath(roleDir,join(root,entry.detail));
       if (!existsSync(detail) || !lstatSync(detail).isFile()) continue;
       assets.push({ id: `general:knowledge-entry:${entry.id}`, type:'knowledge', name:entry.id, displayName:basename(detail), source:'general', management:'central-managed', dir:roleDir, entry:detail,
         version:entry.updated, sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
-        load:{source:'general',type:'role',name:entry.owner,entry:relative(roleDir,detail)} });
+        load:{source:'general',type:bundleType,name:bundleName,entry:relative(roleDir,detail)} });
     }
   }
   const nativeFile = runtimeFile(root, 'native-skill-index.json');
