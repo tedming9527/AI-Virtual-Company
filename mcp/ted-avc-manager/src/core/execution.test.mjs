@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync, symlinkSync, existsSync } from 'node:fs';
@@ -128,7 +129,7 @@ test('installer preserves unrelated/attribution hooks and does not grant trust',
 });
 test('CLI stdout contains only valid native hook JSON', t => {
   const f = fixture(t);
-  const result = spawnSync(process.execPath, [new URL('../execution-hook.js', import.meta.url).pathname, '--deployment', f.deployment], { input: JSON.stringify(f.native), encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../execution-hook.js', import.meta.url)), '--deployment', f.deployment], { input: JSON.stringify(f.native), encoding: 'utf8' });
   assert.equal(result.status, 0); assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext, /execution adapter/); assert.equal(result.stderr, '');
 });
 

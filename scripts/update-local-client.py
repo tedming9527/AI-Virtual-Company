@@ -51,17 +51,23 @@ command='cd '+shlex.quote(str(root))+' && exec '+shlex.quote(node)+' '+shlex.quo
 client_env={**os.environ,'CODEX_HOME':str(home)}
 subprocess.run(['codex','mcp','add','ted-avc-manager','--env','CODEX_HOME='+str(home),'--','/bin/sh','-c',command],check=True,env=client_env)
 subprocess.run(['codex','mcp','remove','pack-manager'],check=True,env=client_env)
-# The currently running session may cache the modern v1.1.1 footer command.
-# Back up its immutable entry, then replace that one known entry with an explicit
-# forwarding shim. It has no legacy takeover logic. New sessions use the new path.
-old=pathlib.Path.home()/'.local/lib/avc-pack-manager/1.1.1/src/codex-hook.js'
-compat=None
-if home == (pathlib.Path.home()/'.codex').resolve() and old.is_file():
- backup=cache/'v1.1.1-codex-hook.original.js'
- if not backup.exists():shutil.copy2(old,backup)
- target=pkg/'src/codex-hook.js'
- old.write_text('// Compatibility forwarding entry; original preserved by reviewed update.\nawait import('+json.dumps(target.as_uri())+');\n')
- compat={'path':str(old),'backup':str(backup),'target':str(target),'originalSha256':hashlib.sha256(backup.read_bytes()).hexdigest(),'forwarderSha256':hashlib.sha256(old.read_bytes()).hexdigest()}
+# Native clients can retain a reviewed command path after an upgrade. Preserve
+# each known older manager entry before forwarding just that entry to this tag.
+compat=[]
+if home == (pathlib.Path.home()/'.codex').resolve():
+ old_entries=[pathlib.Path.home()/'.local/lib/avc-pack-manager/1.1.1/src/codex-hook.js']
+ libraries=pathlib.Path.home()/'.local/lib/ted-avc-manager'
+ target_parts=tuple(map(int,version.split('.')))
+ if libraries.is_dir():
+  old_entries += [x/'src/codex-hook.js' for x in libraries.iterdir() if re.fullmatch(r'\d+\.\d+\.\d+',x.name) and tuple(map(int,x.name.split('.')))<target_parts]
+ for old in old_entries:
+  if not old.is_file() or old.is_symlink():continue
+  backup_dir=cache/'compatibility'/old.parents[2].name/old.parents[1].name;backup_dir.mkdir(parents=True,exist_ok=True)
+  backup=backup_dir/'codex-hook.original.js'
+  if not backup.exists():shutil.copy2(old,backup)
+  target=pkg/'src/codex-hook.js'
+  old.write_text('// Compatibility forwarding entry; original preserved by reviewed update.\nawait import('+json.dumps(target.as_uri())+');\n')
+  compat.append({'path':str(old),'backup':str(backup),'target':str(target),'originalSha256':hashlib.sha256(backup.read_bytes()).hexdigest(),'forwarderSha256':hashlib.sha256(old.read_bytes()).hexdigest()})
 evidence={'tag':a.tag,'commit':commit,'updatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'package':str(pkg),'bridge':str(bridge),'service':'ted-avc-manager','executionMode':'monitor','cachedFooterCompatibility':compat,'nativeHookTrust':'pending reviewed API hashes','nativeActivation':'pending client reload and acceptance'}
 (cache/'installation.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(evidence,ensure_ascii=False))
