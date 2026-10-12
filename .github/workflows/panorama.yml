@@ -1,44 +1,61 @@
-# panorama.yml —— tag 发布时自动生成全景图并部署 GitHub Pages（FR-9：CI 触发端）
 name: panorama
 on:
   push:
-    tags:
-      - 'v*'
-
+    tags: ['v*']
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed, edited, ready_for_review, converted_to_draft]
+  workflow_dispatch:
 permissions:
   contents: read
+  pull-requests: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: 解析已发布目录版本（不运行 PR 分支代码）
+        id: catalog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = push ]; then
+            catalog_ref="$EVENT_TAG"
+          else
+            catalog_ref="$(gh release view --json tagName --jq .tagName)"
+          fi
+          [[ "$catalog_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          printf 'ref=%s\n' "$catalog_ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.catalog.outputs.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: 发布前验证
+      - name: 发布目录校验
         run: |
-          node mcp/pack-manager/src/cli.js validate-layout
-          node mcp/pack-manager/src/cli.js validate-packs
+          node mcp/ted-avc-manager/src/cli.js validate-layout
+          node mcp/ted-avc-manager/src/cli.js validate-packs
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
-          node --test mcp/pack-manager/src/core/*.test.mjs scripts/*.test.mjs
-      - name: 校验 tag 与版本一致
-        run: |
-          node --input-type=module -e 'import fs from "node:fs"; const version=JSON.parse(fs.readFileSync("bootstrap.json")).version; if(process.env.GITHUB_REF_NAME !== `v${version}`) throw Error("tag/version mismatch");'
-      - name: 生成全景图
-        run: node mcp/pack-manager/src/cli.js panorama --force
-      - name: 上传产物
-        uses: actions/upload-pages-artifact@v3
+          node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+      - name: 采集公开候选 PR（仅读元数据）
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/collect-pack-candidates.mjs --strict
+      - name: 生成通用全景图（禁止读取个人数据）
+        env:
+          CATALOG_REF: ${{ steps.catalog.outputs.ref }}
+        run: node mcp/ted-avc-manager/src/cli.js panorama --public --offline --catalog-ref "$CATALOG_REF"
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: panorama
-
   deploy:
     needs: build
     runs-on: ubuntu-latest

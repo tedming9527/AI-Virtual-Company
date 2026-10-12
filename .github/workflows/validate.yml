@@ -19,15 +19,15 @@ jobs:
           node-version: 22
       - name: 校验仓库布局、包与知识索引
         run: |
-          node mcp/pack-manager/src/cli.js validate-layout
-          node mcp/pack-manager/src/cli.js validate-packs
+          node mcp/ted-avc-manager/src/cli.js validate-layout
+          node mcp/ted-avc-manager/src/cli.js validate-packs
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
       - name: 通用层回归
-        run: node --test mcp/pack-manager/src/core/*.test.mjs scripts/*.test.mjs
+        run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 校验现有日志 schema
         run: |
           for f in runtime/logs/*.json; do
             [ -e "$f" ] || continue
-            node mcp/pack-manager/src/cli.js validate-log "$f" || exit 1
+            node mcp/ted-avc-manager/src/cli.js validate-log "$f" || exit 1
           done

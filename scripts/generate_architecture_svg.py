@@ -61,7 +61,7 @@ arrow(640, 142, 340, 170, color="#94a3b8")
 arrow(640, 142, 940, 170, color="#94a3b8")
 
 # ---------- Row3 本地运行时引擎 ----------
-box(120, 290, 1040, 96, "L3 本地运行时 · pack-manager 中介层",
+box(120, 290, 1040, 96, "L3 本地运行时 · ted-avc-manager 中介层",
     ["##命令集",
      "init · validate-packs · check · upgrade · score · anomaly · doctor · config · import-scan · panorama · bind",
      "分层注入（索引/规则常驻 · 知识按需 · 工具注册即用） · lockfile 钉版本 · 本地演化（记忆/技能/等级）"],
@@ -79,7 +79,7 @@ box(40, cy, 390, 330, "L4 中央仓库 · GitHub（通用，唯一事实源）",
      "skill ×18 · knowledge ×10 · framework ×1 · role ×8",
      "每包：SKILL.md（入口）+ meta.json（类型/版本/rubric）",
      "##presets/ 统一下发预设",
-     "mcp/（pack-manager 引擎） · rules/base.md",
+     "mcp/（ted-avc-manager 引擎） · rules/base.md",
      "docs/01-08 · scripts/ · platforms/ · templates/",
      "##版本与发布",
      "semver tag · 人审发布=最终信任锚",

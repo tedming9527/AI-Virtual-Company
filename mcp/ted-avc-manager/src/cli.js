@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// cli.js —— pack-manager 命令入口（FR-2~FR-9）
+// cli.js —— ted-avc-manager 命令入口（FR-2~FR-9）
 
 import process from 'node:process';
 import { readFileSync } from 'node:fs';
@@ -18,12 +18,22 @@ const args = process.argv.slice(2);
 const cmd = args[0];
 
 function ok(text) { console.log(text); }
-function fail(err) { console.error(`[pack-manager] ${err.message}`); process.exitCode = 1; }
+function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'install-execution-hooks':
+    try { const { installExecutionHooks } = await import('./core/execution.js'); if (!args[1] || !args[2]) throw new Error('install-execution-hooks <deployment.json> <codex-home>'); ok(JSON.stringify(installExecutionHooks(args[1], args[2]), null, 2)); } catch (e) { fail(e); }
+    break;
+  case 'task-begin': case 'load-asset': case 'task-closeout':
+    try {
+      const { beginTask, loadAsset, closeTask } = await import('./core/execution.js');
+      const input = JSON.parse(readFileSync(args[1], 'utf8'));
+      ok(JSON.stringify(({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,process.env.AVC_DEPLOYMENT_FILE || join(ROOT,'runtime','footer-hook-deployment.json')),null,2));
+    } catch (e) { fail(e); }
+    break;
   case 'install-codex-hooks': {
     try {
-      if (!args[1] || !args[2]) throw new Error('用法: pack-manager install-codex-hooks <deployment.json> <codex-home>');
+      if (!args[1] || !args[2]) throw new Error('用法: ted-avc-manager install-codex-hooks <deployment.json> <codex-home>');
       const { installCodexHooks } = await import('./core/codex-hooks.js');
       ok(JSON.stringify(installCodexHooks(args[1], args[2]), null, 2));
     } catch (e) { fail(e); }
@@ -33,7 +43,7 @@ switch (cmd) {
     try {
       const c = parseCommand(args.slice(1).join(' ') || '根据 github://local/repo 开始执行初始化，安装 mcp');
       ok(`[命令协议] ${c.uri.uri} → ${c.intent}`);
-      ok(flowInit(ROOT, { mcpTools: ['pack-manager'], repo: `github://${c.uri.owner}/${c.uri.repo}` }).summary);
+      ok(flowInit(ROOT, { mcpTools: ['ted-avc-manager'], repo: `github://${c.uri.owner}/${c.uri.repo}` }).summary);
     } catch (e) { fail(e); }
     break;
   }
@@ -47,7 +57,22 @@ switch (cmd) {
     try { ok(flowSync(ROOT).summary); } catch (e) { fail(e); }
     break;
   case 'panorama':
-    try { ok(flowPanorama(ROOT, { force: args.includes('--force') }).summary); } catch (e) { fail(e); }
+    try {
+      const view = args.includes('--public') ? 'public' : 'local';
+      const { syncCandidates } = await import('./panorama/candidates.js');
+      if (!args.includes('--offline')) await syncCandidates(ROOT);
+      const pos = args.indexOf('--catalog-ref');
+      ok(flowPanorama(ROOT, { view, ...(pos >= 0 ? { catalogRef: args[pos + 1] } : {}) }).summary);
+    } catch (e) { fail(e); }
+    break;
+  case 'find-skill':
+    try { const { findSkills } = await import('./core/local-assets.js'); ok(JSON.stringify(findSkills(ROOT, args.slice(1).join(' ')), null, 2)); } catch (e) { fail(e); }
+    break;
+  case 'register-skill':
+    try { const { registerLocalSkill } = await import('./core/local-assets.js'); if (!args[1]) throw new Error('register-skill <personal/custom/skill-dir>'); ok(JSON.stringify(registerLocalSkill(ROOT, args[1]), null, 2)); } catch (e) { fail(e); }
+    break;
+  case 'sync-candidates':
+    try { const { syncCandidates } = await import('./panorama/candidates.js'); ok(JSON.stringify(await syncCandidates(ROOT), null, 2)); } catch (e) { fail(e); }
     break;
   case 'doctor': {
     // FR-11：exit code 表示体检结果（issues 存在 → 1）
@@ -62,13 +87,13 @@ switch (cmd) {
     break;
   case 'import-scan': {
     const src = args[1];
-    if (!src) { fail(new Error('用法: pack-manager import-scan <外部资产路径>')); break; }
+    if (!src) { fail(new Error('用法: ted-avc-manager import-scan <外部资产路径>')); break; }
     try { ok(flowImportScan(ROOT, src).summary); } catch (e) { fail(e); }
     break;
   }
   case 'bind': {
     const uri = args[1];
-    if (!uri) { fail(new Error('用法: pack-manager bind github://owner/repo[@ref]')); break; }
+    if (!uri) { fail(new Error('用法: ted-avc-manager bind github://owner/repo[@ref]')); break; }
     try { ok(flowBind(ROOT, uri).summary); } catch (e) { fail(e); }
     break;
   }
@@ -90,7 +115,7 @@ switch (cmd) {
   }
   case 'validate-log': {
     const file = args[1];
-    if (!file) { fail(new Error('用法: pack-manager validate-log <file.json>')); break; }
+    if (!file) { fail(new Error('用法: ted-avc-manager validate-log <file.json>')); break; }
     try {
       const data = JSON.parse(readFileSync(isAbsolute(file) ? file : join(ROOT, file), 'utf8'));
       const r = Array.isArray(data) ? validateLogs(data) : validateLog(data);
@@ -128,20 +153,25 @@ switch (cmd) {
     break;
   }
   default: {
-    console.log(`pack-manager v${VERSION} —— 技能包管理器
+    console.log(`ted-avc-manager v${VERSION} —— 技能包管理器
 用法：
-  pack-manager init "根据 github://owner/repo 开始执行初始化，安装 mcp"
-  pack-manager check | upgrade [--force] | sync | panorama [--force]
-  pack-manager doctor                       （体检个人目录规约，问题则 exit 1）
-  pack-manager config                       （合并 preset/custom，逐项标注来源）
-  pack-manager import-scan <path>           （外部资产入 staging + 打标台账）
-  pack-manager bind github://owner/repo     （绑定项目到个人目录）
-  pack-manager validate-packs
-  pack-manager validate-log <file.json>
-  pack-manager score --llm 4 --sample 30 --rate 0.85 --avg 4.0
-  pack-manager anomaly
-  pack-manager cleanup [--dry-run]
-  pack-manager install-codex-hooks <deployment.json> <codex-home> （原生署名 Hook，信任和触发另验）
-  pack-manager server   （对外 MCP 适配器，stdio）`);
+  ted-avc-manager init "根据 github://owner/repo 开始执行初始化，安装 mcp"
+  ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
+  ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
+  ted-avc-manager config                       （合并 preset/custom，逐项标注来源）
+  ted-avc-manager import-scan <path>           （外部资产入 staging + 打标台账）
+  ted-avc-manager bind github://owner/repo     （绑定项目到个人目录）
+  ted-avc-manager validate-packs
+  ted-avc-manager validate-log <file.json>
+  ted-avc-manager score --llm 4 --sample 30 --rate 0.85 --avg 4.0
+  ted-avc-manager anomaly
+  ted-avc-manager cleanup [--dry-run]
+  ted-avc-manager install-codex-hooks <deployment.json> <codex-home> （原生署名 Hook，信任和触发另验）
+  ted-avc-manager panorama [--local|--public] [--catalog-ref vX.Y.Z] [--offline]
+  ted-avc-manager find-skill <query> | register-skill <personal/custom/skill-dir>
+  ted-avc-manager sync-candidates
+  ted-avc-manager install-execution-hooks <deployment.json> <codex-home>
+  ted-avc-manager task-begin|load-asset|task-closeout <input.json>
+  ted-avc-manager server   （对外 MCP 适配器，stdio）`);
   }
 }
