@@ -1,1 +1,13 @@
-{"type":"role","name":"product-manager","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "product-manager",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "林知夏",
+  "professionZh": "产品经理",
+  "displayName": "林知夏·产品经理"
+}

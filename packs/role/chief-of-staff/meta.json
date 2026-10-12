@@ -1,1 +1,13 @@
-{"type":"role","name":"chief-of-staff","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "chief-of-staff",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "陈知行",
+  "professionZh": "路由官",
+  "displayName": "陈知行·路由官"
+}

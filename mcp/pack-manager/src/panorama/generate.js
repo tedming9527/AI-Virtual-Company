@@ -31,7 +31,7 @@ export function generatePanorama(root, opts = {}) {
     const rows = byType[type].map((p) => {
       const s = scores[p.name] || {};
       const score = typeof s.quality === 'number' ? `${s.quality}${s.provisional ? '（临时）' : ''}` : '—';
-      return `<tr><td>${esc(p.name)}</td><td>v${esc(p.version)}</td><td>${esc(p.status)}</td><td>${esc(p.rubric.join(' / '))}</td><td>${esc(score)}</td></tr>`;
+      return `<tr><td>${esc(p.displayName || p.name)}${p.type === 'role' ? `<br><small>${esc(p.name)}</small>` : ''}</td><td>v${esc(p.version)}</td><td>${esc(p.status)}</td><td>${esc(p.rubric.join(' / '))}</td><td>${esc(score)}</td></tr>`;
     }).join('');
     return rows || `<tr><td colspan="5" style="color:#6b7280">（无）</td></tr>`;
   };

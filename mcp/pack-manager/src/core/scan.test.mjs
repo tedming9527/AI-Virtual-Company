@@ -11,7 +11,7 @@ test('missing or blank pack entry is rejected; role PROFILE is the documented eq
   function pack(type, name, entry, body) {
     const dir = path.join(root, 'packs', type, name);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify({ type, name, version: '1.0.0', rubric: ['quality'] }));
+    fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify({ type, name, version: '1.0.0', rubric: ['quality'], ...(type === 'role' ? { nameZh: '示例专家', professionZh: '工程师', displayName: '示例专家·工程师' } : {}) }));
     if (entry) fs.writeFileSync(path.join(dir, entry), body);
   }
   pack('skill', 'missing');
@@ -22,4 +22,15 @@ test('missing or blank pack entry is rejected; role PROFILE is the documented eq
   assert.equal(result.errors.length, 2);
   assert.deepEqual(result.packs.map(p => `${p.type}/${p.name}`).sort(), ['framework/valid', 'role/expert']);
   assert.equal(result.packs.find(p => p.type === 'role').entry, 'PROFILE.md');
+  assert.equal(result.packs.find(p => p.type === 'role').displayName, '示例专家·工程师');
+});
+
+test('professional packages cannot silently drop Chinese display identity', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'avc-role-display-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const dir = path.join(root, 'packs/role/expert'); fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'PROFILE.md'), '# 专业包');
+  fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify({ type: 'role', name: 'expert', version: '1.0.0', rubric: ['quality'] }));
+  const result = scanPacks(root);
+  assert.equal(result.packs.length, 0); assert.match(result.errors.join('\n'), /中文/);
 });

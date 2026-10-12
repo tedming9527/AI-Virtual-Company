@@ -1,1 +1,13 @@
-{"type":"role","name":"design-master","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "design-master",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "苏映雪",
+  "professionZh": "交互与视觉设计师",
+  "displayName": "苏映雪·交互与视觉设计师"
+}

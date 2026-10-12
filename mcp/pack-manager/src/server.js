@@ -49,7 +49,8 @@ export function start() {
       let text;
       if (name === 'list_packs') {
         const { packs, errors } = scanPacks(ROOT);
-        text = JSON.stringify({ packs: packs.map((p) => ({ type: p.type, name: p.name, version: p.version, status: p.status })), errors });
+        text = JSON.stringify({ packs: packs.map((p) => ({ type: p.type, name: p.name, displayName: p.displayName,
+          ...(p.type === 'role' ? { nameZh: p.nameZh, professionZh: p.professionZh } : {}), version: p.version, status: p.status })), errors });
       } else if (name === 'check_update') {
         text = flowCheck(ROOT).summary;
       } else if (name === 'upgrade') {

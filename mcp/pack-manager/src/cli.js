@@ -21,6 +21,14 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[pack-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'install-codex-hooks': {
+    try {
+      if (!args[1] || !args[2]) throw new Error('用法: pack-manager install-codex-hooks <deployment.json> <codex-home>');
+      const { installCodexHooks } = await import('./core/codex-hooks.js');
+      ok(JSON.stringify(installCodexHooks(args[1], args[2]), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  }
   case 'init': {
     try {
       const c = parseCommand(args.slice(1).join(' ') || '根据 github://local/repo 开始执行初始化，安装 mcp');
@@ -133,6 +141,7 @@ switch (cmd) {
   pack-manager score --llm 4 --sample 30 --rate 0.85 --avg 4.0
   pack-manager anomaly
   pack-manager cleanup [--dry-run]
+  pack-manager install-codex-hooks <deployment.json> <codex-home> （原生署名 Hook，信任和触发另验）
   pack-manager server   （对外 MCP 适配器，stdio）`);
   }
 }

@@ -77,7 +77,7 @@ export function flowInit(root, opts = {}) {
     `常驻(索引/规则): ${index.resident.join(', ') || '无'}`,
     `按需(知识): ${index.onDemand.join(', ') || '无'}`,
     `技能(发现索引): ${index.tools.join(', ') || '无'}`,
-    `岗位(发现索引): ${index.roles.join(', ') || '无'}`,
+    `岗位(发现索引): ${packs.filter(p => p.type === 'role').map(p => p.displayName).join(', ') || '无'}`,
   ].join('；');
 
   const presetLine = presetRes.synced.length
