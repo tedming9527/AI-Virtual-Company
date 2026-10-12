@@ -4,6 +4,8 @@
 import os, html, json
 
 W, H = 1280, 1060
+ROOT = os.path.join(os.path.dirname(__file__), '..')
+COUNTS = {t: sum(os.path.isfile(os.path.join(ROOT,'packs',t,n,'meta.json')) for n in os.listdir(os.path.join(ROOT,'packs',t))) for t in ['skill','knowledge','framework','role']}
 OUT = os.path.join(os.path.dirname(__file__), "..", "docs", "assets", "architecture-v3.svg")
 
 with open(os.path.join(os.path.dirname(__file__), '..', 'bootstrap.json')) as f:
@@ -39,7 +41,7 @@ def arrow(x1, y1, x2, y2, color="#64748b", w=2, dash=None, label=None):
 add(f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {W} {H}' width='{W}' height='{H}'>")
 add("<defs><marker id='arr' markerWidth='9' markerHeight='9' refX='7' refY='3' orient='auto' markerUnits='strokeWidth'><path d='M0,0 L7,3 L0,6 z' fill='#64748b'/></marker></defs>")
 add(f"<rect width='{W}' height='{H}' fill='#f8fafc'/>")
-add(f"<text x='30' y='38' font-size='24' font-weight='800' fill='#0f172a' {FONT}>AI-Virtual-Company · 架构全景 v3</text>")
+add(f"<text x='30' y='38' font-size='24' font-weight='800' fill='#0f172a' {FONT}>AI-Virtual-Company · 架构与执行边界 v4</text>")
 add(f"<text x='30' y='60' font-size='13' fill='#64748b' {FONT}>多类型 AI 技能包生命周期平台 · 中央仓库 v{VERSION} · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>")
 
 # ---------- Row1 用户入口 ----------
@@ -50,11 +52,11 @@ box(320, 78, 640, 64, "L0 用户入口",
 # ---------- Row2 命令协议 + 大模型 ----------
 box(60, 170, 560, 92, "L1 命令协议层（确定性代码，不靠模型猜）",
     ["① URI 正则解析（owner/repo/ref） → ② 意图映射（动作词→流程ID）",
-     "→ ③ 预定义流程执行；歧义/失败停下询问，不猜、不续跑"],
+     "→ ③ 预定义流程执行；失败保留证据，不以索引存在宣称安装成功"],
     "#ede9fe", "#7c3aed", title_size=13)
 box(660, 170, 560, 92, "L2 大模型执行端",
-    ["豆包 / Codex / ChatGPT：按预定义流程执行",
-     "内部直连引擎函数（无 MCP server）；对外保留薄 MCP 适配器对接新生态"],
+    ["模型发现桥接 Skill 与 MCP 元数据；所需技能/知识按需读全文",
+     "Codex 已提供原生执行适配；其他平台须独立接入与验收"],
     "#fef3c7", "#d97706", title_size=13)
 arrow(560, 216, 660, 216, color="#94a3b8")
 arrow(640, 142, 340, 170, color="#94a3b8")
@@ -62,9 +64,9 @@ arrow(640, 142, 940, 170, color="#94a3b8")
 
 # ---------- Row3 本地运行时引擎 ----------
 box(120, 290, 1040, 96, "L3 本地运行时 · ted-avc-manager 中介层",
-    ["##命令集",
-     "init · validate-packs · check · upgrade · score · anomaly · doctor · config · import-scan · panorama · bind",
-     "分层注入（索引/规则常驻 · 知识按需 · 工具注册即用） · lockfile 钉版本 · 本地演化（记忆/技能/等级）"],
+    ["资产：四类包 + native / 插件缓存发现 → 元数据索引 → 绑定 load_asset 全文",
+     "执行：task_begin → PreToolUse（白名单 / 必需入口 / 预算 / 漂移）→ PostToolUse → closeout",
+     "monitor / enforce；原生回合 nonce + 产物 SHA；隐藏加载、token / cost 仍 unknown"],
     "#ffedd5", "#ea580c", title_size=14)
 arrow(340, 262, 400, 290, color="#94a3b8")
 arrow(940, 262, 880, 290, color="#94a3b8")
@@ -75,15 +77,15 @@ cy = 418
 box(40, cy, 390, 330, "L4 中央仓库 · GitHub（通用，唯一事实源）",
     ["##根级入口",
      f"bootstrap.json v{VERSION} · README · CHANGELOG · AGENTS.md",
-     "##packs/ 四类包（37）",
-     "skill ×18 · knowledge ×10 · framework ×1 · role ×8",
-     "每包：SKILL.md（入口）+ meta.json（类型/版本/rubric）",
+     f"##packs/ 四类包（{sum(COUNTS.values())}）",
+     f"skill ×{COUNTS['skill']} · knowledge ×{COUNTS['knowledge']} · framework ×{COUNTS['framework']} · role ×{COUNTS['role']}",
+     "入口：SKILL.md / PROFILE.md + meta.json（契约）",
      "##presets/ 统一下发预设",
      "mcp/（ted-avc-manager 引擎） · rules/base.md",
-     "docs/01-08 · scripts/ · platforms/ · templates/",
+     "docs/01-12 · scripts/ · platforms/ · templates/",
      "##版本与发布",
      "semver tag · 人审发布=最终信任锚",
-     "GitHub Pages 全景图 · 哈希/签名校验"],
+     "Pages：已发布 tag + 公开 PR 元数据；个人数据隔离"],
     "#dbeafe", "#2563eb", title_size=14)
 # 个人目录
 box(445, cy, 390, 330, "个人目录 · 部署配置（可跨机器同步，不入 git）",
@@ -103,20 +105,20 @@ box(445, cy, 390, 330, "个人目录 · 部署配置（可跨机器同步，不�
 # 运行时
 box(850, cy, 390, 330, "运行时 · runtime/（本地临时，可清理）",
     ["##内容",
-     "cache/（TTL 7 天）",
-     "logs/（保留 30 天，已消费即删）",
-     "lockfile.json（钉版本）",
-     "scores.json（评分台账）",
+     "asset-inventory.json / asset-events.jsonl",
+     "execution/tasks/ + events.jsonl（任务与原生观察）",
+     "hooks/sessions/（回合回执） · lockfile.json",
+     "runtime/panorama/（本地视图，含个人元数据）",
      "##规则",
      "不再写入系统 tmp（FR-7）",
-     "TTL + 清理规则自动执行",
+     "清理模块可执行；定时调度须另验",
      "##doctor 校验",
      "缺失/多余/命名违规/哈希不符 → 告警",
      "init 幂等：缺目录补建，不删用户文件"],
     "#ffedd5", "#ea580c", title_size=14)
-arrow(300, 386, 235, cy, color="#ea580c", label="读写")
-arrow(980, 386, 1045, cy, color="#ea580c", label="读写")
-arrow(640, 386, 640, cy, color="#ea580c", label="读写")
+arrow(300, 386, 235, cy, color="#ea580c", label="按授权读取/写入")
+arrow(980, 386, 1045, cy, color="#ea580c", label="按授权读取/写入")
+arrow(640, 386, 640, cy, color="#ea580c", label="按授权读取/写入")
 
 # ---------- Row5 统一通用化升级路线 ----------
 py = 780
