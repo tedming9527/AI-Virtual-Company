@@ -134,7 +134,7 @@ stages = [
 sx, sw, gap = 60, 210, 26
 for i, (t, body) in enumerate(stages):
     x = sx + i * (sw + gap)
-    add(f"<rect x='{x}' y='{py+42}' width='{sw}' height='66' rx='8' fill='#ffffff' stroke='#a78bfa'/>")
+    add(f"<rect x='{x}' y='{py+42}' width='{sw}' height='74' rx='8' fill='#ffffff' stroke='#a78bfa'/>")
     add(f"<text x='{x+10}' y='{py+62}' font-size='13' font-weight='700' fill='#5b21b6' {FONT}>{html.escape(t)}</text>")
     for j, line in enumerate(body.split("\n")):
         add(f"<text x='{x+10}' y='{py+80+j*15}' font-size='11' fill='#475569' {FONT}>{html.escape(line)}</text>")
