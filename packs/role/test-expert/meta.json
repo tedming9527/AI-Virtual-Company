@@ -1,1 +1,13 @@
-{"type":"role","name":"test-expert","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "test-expert",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "顾清妍",
+  "professionZh": "质量测试工程师",
+  "displayName": "顾清妍·质量测试工程师"
+}

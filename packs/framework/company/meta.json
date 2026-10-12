@@ -1,1 +1,10 @@
-{"type":"framework","name":"company","version":"1.0.0","rubric":["structure","applicability"],"status":"stable"}
+{
+  "type": "framework",
+  "name": "company",
+  "version": "1.0.1",
+  "rubric": [
+    "structure",
+    "applicability"
+  ],
+  "status": "stable"
+}

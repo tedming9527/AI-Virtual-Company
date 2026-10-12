@@ -1,1 +1,13 @@
-{"type":"role","name":"ai-engineer","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "ai-engineer",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "辛澈",
+  "professionZh": "AI工程师",
+  "displayName": "辛澈·AI工程师"
+}

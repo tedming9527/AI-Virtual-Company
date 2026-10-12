@@ -17,6 +17,7 @@
 | `anomaly` | FR-8 异常触发 | 成功率骤降检测 |
 | `cleanup` | FR-7 TTL 清理 | runtime/ 约定目录清理 |
 | `server` | 对外 MCP 适配器 | stdio JSON-RPC（list_packs / check_update / upgrade / generate_panorama / submit_log） |
+| `install-codex-hooks <deployment.json> <codex-home>` | Codex 原生适配 | 显式安装署名注入与 Stop 校验；精确定义信任和真实触发另行验收，见 docs/10 |
 
 ## 版本可见性（FR-5）
 

@@ -35,5 +35,11 @@ export function validatePackMeta(meta, typeDir) {
   if (!Array.isArray(meta.rubric) || meta.rubric.length === 0) {
     errors.push('meta.rubric 必须为非空数组（评分维度）');
   }
+  if (meta.type === 'role') {
+    for (const field of ['nameZh', 'professionZh']) {
+      if (typeof meta[field] !== 'string' || !/[\u4e00-\u9fff]/.test(meta[field])) errors.push(`role.meta.${field} 必须包含中文`);
+    }
+    if (meta.displayName !== `${meta.nameZh}·${meta.professionZh}`) errors.push('role.meta.displayName 必须为中文名字·职业');
+  }
   return { valid: errors.length === 0, errors };
 }

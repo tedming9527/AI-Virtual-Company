@@ -41,7 +41,9 @@ export function scanPacks(root) {
         errors.push(`${type}/${name}: 缺少非空入口文档（${entries.join(' 或 ')}）`);
         continue;
       }
-      found.push({ type, name, version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
+      found.push({ type, name, displayName: meta.displayName || name,
+        ...(type === 'role' ? { nameZh: meta.nameZh, professionZh: meta.professionZh } : {}),
+        version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
     }
   }
   return { packs: found, errors };

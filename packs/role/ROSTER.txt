@@ -1,8 +1,8 @@
-ai-engineer
-backend-expert
-backend-training-architect
-chief-of-staff
-design-master
-frontend-expert
-product-manager
-test-expert
+chief-of-staff | 陈知行·路由官
+product-manager | 林知夏·产品经理
+frontend-expert | 周启明·前端工程师
+backend-expert | 陆行远·后端工程师
+design-master | 苏映雪·交互与视觉设计师
+test-expert | 顾清妍·质量测试工程师
+ai-engineer | 辛澈·AI工程师
+backend-training-architect | 沈砚舟·后端培训导师（资深后端架构师）

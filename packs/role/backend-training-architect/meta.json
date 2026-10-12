@@ -1,1 +1,13 @@
-{"type":"role","name":"backend-training-architect","version":"1.0.0","rubric":["capability_coverage","consistency"],"status":"stable"}
+{
+  "type": "role",
+  "name": "backend-training-architect",
+  "version": "1.0.1",
+  "rubric": [
+    "capability_coverage",
+    "consistency"
+  ],
+  "status": "stable",
+  "nameZh": "沈砚舟",
+  "professionZh": "后端培训导师（资深后端架构师）",
+  "displayName": "沈砚舟·后端培训导师（资深后端架构师）"
+}
