@@ -33,7 +33,7 @@
 
 ## 现存工具与部署缺口
 
-中央入口 `node mcp/pack-manager/src/cli.js validate-packs`、`validate-layout` 校验包及布局；不代替语义或初始化。工具先读源码再运行。知识校验工具见 [check-knowledge](../../../../scripts/check-knowledge.mjs)，它要求 `packs/knowledge/catalog.json` 及对应条目：仅当部署快照确已提供兼容目录/清单时使用 `node scripts/check-knowledge.mjs <snapshot-root> [id]`，未知 ID 失败；清单未部署不能宣称知识检查可运行。
+中央入口 `node mcp/ted-avc-manager/src/cli.js validate-packs`、`validate-layout` 校验包及布局；不代替语义或初始化。工具先读源码再运行。知识校验工具见 [check-knowledge](../../../../scripts/check-knowledge.mjs)，它要求 `packs/knowledge/catalog.json` 及对应条目：仅当部署快照确已提供兼容目录/清单时使用 `node scripts/check-knowledge.mjs <snapshot-root> [id]`，未知 ID 失败；清单未部署不能宣称知识检查可运行。
 
 [read-knowledge](../../../../scripts/read-knowledge.mjs) 的格式为 `node scripts/read-knowledge.mjs <snapshot-root> <session-id> <relative-file>`，实际文件必须先确认存在。它写 snapshot 的 eval-logs，只适用于获准独立快照，不是权限沙箱。部署初始化、身份、平台 Hook 和历史资产映射没有本包内可运行入口，由部署适配器提供；未部署不能声称具备。
 

@@ -16,7 +16,7 @@
 | supervision_live | 对应实际运行回执与新鲜心跳，范围已关联 | 人员身份、通知送达、其他任务 |
 | mcp_runtime_governance_ready | 注册表、Profile/Bundle 与 Launcher 结构检查；任务 Overlay 另验 | 各工具已联网、旧会话重载 |
 
-company_ready 的校验适配器由部署实例提供，未部署不能声称具备。中央库的 `node mcp/pack-manager/src/cli.js validate-packs` 与 `validate-layout` 只检查包及布局，不替代上述状态。缺 Hook 不自动阻断普通授权工作；明确要求强制接管、不可绕过或持续监督时，才按缺失状态阻断相应范围。
+company_ready 的校验适配器由部署实例提供，未部署不能声称具备。中央库的 `node mcp/ted-avc-manager/src/cli.js validate-packs` 与 `validate-layout` 只检查包及布局，不替代上述状态。缺 Hook 不自动阻断普通授权工作；明确要求强制接管、不可绕过或持续监督时，才按缺失状态阻断相应范围。
 
 ## 加载顺序与失败处理
 

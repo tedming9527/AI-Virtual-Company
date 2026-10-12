@@ -6,7 +6,7 @@
 
 - `packs/<type>/<name>/`：四类包，每包含 SKILL.md（或等价入口文档）+ meta.json；**新增包 = 建目录即被发现**，无需改任何配置
 - `presets/<name>/`：统一下发预设（bootstrap.json 的 `presets` 有序声明，后者覆盖前者）
-- `mcp/`：预置 MCP（目录名即工具名，自动注册）；`mcp/pack-manager/` 为平台引擎
+- `mcp/`：预置 MCP（目录名即工具名，自动注册）；`mcp/ted-avc-manager/` 为平台引擎
 - `rules/`：跨包全局规则；`docs/`：开发文档；`panorama/`：全景图产物落点
 - `runtime/`：本地运行态唯一落点（cache / logs / lockfile，按 TTL 清理；不写系统 tmp）
 - 个人数据不入本仓库：由部署期 `bootstrap.storage` 指向个人目录（规约见 [docs/08](docs/08-个人目录规约.md)，`doctor` 校验）
@@ -14,7 +14,7 @@
 ## 命令入口
 
 ```sh
-node mcp/pack-manager/src/cli.js <command>
+node mcp/ted-avc-manager/src/cli.js <command>
 # init / check / upgrade / sync / panorama
 # doctor / config / import-scan / bind      （个人目录治理）
 # validate-packs / validate-log / validate-layout   （规约门禁）

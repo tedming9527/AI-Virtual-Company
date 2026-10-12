@@ -114,7 +114,7 @@ export function initPersonal(personalRoot, slug, opts = {}) {
 function personalReadme(slug) {
   return `# 个人目录
 
-本目录由 pack-manager 依 docs/08-个人目录规约.md 维护：部署存储可跨机器同步，不入 git。未配置时使用 runtime/personal 本机临时目录。
+本目录由 ted-avc-manager 依 docs/08-个人目录规约.md 维护：部署存储可跨机器同步，不入 git。未配置时使用 runtime/personal 本机临时目录。
 
 ## 根级
 

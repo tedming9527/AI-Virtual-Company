@@ -41,7 +41,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
   if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('Refusing hooks.json symlink');
   const entry = fileURLToPath(new URL('../codex-hook.js', import.meta.url));
   const suffix = ` --deployment ${quote(config)}`;
-  const command = `${quote(process.execPath)} ${quote(entry)} --pack-manager-footer${suffix}`;
+  const command = `${quote(process.execPath)} ${quote(entry)} --ted-avc-manager-footer${suffix}`;
   const document = existsSync(file) ? json(file) : { hooks: {} };
   document.hooks ??= {};
   for (const event of ['SessionStart', 'UserPromptSubmit', 'Stop']) {
@@ -50,7 +50,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
     document.hooks[event] = groups.map(g => ({ ...g, hooks: g.hooks.filter(h => !(h.command?.includes('/src/codex-hook.js') && h.command.endsWith(suffix))) })).filter(g => g.hooks.length);
     document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact' } : {}), hooks: [{
       type: 'command', command, timeout: 10,
-      statusMessage: `pack-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
+      statusMessage: `ted-avc-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
       ...(event !== 'Stop' ? { additionalContextLimit: 1500 } : {}),
     }] });
   }
@@ -100,7 +100,7 @@ export function runCodexHook(input, deploymentFile) {
     const options = Object.entries(project.owners).map(([role, display]) => `${role}: ${footer(display, receipt)}`).join('\n');
     record('context_injected', { receipt });
     return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext:
-      `pack-manager native delivery adapter v${version} is scoped to this configured project. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Do not use the footer for unrelated projects.\n${options}` } };
+      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Do not use the footer for unrelated projects.\n${options}` } };
   }
   const pending = state.turns[turn];
   const message = input.last_assistant_message ?? '';
@@ -113,7 +113,7 @@ export function runCodexHook(input, deploymentFile) {
   }
   if (input.stop_hook_active || pending?.correctionRequested) {
     record('correction_failed', { receipt: pending?.receipt ?? null });
-    return { continue: false, stopReason: 'Delivery footer still invalid after one correction', systemMessage: `pack-manager v${version}: footer verification FAILED; no mediation acceptance claim.` };
+    return { continue: false, stopReason: 'Delivery footer still invalid after one correction', systemMessage: `ted-avc-manager v${version}: footer verification FAILED; no mediation acceptance claim.` };
   }
   state.turns[turn] ??= { receipt: randomBytes(6).toString('hex') };
   state.turns[turn].correctionRequested = true;

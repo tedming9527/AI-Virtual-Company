@@ -2,7 +2,7 @@
 <defs><marker id='arr' markerWidth='9' markerHeight='9' refX='7' refY='3' orient='auto' markerUnits='strokeWidth'><path d='M0,0 L7,3 L0,6 z' fill='#64748b'/></marker></defs>
 <rect width='1280' height='1060' fill='#f8fafc'/>
 <text x='30' y='38' font-size='24' font-weight='800' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>AI-Virtual-Company · 架构全景 v3</text>
-<text x='30' y='60' font-size='13' fill='#64748b' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>多类型 AI 技能包生命周期平台 · 中央仓库 v1.1.1 · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>
+<text x='30' y='60' font-size='13' fill='#64748b' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>多类型 AI 技能包生命周期平台 · 中央仓库 v1.2.0 · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>
 <rect x='320' y='78' width='640' height='64' rx='10' fill='#e2e8f0' stroke='#475569' stroke-width='1.5'/>
 <rect x='320' y='78' width='640' height='30' rx='10' fill='#e2e8f0'/>
 <rect x='320' y='93' width='640' height='15' fill='#e2e8f0'/>
@@ -26,7 +26,7 @@
 <rect x='120' y='290' width='1040' height='96' rx='10' fill='#ffedd5' stroke='#ea580c' stroke-width='1.5'/>
 <rect x='120' y='290' width='1040' height='30' rx='10' fill='#ffedd5'/>
 <rect x='120' y='305' width='1040' height='15' fill='#ffedd5'/>
-<text x='132' y='310' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>L3 本地运行时 · pack-manager 中介层</text>
+<text x='132' y='310' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>L3 本地运行时 · ted-avc-manager 中介层</text>
 <text x='132' y='340' font-size='12' font-weight='700' fill='#ea580c' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>命令集</text>
 <text x='132' y='359' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>init · validate-packs · check · upgrade · score · anomaly · doctor · config · import-scan · panorama · bind</text>
 <text x='132' y='378' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>分层注入（索引/规则常驻 · 知识按需 · 工具注册即用） · lockfile 钉版本 · 本地演化（记忆/技能/等级）</text>
@@ -37,12 +37,12 @@
 <rect x='40' y='433' width='390' height='15' fill='#dbeafe'/>
 <text x='52' y='438' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>L4 中央仓库 · GitHub（通用，唯一事实源）</text>
 <text x='52' y='468' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>根级入口</text>
-<text x='52' y='487' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>bootstrap.json v1.1.1 · README · CHANGELOG · AGENTS.md</text>
+<text x='52' y='487' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>bootstrap.json v1.2.0 · README · CHANGELOG · AGENTS.md</text>
 <text x='52' y='506' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>packs/ 四类包（37）</text>
 <text x='52' y='525' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>skill ×18 · knowledge ×10 · framework ×1 · role ×8</text>
 <text x='52' y='544' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>每包：SKILL.md（入口）+ meta.json（类型/版本/rubric）</text>
 <text x='52' y='563' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>presets/ 统一下发预设</text>
-<text x='52' y='582' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>mcp/（pack-manager 引擎） · rules/base.md</text>
+<text x='52' y='582' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>mcp/（ted-avc-manager 引擎） · rules/base.md</text>
 <text x='52' y='601' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>docs/01-08 · scripts/ · platforms/ · templates/</text>
 <text x='52' y='620' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>版本与发布</text>
 <text x='52' y='639' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>semver tag · 人审发布=最终信任锚</text>

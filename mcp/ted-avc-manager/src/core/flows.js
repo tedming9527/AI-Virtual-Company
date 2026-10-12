@@ -51,7 +51,7 @@ export function flowInit(root, opts = {}) {
   const mcpTools = [];
   const mcpDir = join(root, 'mcp');
   if (existsSync(mcpDir)) {
-    for (const tool of opts.mcpTools || ['pack-manager']) {
+    for (const tool of opts.mcpTools || ['ted-avc-manager']) {
       if (existsSync(join(mcpDir, tool))) mcpTools.push(tool);
     }
   }
@@ -153,9 +153,10 @@ export function flowPanorama(root, opts = {}) {
   const rt = runtimeDirOf(root);
   const bootstrap = readBootstrap(root);
   const lock = readLock(rt);
-  const version = lock.current || bootstrap.version;
-  const out = generatePanorama(root, { version, runtimeDir: rt, scoresFile: join(rt, 'scores.json'), force: opts.force });
-  return { ok: true, version, summary: `全景图已生成：${out}。${finalLine('', version)}` };
+  const view = opts.view || 'local';
+  const version = view === 'public' ? bootstrap.version : lock.current || bootstrap.version;
+  const out = generatePanorama(root, { ...opts, view, runtimeDir: rt });
+  return { ok: true, version, view, path: out, summary: `${view === 'local' ? '本地' : '通用'}全景图已生成：${out}。${finalLine('', version)}` };
 }
 
 // —— FR-3/FR-11~FR-13 新增流程 ——

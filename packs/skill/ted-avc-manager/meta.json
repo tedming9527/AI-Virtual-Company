@@ -1,0 +1,9 @@
+{
+  "type": "skill",
+  "name": "ted-avc-manager",
+  "displayName": "Ted AVC 资产与执行桥接",
+  "version": "1.0.0",
+  "status": "active",
+  "description": "公司绑定项目的资产按需加载、原生执行回执和候选升级桥接",
+  "rubric": ["按需上下文交付", "资产来源隔离", "执行证据可验证", "授权边界"]
+}

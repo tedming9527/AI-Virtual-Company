@@ -14,6 +14,7 @@
 | mcp-first-use | [SKILL.md](mcp-first-use/SKILL.md) | 1.0.0 |
 | model-router | [SKILL.md](model-router/SKILL.md) | 1.0.0 |
 | react-scoped-styles | [SKILL.md](react-scoped-styles/SKILL.md) | 1.0.0 |
+| ted-avc-manager | [SKILL.md](ted-avc-manager/SKILL.md) | 1.0.0 |
 | test-quality-gate | [SKILL.md](test-quality-gate/SKILL.md) | 1.0.0 |
 
 部署实例的员工身份、私人路径、安装状态和历史执行记录存于个人目录，不写入本登记。
