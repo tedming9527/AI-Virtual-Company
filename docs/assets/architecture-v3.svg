@@ -2,7 +2,7 @@
 <defs><marker id='arr' markerWidth='9' markerHeight='9' refX='7' refY='3' orient='auto' markerUnits='strokeWidth'><path d='M0,0 L7,3 L0,6 z' fill='#64748b'/></marker></defs>
 <rect width='1280' height='1060' fill='#f8fafc'/>
 <text x='30' y='38' font-size='24' font-weight='800' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>AI-Virtual-Company · 架构与执行边界 v4</text>
-<text x='30' y='60' font-size='13' fill='#64748b' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>多类型 AI 技能包生命周期平台 · 中央仓库 v1.2.2 · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>
+<text x='30' y='60' font-size='13' fill='#64748b' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>多类型 AI 技能包生命周期平台 · 中央仓库 v1.2.3 · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>
 <rect x='320' y='78' width='640' height='64' rx='10' fill='#e2e8f0' stroke='#475569' stroke-width='1.5'/>
 <rect x='320' y='78' width='640' height='30' rx='10' fill='#e2e8f0'/>
 <rect x='320' y='93' width='640' height='15' fill='#e2e8f0'/>
@@ -37,7 +37,7 @@
 <rect x='40' y='433' width='390' height='15' fill='#dbeafe'/>
 <text x='52' y='438' font-size='14' font-weight='700' fill='#0f172a' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>L4 中央仓库 · GitHub（通用，唯一事实源）</text>
 <text x='52' y='468' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>根级入口</text>
-<text x='52' y='487' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>bootstrap.json v1.2.2 · README · CHANGELOG · AGENTS.md</text>
+<text x='52' y='487' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>bootstrap.json v1.2.3 · README · CHANGELOG · AGENTS.md</text>
 <text x='52' y='506' font-size='12' font-weight='700' fill='#2563eb' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>packs/ 四类包（26）</text>
 <text x='52' y='525' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>skill ×12 · knowledge ×5 · framework ×1 · role ×8</text>
 <text x='52' y='544' font-size='12' fill='#334155' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'>入口：SKILL.md / PROFILE.md + meta.json（契约）</text>

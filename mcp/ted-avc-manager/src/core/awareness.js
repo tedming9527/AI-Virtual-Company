@@ -211,7 +211,7 @@ export function recordObservedRead(root, input, options = {}) {
   const completed = Boolean(responseField) && eventName === 'PostToolUse' && response.status !== 'failed' && response.status !== 'error' && input.success !== false && response.isError !== true && (shell ? exitCode === 0 : !(Number.isInteger(exitCode) && exitCode !== 0));
   for (const path of paths) {
     const target = isAbsolute(path) ? resolve(path) : resolve(cwd, path);
-    const asset = assets.find(a => target === a.entry || target.startsWith(a.dir + sep));
+    const asset = assets.find(a => target === a.entry) || assets.filter(a => !a.id.startsWith('general:knowledge-entry:') && target.startsWith(a.dir + sep)).sort((a,b)=>b.dir.length-a.dir.length)[0];
     if (!asset) continue;
     try {
       safePath(asset.dir, target); if (!existsSync(target) || !lstatSync(target).isFile()) continue;
