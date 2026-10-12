@@ -1,0 +1,35 @@
+# 初始化与跨设备部署模板
+
+本包定义初始化契约，不自动执行公司接管、规则同步、平台 Hook 或账号配置。`chief-of-staff` 统筹，`ai-engineer` 维护部署适配器，专业岗位对领域事实负责。
+
+## 定位与事实源
+
+规则根由 `AI_VIRTUAL_COMPANY_ROOT` 或部署实例明确配置解析；未配置时 unavailable，不使用操作系统或用户目录兜底。获准规则版本是事实源，平台入口和安装副本是适配器。个人存储按 `bootstrap.storage` → `runtime/storage.json` → `AVC_PERSONAL_DIR` / `AVC_MEMORY_DIR` / `AVC_ICLOUD_ROOT` 解析，`storage.personal` 须为 `<personal-root>/projects/<slug>`。未配置仅使用 `runtime/personal` 本机临时验证；显式 icloud 配置不可用则报错。映射见 [README](../README.md) 与 [个人目录规约](../../../../docs/08-个人目录规约.md)。中央模板不落机器绝对路径、个人账号、凭据、历史授权或平台会话数据。
+
+## 独立状态
+
+| 状态 | 最低证据 | 不代表 |
+|---|---|---|
+| company_ready | 规则根、获准版本与所需资产可读，部署初始化校验通过 | 项目绑定、Hook 或监督 |
+| binding_active | 当前会话实际加载项目绑定且项目关联可核验 | 既往会话覆盖、平台拦截 |
+| platform_hook_verified | 可信适配器在目标平台有实际注入、输出与阻断回归证据 | 组织不可关闭、持续监督 |
+| supervision_live | 对应实际运行回执与新鲜心跳，范围已关联 | 人员身份、通知送达、其他任务 |
+| mcp_runtime_governance_ready | 注册表、Profile/Bundle 与 Launcher 结构检查；任务 Overlay 另验 | 各工具已联网、旧会话重载 |
+
+company_ready 的校验适配器由部署实例提供，未部署不能声称具备。中央库的 `node mcp/pack-manager/src/cli.js validate-packs` 与 `validate-layout` 只检查包及布局，不替代上述状态。缺 Hook 不自动阻断普通授权工作；明确要求强制接管、不可绕过或持续监督时，才按缺失状态阻断相应范围。
+
+## 加载顺序与失败处理
+
+1. 核对当前授权、项目规则及获准版本；读取本政策、[COMPANY](COMPANY.md)、[ROUTER](ROUTER.md)、[AI_RULES](../AI_RULES.md)、[MEMORY_POLICY](MEMORY_POLICY.md) 与 [KNOWLEDGE_POLICY](KNOWLEDGE_POLICY.md)。
+2. 对确已绑定的任务，指定一个主责和至多一个顾问，分别记录实际执行者、专业实施责任与验证者。平台代理只表示执行通道，不能自称真实人员。
+3. 按信号加载绑定、交付、预算、监督、生命周期、评测、度量与知识维护规则。岗位资料从 `packs/role/<role-id>/` 发现；仅加载实际存在且命中的模块。目录、描述或可安装状态不能证明已加载或已执行。
+4. 读取所选 Skill 完整正文及必需约束；按任务从 `packs/skill/` 发现，不批量安装或注入。必需依赖缺失仅阻断受影响部分；不擅自生成并安装替代资产。
+5. 人员身份、平台发现、规则同步、模型选择和计量由部署适配器分别验证；未部署保持 unknown/unavailable。用户明确要求某真实人员时，冻结请求与上下文，取得可信身份及产物回执后才声明参与。
+6. 知识摘要只作发现，不能替代授权、原文或安全要求。压缩、恢复、主责变化和动态事实到期后刷新版本与相关事实，不沿用旧摘要身份。
+7. MCP 首次启用或版本、权限、命令、环境、网络漂移时，按 [mcp-first-use](../../../skill/mcp-first-use/SKILL.md) 核对 [注册表](../../../../mcp/REGISTRY.json) 与当前 Profile/Bundle、[Launcher](../../../../scripts/mcp-launch)，Overlay 保存在部署侧。初始化不逐个联网，不用 unrelated 工具失败扩大阻断；代理要求须 fail closed，不静默直连。
+
+## 迁移和验收
+
+先更新规范源，核对版本、依赖及差异，再在已授权范围由部署适配器更新指定入口。平台权限、模型、插件、凭据和本机配置保留在部署侧，不跨平台机械转换。同步、可信发布、冷启动与新会话行为分别验收；源码、JSON 标志或旧会话不会证明新机制已启用。中介层文件保持候选，只有获准不可变版本、受保护发布器和目标平台验收才能激活。
+
+初始化失败只停止相关成功声明；是否继续普通任务取决于当前授权、权限与项目要求。不复制内部政策到业务代码，不隐瞒故障。普通交付说明结果、影响和必要操作；配置诊断才展示必要脱敏路径和内部证据。

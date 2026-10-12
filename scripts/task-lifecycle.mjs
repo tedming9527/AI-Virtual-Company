@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { validState } from './supervisor-runtime.mjs';
 
-export const SCHEMA = 'ted.tmp-task.v1';
+export const SCHEMA = 'avc.tmp-task.v1';
 const DAY = 86400000;
 const terminal = new Set(['completed', 'cancelled', 'failed']);
 const statuses = new Set(['queued', 'running', 'blocked', ...terminal]);
@@ -19,7 +19,7 @@ const validRunId = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9
 function execution(root, receipt) {
   const m = /^supervision:([A-Za-z0-9][A-Za-z0-9_-]{0,79})\/([A-Za-z0-9][A-Za-z0-9_-]{0,79})$/.exec(receipt ?? '');
   if (!m) throw new Error('Unsupported execution receipt; use supervision:RUN_ID/TASK_ID');
-  const file = path.join(root, 'tmp', 'supervision', m[1], 'state.json');
+  const file = path.join(root, 'runtime', 'supervision', m[1], 'state.json');
   inspect(file);
   const state = JSON.parse(fs.readFileSync(file, 'utf8'));
   validState(state, m[1]);
@@ -96,15 +96,17 @@ export function run(args, { root = process.env.AI_VIRTUAL_COMPANY_ROOT || proces
       options[flag] = rest.shift();
     }
   }
-  const tmp = path.join(root, 'tmp');
+  const tmp = path.join(root, 'runtime', 'tmp');
   const tasks = path.join(tmp, 'tasks');
   const quarantine = path.join(tmp, 'quarantine');
-  const receipts = path.join(root, 'inbox', 'session-events');
+  // 回执目录可注入（AI_VIRTUAL_COMPANY_RECEIPTS_DIR）；未注入时仅写 runtime/receipts，部署可指定个人 inbox
+  const receipts = process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR
+    || path.join(root, 'runtime', 'receipts');
   [tmp, tasks, quarantine, receipts].forEach(p => inspect(p));
   const saveReceipt = task => {
     mkdir(receipts);
     atomicJSON(path.join(receipts, `tmp-${task.id}.json`), {
-      schema: 'ted.tmp-task-receipt.v1', id: `tmp-${task.id}`, task_id: task.id,
+      schema: 'avc.tmp-task-receipt.v1', id: `tmp-${task.id}`, task_id: task.id,
       created_at: task.created_at, closed_at: task.closed_at, status: task.status,
       started_at: task.started_at ?? null,
       duration_ms: task.started_at ? Date.parse(task.closed_at) - Date.parse(task.started_at) : null,
@@ -112,9 +114,7 @@ export function run(args, { root = process.env.AI_VIRTUAL_COMPANY_ROOT || proces
       model_verified: false, source: 'task-lifecycle',
     });
   };
-  // Durable closeout receipts go to inbox/session-events only when the task actually
-  // executed against an external supervised run (外部动作/可恢复持续任务, TASK_LIFECYCLE.md
-  // "命中持久任务记录触发条件"). Never-started temporary cards write no receipt.
+  // Only executed external tasks produce durable receipts; never-started cards do not.
   const needsDurableReceipt = task => Boolean(task.external_run_id);
   const mutate = command !== 'status' && (command !== 'cleanup' || options['--apply']);
   let lock;

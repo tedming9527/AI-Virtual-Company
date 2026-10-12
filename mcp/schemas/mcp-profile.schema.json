@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ted.local/schemas/mcp-profile.schema.json",
+  "$id": "https://avc.local/schemas/mcp-profile.schema.json",
   "type": "object",
   "required": ["schema", "id", "transport", "runtime", "source", "environment", "network", "verification", "local_overlay_required"],
   "properties": {
-    "schema": { "const": "ted.mcp-profile.v1" },
+    "schema": { "const": "avc.mcp-profile.v1" },
     "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
     "transport": { "enum": ["stdio", "streamable-http"] },
     "runtime": { "enum": ["node", "python", "java", "native", "remote", "local-service"] },

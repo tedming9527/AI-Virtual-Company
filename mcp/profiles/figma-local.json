@@ -1,5 +1,5 @@
 {
-  "schema": "ted.mcp-profile.v1",
+  "schema": "avc.mcp-profile.v1",
   "id": "figma-local",
   "transport": "streamable-http",
   "runtime": "local-service",

@@ -24,7 +24,8 @@ function redactOutput(text) {
 // callers must trust commands and prevent concurrent directory replacement.
 async function safePath(root, relative, create = false) {
   const target = path.resolve(root, relative);
-  if (target !== root && !target.startsWith(root + path.sep)) throw new Error('path_outside_root');
+  const prefix = root.endsWith(path.sep) ? root : root + path.sep;
+  if (target !== root && !target.startsWith(prefix)) throw new Error('path_outside_root');
   let cursor = root;
   for (const part of path.relative(root, target).split(path.sep).filter(Boolean)) {
     cursor = path.join(cursor, part);
@@ -67,7 +68,7 @@ export function validState(state, id) {
 async function location(root, id, create = false) {
   if (!safeId(id)) throw new Error('invalid_run_id');
   root = await realpath(root);
-  return { root, dir: await safePath(root, `tmp/supervision/${id}`, create) };
+  return { root, dir: await safePath(root, `runtime/supervision/${id}`, create) };
 }
 export async function status(id, { root = process.cwd(), stale_ms = 10000 } = {}) {
   const { dir } = await location(root, id);
@@ -162,6 +163,12 @@ export async function supervise(input, { root = process.cwd(), kill_grace_ms = 2
   try {
     // IDs are immutable even after completion: accidental retries cannot repeat side effects.
     if (await exists(path.join(dir, 'state.json'))) throw new Error('run_id_already_used');
+    // 回执目录可注入（AI_VIRTUAL_COMPANY_RECEIPTS_DIR）；未注入时仅写 runtime/receipts，部署可指定个人 inbox
+    const injected = process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR;
+    const configured = injected && path.resolve(root, injected);
+    const receipts = configured
+      ? await safePath(path.parse(configured).root, configured, true)
+      : await safePath(root, 'runtime/receipts', true);
     const reason = unsupported(plan);
     if (reason) { state.status = 'blocked'; state.reason = reason; }
     else {
@@ -224,8 +231,7 @@ export async function supervise(input, { root = process.cwd(), kill_grace_ms = 2
       state.status = stopping || (state.tasks.every(t => t.status === 'succeeded') ? 'succeeded' : state.tasks.some(t => t.status === 'timed_out') ? 'timed_out' : 'failed');
     }
     state.finished_at = now(); event('run_finished', { status: state.status }); await save();
-    const receipts = await safePath(root, 'inbox/session-events', true);
-    await atomic(path.join(receipts, `supervision-${plan.id}.json`), { id: `supervision-${plan.id}`, created_at: state.created_at, source: 'local_process_supervisor', status: state.status, finished_at: state.finished_at, reason: state.reason, tasks: state.tasks.map(({ id, status, exit_code, reason }) => ({ id, status, exit_code, reason })), evidence: `tmp/supervision/${plan.id}/state.json`, model_execution_verified: false, usage: 'unknown' });
+    await atomic(path.join(receipts, `supervision-${plan.id}.json`), { id: `supervision-${plan.id}`, created_at: state.created_at, source: 'local_process_supervisor', status: state.status, finished_at: state.finished_at, reason: state.reason, tasks: state.tasks.map(({ id, status, exit_code, reason }) => ({ id, status, exit_code, reason })), evidence: `runtime/supervision/${plan.id}/state.json`, model_execution_verified: false, usage: 'unknown' });
     return state;
   } finally {
     for (const entry of children.values()) stopChild(entry, 'cancelled');

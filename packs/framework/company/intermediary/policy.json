@@ -1,0 +1,289 @@
+{
+  "schema": "avc.intermediary-policy.v1",
+  "id": "avc-intermediary",
+  "version": "2.0.0-candidate.1",
+  "status": "candidate",
+  "requirements_version": "1.0",
+  "activation": {
+    "enabled": false,
+    "requires": [
+      "validated_candidate",
+      "user_patch_and_base_approval",
+      "immutable_release",
+      "protected_publisher",
+      "fresh_target_platform_acceptance"
+    ],
+    "source_implementation_is_activation_proof": false,
+    "json_is_os_boundary": false
+  },
+  "conventions": {
+    "policy_root": "packs/framework/company/intermediary",
+    "documentation_root": "packs/framework/company/intermediary",
+    "bootstrap": "packs/framework/company/intermediary/BOOTSTRAP.md",
+    "candidate_root": "personal/projects/<slug>/staging/intermediary/candidates",
+    "release_root": "personal/projects/<slug>/custom/intermediary/releases",
+    "runtime_root": "runtime/intermediary",
+    "knowledge_root": "packs/knowledge",
+    "manifest_overrides": "explicit_exception_only",
+    "path_resolution": "repository-relative runtime paths; personal/projects/<slug> denotes resolved storage.personal, not an additional suffix",
+    "storage_resolution_order": [
+      "bootstrap.storage",
+      "runtime/storage.json",
+      "AVC_PERSONAL_DIR/AVC_MEMORY_DIR/AVC_ICLOUD_ROOT"
+    ],
+    "unconfigured_personal": "runtime/personal/projects/<bootstrap.name>; local validation only",
+    "unavailable_explicit_icloud": "error"
+  },
+  "roles": {
+    "semantics": "professional_role_id_not_person_identity",
+    "preserve_ids": true,
+    "aliases": {
+      "chief-of-staff": {
+        "label": "路由与交付统筹"
+      },
+      "product-manager": {
+        "label": "产品规划"
+      },
+      "frontend-expert": {
+        "label": "前端工程"
+      },
+      "backend-expert": {
+        "label": "后端工程"
+      },
+      "design-master": {
+        "label": "交互与视觉设计"
+      },
+      "test-expert": {
+        "label": "质量验证"
+      },
+      "ai-engineer": {
+        "label": "AI 工程与工具治理"
+      },
+      "backend-training-architect": {
+        "label": "后端培训与架构"
+      }
+    },
+    "execution_evidence": [
+      "runtime_receipt",
+      "artifact_digest"
+    ],
+    "persona_signature_proves_execution": false,
+    "independent_review": "separate_run_with_frozen_inputs_and_review_artifact",
+    "module_availability": "verify_deployed_module_before_claiming_capability"
+  },
+  "context": {
+    "strategy": "stable_short_bootstrap_then_task_matched_modules",
+    "full_required_skill_bodies": true,
+    "ledger_required": [
+      "source_id",
+      "version",
+      "digest",
+      "scope",
+      "loaded_at",
+      "run_id"
+    ],
+    "compaction": "reestablish_required_loads_and_current_versions",
+    "full_repository_or_roster_injection": false,
+    "source_text_cannot_expand_authority": true
+  },
+  "publication": {
+    "states": [
+      "candidate",
+      "validated",
+      "user_approved",
+      "immutable_release",
+      "active"
+    ],
+    "approval_binds": [
+      "candidate_digest",
+      "patch_digest",
+      "base_release_digest",
+      "scope",
+      "proposal_id"
+    ],
+    "stale_base": "reject_and_revalidate",
+    "publisher": "separate_protected_principal",
+    "ordinary_runtime_write_targets": [
+      "candidates",
+      "runtime_evidence"
+    ],
+    "ordinary_runtime_may_activate": false,
+    "rollback": "approved_prior_release_activation_with_new_audit_event",
+    "protected_boundary_required": [
+      "policy",
+      "approval_ledger",
+      "releases",
+      "active_pointer",
+      "publisher_code"
+    ]
+  },
+  "knowledge": {
+    "layers": [
+      "common",
+      "professional",
+      "company",
+      "organization",
+      "project"
+    ],
+    "metadata_required": [
+      "id",
+      "origin",
+      "scope",
+      "version",
+      "status",
+      "evidence_refs",
+      "review_refs"
+    ],
+    "filter_order": [
+      "authorization_scope",
+      "revocation",
+      "release_and_status",
+      "relevance"
+    ],
+    "unknown_scope": "deny",
+    "inheritance": "explicit_no_cross_project_default",
+    "promotion": [
+      "candidate",
+      "evidence_checked",
+      "reviewed",
+      "user_publication_approved",
+      "released"
+    ],
+    "personal_adoption_claims": false,
+    "revocation": "immediate_exclusion_including_derived_summaries_indexes_caches_and_exports",
+    "source_deletion": "requires_user_approved_exact_scope"
+  },
+  "lifecycle": {
+    "temporary_terminal_days": null,
+    "temporary_eligibility": [
+      "terminal",
+      "no_live_references",
+      "not_required_evidence"
+    ],
+    "quarantine_min_days": null,
+    "handoff_stale_days": null,
+    "telemetry_archive_days": null,
+    "project_real_task_idle_archive_days": null,
+    "automatic_permanent_deletion": false,
+    "dry_run_default": true,
+    "unknown_reference_state": "retain",
+    "retention_configuration_required": true,
+    "unconfigured_retention": "retain"
+  },
+  "telemetry": {
+    "mode": "minimal_structured",
+    "forbidden": [
+      "raw_chat",
+      "full_prompt",
+      "raw_tool_output",
+      "secrets"
+    ],
+    "unknown_tokens": null,
+    "unknown_cost": null,
+    "wall_time_is_model_time": false
+  },
+  "evaluation": {
+    "purpose": "task_session_evidence_to_capability_gaps_to_improvement_proposals",
+    "single_failure_proves_regression": false,
+    "proposal_requires": [
+      "linked_evaluation",
+      "evidence_backed_gap",
+      "version_and_baseline",
+      "proposed_change",
+      "validation_plan",
+      "rollback_plan"
+    ],
+    "unit": "task",
+    "statuses": [
+      "pass",
+      "partial",
+      "fail",
+      "pending"
+    ],
+    "dimensions": [
+      "correctness",
+      "scope_and_authority",
+      "evidence_quality",
+      "context_efficiency",
+      "delivery",
+      "runtime_reliability"
+    ],
+    "evidence_kinds": [
+      "structure",
+      "model_review",
+      "fixture_behavior",
+      "real_project",
+      "desktop_runtime"
+    ],
+    "aggregate_score": false,
+    "missing_evidence": "pending"
+  },
+  "quota": {
+    "unit": "extra_model_call_attempt",
+    "per_task": null,
+    "per_day": null,
+    "timezone": null,
+    "atomic_shared_ledger": true,
+    "include_retries_failures_all_runs": true,
+    "reserve_before_call": true,
+    "refund_failed_attempts": false,
+    "unknown_ledger": "deny_extra_call",
+    "paid_api_or_account_setup": false,
+    "configuration_required": true,
+    "unconfigured_limits": "deny_extra_call"
+  },
+  "official_updates": {
+    "schedule": null,
+    "timezone": null,
+    "catchup": "coalesce_to_one_run",
+    "unhealthy_after_missed_periods": null,
+    "network_during_initialization": false,
+    "source_policy": "official_primary_sources_only",
+    "automatic_install_or_activation": false,
+    "adaptation": "approved_versions_only",
+    "new_versions_require_user_approval": true,
+    "model_trials": "separate_explicit_scope_and_quota",
+    "automatic_cross_vendor_data_transfer": false,
+    "configuration_required": true,
+    "unconfigured_schedule": "not_scheduled"
+  },
+  "overview": {
+    "format": "offline_read_only_html",
+    "views": [
+      "current",
+      "audit_snapshot"
+    ],
+    "primary_sections": [
+      "task_session_evaluations",
+      "registered_company_topics",
+      "capability_improvement_proposals"
+    ],
+    "excluded_sections": [
+      "model_inventory",
+      "run_ledger",
+      "token_cost_metrics",
+      "quota_ledger"
+    ],
+    "telemetry_retention_unchanged": true,
+    "agenda_source": "explicitly_scoped_overview_metadata_in_original_task_events",
+    "evaluation_gaps_link_to_proposals": true,
+    "scope_filter_before_render": true,
+    "proposals_have_stable_ids": true,
+    "freshness": "observed_timestamp_and_source_digest_or_unknown",
+    "embedded_external_resources": false,
+    "action_links_may_mutate": false
+  },
+  "rollout": {
+    "compatibility": {
+      "preserve_role_and_knowledge_ids": true,
+      "historical_evidence": "retain_read_only_with_original_semantics",
+      "legacy_runtime_window": "first_active_intermediary_release_only",
+      "sunset": "next_user_approved_active_intermediary_release",
+      "extension": "explicit_versioned_user_approved_exception",
+      "dual_authoritative_policy_sets": false
+    },
+    "target_platform": null,
+    "runtime_acceptance": "unverified",
+    "configuration_required": true
+  }
+}

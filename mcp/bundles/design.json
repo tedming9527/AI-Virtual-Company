@@ -1,5 +1,5 @@
 {
-  "schema": "ted.mcp-bundle.v1",
+  "schema": "avc.mcp-bundle.v1",
   "id": "design",
   "required": ["figma-local"],
   "recommended": ["computer-use"],

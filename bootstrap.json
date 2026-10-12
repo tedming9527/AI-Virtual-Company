@@ -1,0 +1,12 @@
+{
+  "name": "ai-virtual-company",
+  "version": "1.1.0",
+  "update": {
+    "channel": "master",
+    "check": "on-start"
+  },
+  "presets": [
+    "base"
+  ],
+  "storage": {}
+}

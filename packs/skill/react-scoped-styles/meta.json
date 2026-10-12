@@ -1,0 +1,10 @@
+{
+  "type": "skill",
+  "name": "react-scoped-styles",
+  "version": "1.0.0",
+  "rubric": [
+    "completion_rate",
+    "reusability"
+  ],
+  "status": "stable"
+}

@@ -1,18 +1,29 @@
-# Ted 公司项目开发接管
+# AGENTS.md —— 中央仓库入口（平台中立版）
 
-## 公司最高初始化规则
+本仓库是「多类型 AI 技能包生命周期平台」的中央仓库：定义、分发、治理 skill / knowledge / framework / role 四类技能包，统一下发预设并管理版本。
 
-`INITIALIZATION_POLICY.md` 是公司最高规则之一。任何任务在声称由公司接管前，必须先解析公司根目录、执行完整性核对，并加载该政策规定的公司事实源。初始化失败时停止公司接管并报告缺失项；禁止改写平台全局规则副本来代替公司事实源。
+## 目录结构（约定大于配置）
 
-本工作区由 Ted AI智能科技有限公司统筹。每次任务先读取 INITIALIZATION_POLICY.md 并执行其中的基础与条件加载规则，按任务选择一名主责，必要时增加顾问；简短说明负责人和交付目标，然后完成用户已授权的工作与验证。
+- `packs/<type>/<name>/`：四类包，每包含 SKILL.md（或等价入口文档）+ meta.json；**新增包 = 建目录即被发现**，无需改任何配置
+- `presets/<name>/`：统一下发预设（bootstrap.json 的 `presets` 有序声明，后者覆盖前者）
+- `mcp/`：预置 MCP（目录名即工具名，自动注册）；`mcp/pack-manager/` 为平台引擎
+- `rules/`：跨包全局规则；`docs/`：开发文档；`panorama/`：全景图产物落点
+- `runtime/`：本地运行态唯一落点（cache / logs / lockfile，按 TTL 清理；不写系统 tmp）
+- 个人数据不入本仓库：由部署期 `bootstrap.storage` 指向个人目录（规约见 [docs/08](docs/08-个人目录规约.md)，`doctor` 校验）
 
-用户已于 2026-09-09 长期授权：所有关联项目的开发会话默认由公司接管，不必逐项目重复询问接管许可。其他项目需实际加载公司绑定指令才能自动生效，不得声称本文件已接管其他平台或运行中的会话。
+## 命令入口
 
-公司技能按需选择。遵守用户指令与适用的项目规范。公司面向用户的最终回复必须使用与执行证据一致的非空白末行：没有具名员工本人回执时使用“以上内容由 Ted 公司提供；任务主责：{该任务既定主责实名}；实际执行者：platform agent”；若且仅若 `role_augmented_platform` 实际加载了具名岗位的 PROFILE 或命中知识，可追加“；岗位能力参考：{名字 + 岗位}（资料增强，非本人参与）”；只有 `employee_participation_verified: true` 时才可使用“以上内容由 Ted 公司的{该任务既定主责实名}等人为您提供”。责任人和能力参考取自冻结证据，不自由生成；提交前执行尾注自检。尾注不证明 Hook、监督或其他员工参与。
+```sh
+node mcp/pack-manager/src/cli.js <command>
+# init / check / upgrade / sync / panorama
+# doctor / config / import-scan / bind      （个人目录治理）
+# validate-packs / validate-log / validate-layout   （规约门禁）
+```
 
-## 模型资源学习强触发
+## 防逃逸与只读规约
 
-全员、指定名单或单人的模型预算请求先按 `LEARNING_POLICY.md` 使用解析器分离执行范围、预算总额/逐人预算与模型。明确监督、预算任务或多执行者任务读取 `SUPERVISION_POLICY.md`，用户无需写“全员”才能触发监督。计划不是执行；不支持的模型、计量或执行通道保持 blocked，不继承其他模型代跑。多人按依赖决定并行或串行；额度共享事实不能伪装成个人账户。
-
-## 培训岗位
-后端教学、继续上课、mephisto业务学习由沈砚舟（employees/backend-training-architect）主责；后端产品开发仍由陆行远主责。按ROUTER加载新导师交接与课程事实源。
+- 仓库根与 `packs/` 布局受 `validate-layout` 门禁：根级白名单之外的内容、`packs/` 下无 meta.json 的散落目录都会被拒绝
+- 各类产生物有固定落点：会话事件/立项登记 → 个人 `inbox/`；交付物 → 个人 `deliverables/`；学习记录 → 个人 `learning/`；外部导入 → 个人 `staging/`（import-scan 打标台账）；本机视图/缓存 → 仓库 `runtime/`
+- 外部资产一律先入个人 `staging/`（自动打标 → 台账 → 人工复核 → 转正），不得直接拷入 `packs/`
+- 不写入密钥、凭据、个人路径与账号标识
+- 改动走 PR → 人审 → 打 tag → CI 校验（validate.yml）→ 全景图发布（panorama.yml）

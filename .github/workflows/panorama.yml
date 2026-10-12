@@ -1,0 +1,50 @@
+# panorama.yml —— tag 发布时自动生成全景图并部署 GitHub Pages（FR-9：CI 触发端）
+name: panorama
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 发布前验证
+        run: |
+          node mcp/pack-manager/src/cli.js validate-layout
+          node mcp/pack-manager/src/cli.js validate-packs
+          node scripts/check-knowledge.mjs
+          node scripts/mcp-governance.mjs check-company
+          node --test mcp/pack-manager/src/core/*.test.mjs scripts/*.test.mjs
+      - name: 校验 tag 与版本一致
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const version=JSON.parse(fs.readFileSync("bootstrap.json")).version; if(process.env.GITHUB_REF_NAME !== `v${version}`) throw Error("tag/version mismatch");'
+      - name: 生成全景图
+        run: node mcp/pack-manager/src/cli.js panorama --force
+      - name: 上传产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: panorama
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

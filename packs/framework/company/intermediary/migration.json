@@ -1,0 +1,63 @@
+{
+  "schema": "avc.policy-migration.v1",
+  "id": "role-and-context-v1",
+  "status": "candidate",
+  "activation_requires": [
+    "exact_source_baselines",
+    "protected_release",
+    "approved_platform_patch",
+    "fresh_target_platform_acceptance"
+  ],
+  "rules": [
+    {
+      "id": "identity-semantics",
+      "sources": [
+        "packs/framework/company/AI_RULES.md",
+        "packs/framework/company/targets/codex.md",
+        "packs/framework/company/policies/COMPANY.md",
+        "packs/framework/company/policies/ROUTER.md",
+        "packs/framework/company/policies/INITIALIZATION_POLICY.md"
+      ],
+      "replacement": "packs/framework/company/intermediary/ROLE_EXECUTION.md",
+      "effect": "replace persona-only participation requirements with versioned role and real execution evidence; retain authorization and truthful attribution"
+    },
+    {
+      "id": "initialization-reading",
+      "sources": [
+        "packs/framework/company/policies/INITIALIZATION_POLICY.md",
+        "packs/framework/company/targets/codex.md",
+        "packs/framework/company/policies/ROUTER.md"
+      ],
+      "replacement": "packs/framework/company/intermediary/CONTEXT_POLICY.md",
+      "effect": "retire unconditional full-policy and all-role loading only after approved entrypoint migration; retain full required Skills and critical constraints"
+    },
+    {
+      "id": "platform-entry",
+      "sources": [
+        "packs/framework/company/targets/codex.md",
+        "packs/framework/company/targets/claude.md",
+        "packs/framework/company/platforms.json"
+      ],
+      "replacement": "packs/framework/company/intermediary/BOOTSTRAP.md",
+      "effect": "deployment adapter prepares an exact approved target-platform patch; entry points to an approved immutable release, never writable candidate source; absent adapter remains unavailable"
+    }
+  ],
+  "preserve": [
+    "stable role IDs and professional labels",
+    "historical receipts with original semantics",
+    "user authority and Git boundaries",
+    "scope restrictions",
+    "required Skill body rules"
+  ],
+  "compatibility": {
+    "window": "first approved active intermediary release only",
+    "sunset": "next approved active intermediary release",
+    "extension": "explicit version-bound exception",
+    "dual_writable_sources": false
+  },
+  "recovery": "restore only the exact approved platform change; reject if current files differ; preserve later user edits and historical evidence",
+  "automatic_source_overwrite": false,
+  "automatic_hook_trust": false,
+  "paths_relative_to": "repository_root",
+  "deployment_adapter_required": true
+}
