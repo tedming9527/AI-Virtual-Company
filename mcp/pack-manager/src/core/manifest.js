@@ -1,0 +1,39 @@
+// manifest.js —— bootstrap / pack meta 读取与校验（FR-1/FR-10：校验门真实生效）
+
+import { readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+export function readJson(file) {
+  if (!existsSync(file)) return null;
+  try {
+    return JSON.parse(readFileSync(file, 'utf8'));
+  } catch (err) {
+    throw new Error(`JSON 解析失败: ${file} —— ${err.message}`);
+  }
+}
+
+const REQUIRED_BOOTSTRAP = ['name', 'version'];
+
+export function validateBootstrap(json) {
+  const errors = [];
+  if (!json) return { valid: false, errors: ['bootstrap.json 缺失'] };
+  for (const k of REQUIRED_BOOTSTRAP) {
+    if (typeof json[k] !== 'string' || !json[k]) errors.push(`bootstrap 缺少必填字段: ${k}`);
+  }
+  if (json.update && typeof json.update !== 'object') errors.push('bootstrap.update 必须是对象');
+  return { valid: errors.length === 0, errors };
+}
+
+export function validatePackMeta(meta, typeDir) {
+  const errors = [];
+  if (!meta) return { valid: false, errors: [`${typeDir} 缺少 meta.json`] };
+  if (typeof meta.type !== 'string') errors.push('meta.type 必填');
+  if (typeof meta.name !== 'string' || !meta.name) errors.push('meta.name 必填');
+  if (typeof meta.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(meta.version)) {
+    errors.push(`meta.version 必须为 x.y.z: ${meta.version}`);
+  }
+  if (!Array.isArray(meta.rubric) || meta.rubric.length === 0) {
+    errors.push('meta.rubric 必须为非空数组（评分维度）');
+  }
+  return { valid: errors.length === 0, errors };
+}

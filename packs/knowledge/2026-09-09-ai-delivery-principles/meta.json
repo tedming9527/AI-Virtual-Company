@@ -1,0 +1,11 @@
+{
+  "type": "knowledge",
+  "name": "2026-09-09-ai-delivery-principles",
+  "version": "1.0.0",
+  "rubric": [
+    "accuracy",
+    "relevance",
+    "freshness"
+  ],
+  "status": "stable"
+}

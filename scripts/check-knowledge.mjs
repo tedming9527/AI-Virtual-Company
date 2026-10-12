@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 const root = fs.realpathSync(process.argv[2] || process.env.AI_VIRTUAL_COMPANY_ROOT || process.cwd());
-const catalog = JSON.parse(fs.readFileSync(path.join(root, 'knowledge/catalog.json'), 'utf8'));
+const catalog = JSON.parse(fs.readFileSync(path.join(root, 'packs/knowledge/catalog.json'), 'utf8'));
 const requested = process.argv[3];
 const selected = requested ? catalog.entries.filter(e => e.id === requested) : catalog.entries;
 const errors = [], warnings = [], ids = new Set(), indexes = new Map();
@@ -55,7 +55,7 @@ function validDate(value) {
 function matchesOwner(value, role) {
   if (value === role) return true;
   if (!/^[a-z][a-z0-9-]+$/.test(role)) return false;
-  const profile = fs.readFileSync(resolve('employees/' + role + '/PROFILE.md'), 'utf8');
+  const profile = fs.readFileSync(resolve('packs/role/' + role + '/PROFILE.md'), 'utf8');
   const heading = profile.match(/^#\s+(.+)$/m)?.[1];
   // Profiles use the same person's name with both short and full job titles.
   return heading && value.split(/\s*[·｜|]\s*/)[0] === heading.split(/\s*[·｜|]\s*/)[0];
@@ -76,7 +76,7 @@ function checkMetadata(e, section, index, reference = false) {
   const updated = field(section, '更新时间|索引核对日');
   if ((!reference || updated) && updated !== e.updated) throw Error('index/catalog updated mismatch');
   const owner = field(section, 'Owner|负责人');
-  const role = index.match(/^employees\/([^/]+)\/MEMORY\.md$/)?.[1];
+  const role = index.match(/^packs\/role\/([^/]+)\/MEMORY\.md$/)?.[1];
   if (owner && !matchesOwner(owner, e.owner)) throw Error('index/catalog owner mismatch');
   if (!reference && role && role !== e.owner) throw Error('index path/catalog owner mismatch');
   if (!owner && !role && !reference) warnings.push(e.id + ': legacy index has no explicit owner');
@@ -111,11 +111,11 @@ for (const e of selected) {
 
 // Full audits discover omitted entries; targeted checks stay local.
 if (!requested) {
-  const employeeDirs = fs.readdirSync(path.join(root, 'employees'), { withFileTypes: true }).filter(d => d.isDirectory());
-  const files = new Set(['knowledge/INDEX.md', ...catalog.entries.map(e => e.index)]);
+  const employeeDirs = fs.readdirSync(path.join(root, 'packs/role'), { withFileTypes: true }).filter(d => d.isDirectory());
+  const files = new Set(['packs/knowledge/INDEX.md', ...catalog.entries.map(e => e.index)]);
   for (const d of employeeDirs) {
     if (!catalog.entries.some(e => e.owner === d.name)) errors.push('missing employee ' + d.name);
-    files.add('employees/' + d.name + '/MEMORY.md');
+    files.add('packs/role/' + d.name + '/MEMORY.md');
   }
   for (const file of files) {
     try {
@@ -125,7 +125,7 @@ if (!requested) {
         const e = entries[0];
         if (e.index === file) continue;
         // Shared IDs are references only when they link to the canonical detail.
-        if (e.index !== 'knowledge/INDEX.md') { errors.push(id + ': noncanonical duplicate index (' + file + ')'); continue; }
+        if (e.index !== 'packs/knowledge/INDEX.md') { errors.push(id + ': noncanonical duplicate index (' + file + ')'); continue; }
         try { checkMetadata(e, section, file, true); }
         catch (err) { errors.push(id + ': shared reference ' + file + ': ' + err.message); }
       }

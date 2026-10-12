@@ -10,16 +10,21 @@ import { supervise, status, cancel } from './supervisor-runtime.mjs';
 const DAY = 86400000, NOW = Date.parse('2026-09-14T00:00:00Z');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'ted-lifecycle-'));
+  const root = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'avc-lifecycle-'));
+  // 回执目录隔离：写入 fixture 内，避免共享位置残留导致二次运行冲突
+  const prevReceipts = process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR;
+  process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR = path.join(root, 'receipts');
   const runs = [];
   t.after(async () => {
     for (const r of runs) { try { await cancel(r.id, {root}); } catch {} }
     await Promise.allSettled(runs.map(r => r.promise));
+    if (prevReceipts === undefined) delete process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR;
+    else process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR = prevReceipts;
     fs.rmSync(root, {recursive:true,force:true});
   });
   return {
     root, call:(args, now=NOW)=>run(args,{root,now}),
-    task:id=>path.join(root,'tmp/tasks',id,'task.json'),
+    task:id=>path.join(root,'runtime/tmp/tasks',id,'task.json'),
     async launch(id, code='setTimeout(()=>{},200)') {
       const promise = supervise({id,tasks:[{id:'job',command:process.execPath,args:['-e',code]}],poll_ms:10},{root});
       runs.push({id,promise});
@@ -42,7 +47,7 @@ test('arbitrary receipt cannot fabricate running; actual exit gates completion',
   await r.promise;
   assert.equal(f.call(['status','sample']).execution_status,'succeeded');
   f.call(['close','sample','--status','completed','--reason',' Checks passed '],NOW+1000);
-  const receipt=JSON.parse(fs.readFileSync(path.join(f.root,'inbox/session-events/tmp-sample.json')));
+  const receipt=JSON.parse(fs.readFileSync(path.join(process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR,'tmp-sample.json')));
   assert.equal(receipt.reason,'Checks passed'); assert.equal(receipt.model_verified,false); assert.equal(receipt.duration_ms,1000);
 });
 test('cancel must await real stop; failed execution cannot be completed',async t=>{
@@ -73,7 +78,7 @@ test('dry run is read-only; active tasks retained and terminal tasks quarantined
   assert.equal(actual.results.find(x=>x.id==='active').action,'needs_attention');
   assert.equal(actual.results.find(x=>x.id==='done').action,'quarantined');
   assert.equal(f.call(['cleanup','--apply'],NOW+15*DAY).results.find(x=>x.id==='done').action,'purge_candidate');
-  assert.equal(fs.readdirSync(path.join(f.root,'tmp/quarantine')).length,1);
+  assert.equal(fs.readdirSync(path.join(f.root,'runtime/tmp/quarantine')).length,1);
 });
 test('blocked tasks resume only with a live supervised execution',async t=>{
   const f=fixture(t); f.call(['create','blocked']);
@@ -88,7 +93,7 @@ test('traversal, nested symlinks and lock conflicts refuse mutation',t=>{
   assert.throws(()=>f.call(['create','../escape']),/Unsafe/);
   f.call(['create','linked']); fs.symlinkSync(f.root,path.join(path.dirname(f.task('linked')),'escape'));
   assert.equal(f.call(['cleanup','--apply'],NOW+8*DAY).results[0].action,'refused');
-  fs.writeFileSync(path.join(f.root,'tmp/.task-lifecycle.lock'),'another owner');
+  fs.writeFileSync(path.join(f.root,'runtime/tmp/.task-lifecycle.lock'),'another owner');
   assert.throws(()=>f.call(['create','new']),/lock conflict/);
   assert.throws(()=>f.call(['cleanup','--force']),/Unexpected/);
 });
@@ -97,14 +102,14 @@ test('durable receipt written only for externally-executed tasks', async t=>{
   // negative: created and cancelled before ever starting => no durable inbox receipt
   f.call(['create','light']);
   f.call(['close','light','--status','cancelled','--reason','Superseded before start']);
-  assert.equal(fs.existsSync(path.join(f.root,'inbox/session-events/tmp-light.json')),false);
+  assert.equal(fs.existsSync(path.join(process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR,'tmp-light.json')),false);
   // positive: completed against a real supervised run => receipt persisted with duration
   f.call(['create','ran']);
   const r=await f.launch('runreceipt');
   f.call(['start','ran','--receipt',r.receipt]);
   await r.promise;
   f.call(['close','ran','--status','completed','--reason',' Ran ok '],NOW+1000);
-  const receipt=JSON.parse(fs.readFileSync(path.join(f.root,'inbox/session-events/tmp-ran.json')));
+  const receipt=JSON.parse(fs.readFileSync(path.join(process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR,'tmp-ran.json')));
   assert.equal(receipt.status,'completed'); assert.equal(receipt.model_verified,false); assert.equal(receipt.duration_ms,1000);
 });
 test('damaged reason, identity, or receipt failure prevents isolation', t=>{
@@ -123,7 +128,7 @@ test('damaged reason, identity, or receipt failure prevents isolation', t=>{
   qd.reason_sha256=createHash('sha256').update(reason).digest('hex');
   qd.closed_at=new Date(NOW).toISOString();
   fs.writeFileSync(qp,JSON.stringify(qd));
-  const receiptPath=path.join(f.root,'inbox/session-events/tmp-receipt.json');
+  const receiptPath=path.join(process.env.AI_VIRTUAL_COMPANY_RECEIPTS_DIR,'tmp-receipt.json');
   fs.mkdirSync(receiptPath,{recursive:true}); // corrupt: receipt slot is a directory, not a file
   assert.equal(f.call(['cleanup','--apply'],NOW+8*DAY).results.filter(x=>x.action==='refused').length,3);
 });

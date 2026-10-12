@@ -1,0 +1,42 @@
+{
+  "schema": "avc.company-environment.v1",
+  "platforms": {
+    "codex": {
+      "label": "Codex",
+      "rules": "AGENTS.md",
+      "config_env": [
+        "CODEX_CONFIG_HOME",
+        "CODEX_HOME"
+      ],
+      "config_default": ".codex",
+      "skills": ".agents/skills",
+      "paths_relative_to": "deployment_configured_platform_home",
+      "runtime_status": "unverified"
+    },
+    "claude": {
+      "label": "Claude Code",
+      "rules": "CLAUDE.md",
+      "config_env": [
+        "CLAUDE_CONFIG_HOME"
+      ],
+      "config_default": ".claude",
+      "skills": ".claude/skills",
+      "paths_relative_to": "deployment_configured_platform_home",
+      "runtime_status": "unverified"
+    }
+  },
+  "sources": [
+    {
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "verification": "verify_current_documentation_before_deployment"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/skills",
+      "verification": "verify_current_documentation_before_deployment"
+    }
+  ],
+  "status": "template",
+  "adapter_provided_by": "deployment",
+  "configuration_is_runtime_proof": false,
+  "unknown_platform": "unavailable_without_verified_adapter"
+}

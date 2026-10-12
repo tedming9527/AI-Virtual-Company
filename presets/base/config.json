@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "update": { "channel": "main", "check": "on-start" },
+  "runtime": { "cacheTtlDays": 7, "logRetentionDays": 30 },
+  "panorama": { "localView": true }
+}

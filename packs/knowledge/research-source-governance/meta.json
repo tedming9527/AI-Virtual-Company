@@ -1,0 +1,11 @@
+{
+  "type": "knowledge",
+  "name": "research-source-governance",
+  "version": "1.0.0",
+  "rubric": [
+    "accuracy",
+    "relevance",
+    "freshness"
+  ],
+  "status": "stable"
+}

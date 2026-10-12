@@ -2,8 +2,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(process.env.AI_VIRTUAL_COMPANY_ROOT || process.cwd());
+// import.meta.dirname 需 Node >= 20.11；用 fileURLToPath 兼容 Node 18
+const root = path.resolve(process.env.AI_VIRTUAL_COMPANY_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const readJson = file => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
 const safeId = value => typeof value === 'string' && /^[a-z][a-z0-9-]*$/.test(value);
 
@@ -14,7 +16,7 @@ function fail(message) {
 
 function checkCompany() {
   const registry = readJson('mcp/REGISTRY.json');
-  if (registry.schema !== 'ted.mcp-registry.v1' || !Array.isArray(registry.entries)) return fail('INVALID MCP REGISTRY');
+  if (registry.schema !== 'avc.mcp-registry.v1' || !Array.isArray(registry.entries)) return fail('INVALID MCP REGISTRY');
   const ids = new Set();
   for (const entry of registry.entries) {
     if (!safeId(entry.id) || ids.has(entry.id) || !entry.profile) return fail('INVALID MCP REGISTRY ENTRY');
@@ -22,7 +24,7 @@ function checkCompany() {
     const profilePath = path.resolve(root, entry.profile);
     if (!profilePath.startsWith(root + path.sep) || !fs.existsSync(profilePath)) return fail('MISSING MCP PROFILE: ' + entry.id);
     const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-    if (profile.schema !== 'ted.mcp-profile.v1' || profile.id !== entry.id || !['stdio','streamable-http'].includes(profile.transport)) return fail('INVALID MCP PROFILE: ' + entry.id);
+    if (profile.schema !== 'avc.mcp-profile.v1' || profile.id !== entry.id || !['stdio','streamable-http'].includes(profile.transport)) return fail('INVALID MCP PROFILE: ' + entry.id);
     if (!Array.isArray(profile.environment?.required_names) || !Array.isArray(profile.environment?.optional_names) || !Array.isArray(profile.verification)) return fail('INVALID MCP PROFILE FIELDS: ' + entry.id);
     const names = [...profile.environment.required_names, ...profile.environment.optional_names];
     if (names.some(name => !/^[A-Z][A-Z0-9_]*$/.test(name)) || profile.network?.mode === 'proxy-required' && profile.network.direct_fallback !== false) return fail('UNSAFE MCP PROFILE: ' + entry.id);
@@ -32,7 +34,7 @@ function checkCompany() {
   for (const name of fs.readdirSync(path.join(root, 'mcp/bundles'))) {
     if (!name.endsWith('.json')) continue;
     const bundle = readJson('mcp/bundles/' + name);
-    if (bundle.schema !== 'ted.mcp-bundle.v1' || !safeId(bundle.id)) return fail('INVALID MCP BUNDLE: ' + name);
+    if (bundle.schema !== 'avc.mcp-bundle.v1' || !safeId(bundle.id)) return fail('INVALID MCP BUNDLE: ' + name);
     for (const id of [...(bundle.required || []), ...(bundle.recommended || [])]) if (!ids.has(id)) return fail('UNKNOWN MCP IN BUNDLE: ' + id);
   }
   if (!process.exitCode) console.log(`MCP governance checked: ${ids.size} profiles`);
@@ -52,7 +54,7 @@ function auditLocal() {
     }
     return { id: entry.id, classification: entry.classification, overlay: overlayStatus };
   });
-  console.log(JSON.stringify({ schema: 'ted.mcp-local-audit.v1', rows }, null, 2));
+  console.log(JSON.stringify({ schema: 'avc.mcp-local-audit.v1', rows }, null, 2));
   if (rows.some(row => row.classification === 'company-required' && row.overlay !== 'ready')) process.exitCode = 2;
 }
 

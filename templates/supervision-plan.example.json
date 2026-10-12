@@ -5,8 +5,33 @@
   "poll_ms": 100,
   "timeout_ms": 60000,
   "tasks": [
-    {"id": "budget-tests", "command": "node", "args": ["--test", "scripts/resolve-model-learning-request.test.mjs"]},
-    {"id": "runtime-tests", "command": "node", "args": ["--test", "scripts/supervisor-runtime.test.mjs"]},
-    {"id": "lifecycle-tests", "command": "node", "args": ["--test", "scripts/task-lifecycle.test.mjs"], "depends_on": ["budget-tests", "runtime-tests"]}
+    {
+      "id": "pack-tests",
+      "command": "node",
+      "args": [
+        "--test",
+        "mcp/pack-manager/src/core/personal.test.mjs"
+      ]
+    },
+    {
+      "id": "runtime-tests",
+      "command": "node",
+      "args": [
+        "--test",
+        "scripts/supervisor-runtime.test.mjs"
+      ]
+    },
+    {
+      "id": "lifecycle-tests",
+      "command": "node",
+      "args": [
+        "--test",
+        "scripts/task-lifecycle.test.mjs"
+      ],
+      "depends_on": [
+        "pack-tests",
+        "runtime-tests"
+      ]
+    }
   ]
 }

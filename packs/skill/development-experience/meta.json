@@ -1,0 +1,10 @@
+{
+  "type": "skill",
+  "name": "development-experience",
+  "version": "1.0.0",
+  "rubric": [
+    "completion_rate",
+    "reusability"
+  ],
+  "status": "stable"
+}

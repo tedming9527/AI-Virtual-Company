@@ -1,0 +1,136 @@
+{
+  "schema": "avc.context-routing.v1",
+  "version": "1-candidate",
+  "rules": [
+    {
+      "id": "engineering",
+      "domains": [
+        "frontend",
+        "backend",
+        "company"
+      ],
+      "actions": [
+        "change",
+        "release"
+      ],
+      "roles": [],
+      "files": [
+        "packs/framework/company/intermediary/ENGINEERING.md"
+      ]
+    },
+    {
+      "id": "frontend",
+      "domains": [
+        "frontend"
+      ],
+      "roles": [
+        "frontend-expert"
+      ],
+      "files": []
+    },
+    {
+      "id": "backend",
+      "domains": [
+        "backend"
+      ],
+      "roles": [
+        "backend-expert"
+      ],
+      "files": []
+    },
+    {
+      "id": "company",
+      "domains": [
+        "company"
+      ],
+      "roles": [
+        "chief-of-staff",
+        "ai-engineer"
+      ],
+      "files": []
+    },
+    {
+      "id": "governance-migration",
+      "domains": [
+        "company"
+      ],
+      "actions": [
+        "change",
+        "audit",
+        "release"
+      ],
+      "roles": [],
+      "files": [
+        "packs/framework/company/intermediary/ROLE_EXECUTION.md",
+        "packs/framework/company/intermediary/CONTEXT_POLICY.md"
+      ],
+      "requires": [
+        "engineering"
+      ]
+    },
+    {
+      "id": "design",
+      "domains": [
+        "design"
+      ],
+      "roles": [
+        "design-master"
+      ],
+      "files": []
+    },
+    {
+      "id": "quality",
+      "domains": [
+        "quality"
+      ],
+      "roles": [
+        "test-expert"
+      ],
+      "files": []
+    },
+    {
+      "id": "learning",
+      "domains": [
+        "learning"
+      ],
+      "roles": [
+        "backend-training-architect"
+      ],
+      "files": []
+    },
+    {
+      "id": "styles",
+      "actions": [
+        "change",
+        "release"
+      ],
+      "traits": [
+        "styles"
+      ],
+      "roles": [
+        "frontend-expert"
+      ],
+      "files": [
+        "packs/skill/react-scoped-styles/SKILL.md"
+      ],
+      "requires": [
+        "engineering"
+      ]
+    },
+    {
+      "id": "figma",
+      "traits": [
+        "figma"
+      ],
+      "roles": [
+        "design-master"
+      ],
+      "files": [
+        "packs/skill/figma-reader/SKILL.md"
+      ]
+    }
+  ],
+  "status": "candidate",
+  "paths_relative_to": "repository_root",
+  "role_module_availability": "verify_deployment_before_execution"
+}
