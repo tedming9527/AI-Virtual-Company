@@ -96,3 +96,11 @@ test('real published knowledge catalog supports both standalone packs and role d
  assert.equal(entries.filter(a=>a.load.type==='role').length,45);
  assert.ok(entries.every(a=>fs.existsSync(path.join(root,'packs',a.load.type,a.load.name,a.load.entry))));
 });
+
+test('native reads prefer exact document identity over another knowledge entry sharing role directory',t=>{
+ const {root,options}=fixture(t),dir=path.join(root,'packs/role/mentor');fs.mkdirSync(path.join(dir,'knowledge'),{recursive:true});
+ fs.writeFileSync(path.join(dir,'meta.json'),JSON.stringify({name:'mentor',type:'role',version:'1.0.0'}));fs.writeFileSync(path.join(dir,'PROFILE.md'),'# Role profile');fs.writeFileSync(path.join(dir,'knowledge/guide.md'),'# Guide');fs.writeFileSync(path.join(dir,'notes.md'),'# Supporting notes');
+ fs.mkdirSync(path.join(root,'packs/knowledge'),{recursive:true});fs.writeFileSync(path.join(root,'packs/knowledge/catalog.json'),JSON.stringify({entries:[{id:'guide',owner:'mentor',detail:'packs/role/mentor/knowledge/guide.md'}]}));
+ const read=file=>recordObservedRead(root,{hook_event_name:'PostToolUse',tool_name:'Read',tool_input:{file_path:path.join(dir,file)},tool_response:{exit_code:0}},options).records[0];
+ assert.equal(read('PROFILE.md').type,'role');assert.equal(read('PROFILE.md').name,'mentor');assert.equal(read('knowledge/guide.md').name,'guide');assert.equal(read('notes.md').type,'role');
+});
