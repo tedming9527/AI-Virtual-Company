@@ -235,7 +235,7 @@ function executeHook(input, deploymentFile) {
     if (!existsSync(paths.task)) {
       if (input.hook_event_name === 'PreToolUse' && d.settings.bootstrapTools.includes(input.tool_name)) return {};
       const task = { ...key, catalogVersion: d.catalogVersion };
-      record(paths, task, 'unbound_tool_observed', { tool: input.tool_name, toolUseId: input.tool_use_id, event: input.hook_event_name });
+      record(paths, task, 'unbound_tool_observed', { tool: input.tool_name, toolUseId: input.tool_use_id, nativeEvent: input.hook_event_name });
       return input.hook_event_name === 'PreToolUse' ? denial(d.settings.mode, 'task_begin required before this tool') : {};
     }
     const task = read(paths.task);

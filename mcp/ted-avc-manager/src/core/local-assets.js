@@ -52,13 +52,23 @@ function skillFromDir(dir, source, root) {
     metadataValid: meta.type === 'skill' && meta.name === basename(dir) && /^\d+\.\d+\.\d+$/.test(meta.version || '') && Array.isArray(meta.rubric) && meta.rubric.length > 0,
     pathLabel: source === 'general' ? relative(root, entry) : source === 'local-custom' ? relative(personalProject(root).directory, entry) : entry };
 }
+export function nativeSkillRoots(home=homedir()) {
+  const codex=process.env.CODEX_HOME || join(home,'.codex'), roots=[join(codex,'skills'),join(home,'.agents','skills')];
+  const visit=(dir,depth)=>{
+    if(depth>6 || !existsSync(dir) || lstatSync(dir).isSymbolicLink() || !lstatSync(dir).isDirectory())return;
+    if(basename(dir)==='skills'){roots.push(dir);return;}
+    for(const name of readdirSync(dir))if(!['.git','node_modules','runtime'].includes(name))visit(join(dir,name),depth+1);
+  };
+  visit(join(codex,'plugins','cache'),0);
+  return roots;
+}
 export function discoverSkills(root, opts = {}) {
   const personal = personalProject(root), skills = [], warnings = [];
   const roots = [
     { path: join(root, 'packs', 'skill'), source: 'general' },
     { path: join(personal.directory, 'custom', 'packs', 'skill'), source: 'local-custom' },
     { path: join(personal.directory, 'custom', 'skills'), source: 'local-custom' },
-    ...(opts.externalRoots || [join(homedir(), '.codex', 'skills'), join(homedir(), '.agents', 'skills')]).map(path => ({ path, source: 'external-installed' })),
+    ...(opts.externalRoots || nativeSkillRoots()).map(path => ({ path, source: 'external-installed' })),
   ];
   const entries = registry(root).entries;
   for (const item of roots) {

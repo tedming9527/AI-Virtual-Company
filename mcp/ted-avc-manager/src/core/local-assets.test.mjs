@@ -44,3 +44,12 @@ test('symlinked skill metadata, system entries and runtime registry cannot escap
  fs.rmSync(path.join(root,'runtime'),{recursive:true});fs.symlinkSync(elsewhere,path.join(root,'runtime'));
  assert.throws(()=>registerLocalSkill(root,dir),/runtime/);
 });
+
+test('native plugin cache skills are discoverable without claiming installation or use',async t=>{
+ const fs=await import('node:fs'),path=await import('node:path');
+ const {nativeSkillRoots}=await import('./local-assets.js');
+ fs.mkdirSync('runtime/cache',{recursive:true});const home=fs.mkdtempSync(path.resolve('runtime/cache/plugin-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ const skills=path.join(home,'.codex/plugins/cache/vendor/plugin/1.0.0/skills');fs.mkdirSync(path.join(skills,'example'),{recursive:true});
+ fs.writeFileSync(path.join(skills,'example/SKILL.md'),'---\nname: example\ndescription: Plugin example\n---\n# Example');
+ assert.ok(nativeSkillRoots(home).includes(skills));
+});
