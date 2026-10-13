@@ -57,7 +57,7 @@ Codex 客户端安装/升级脚本 `scripts/update-local-client.py`（Python 3.1
 | `templates/` | 模板 |
 | `scripts/` | 脚本 |
 | `panorama/` | 全景图生成产物 |
-| `runtime/` | 本地运行态约定目录（FR-7，不写系统 tmp） |
+| `runtime/` | 仓库运行元数据与本地视图；大缓存和中介层创建的临时副本须留在非 iCloud 位置 |
 | `.github/` | CI / 工作流 |
 | `.gitignore` | 忽略规则 |
 

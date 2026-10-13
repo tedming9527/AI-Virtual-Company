@@ -1,164 +1,135 @@
 #!/usr/bin/env python3
-# 生成架构全景图 v3（docs/assets/architecture-v3.svg）
-# 用法：python3 scripts/generate_architecture_svg.py
-import os, html, json
+"""Generate the single current architecture diagram from the repository catalog."""
+from pathlib import Path
+from html import escape
+import json
 
-W, H = 1280, 1060
-ROOT = os.path.join(os.path.dirname(__file__), '..')
-COUNTS = {t: sum(os.path.isfile(os.path.join(ROOT,'packs',t,n,'meta.json')) for n in os.listdir(os.path.join(ROOT,'packs',t))) for t in ['skill','knowledge','framework','role']}
-OUT = os.path.join(os.path.dirname(__file__), "..", "docs", "assets", "architecture-v3.svg")
-
-with open(os.path.join(os.path.dirname(__file__), '..', 'bootstrap.json')) as f:
-    VERSION = json.load(f)['version']
-
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "docs/assets/architecture.svg"
+VERSION = json.loads((ROOT / "bootstrap.json").read_text())["version"]
+TYPES = ("skill", "knowledge", "framework", "role")
+COUNTS = {
+    kind: sum((name / "meta.json").is_file()
+              for name in (ROOT / "packs" / kind).iterdir() if name.is_dir())
+    for kind in TYPES
+}
+W, H = 1280, 1280
+FONT = "-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif"
 parts = []
-def add(s): parts.append(s)
 
-FONT = "font-family='-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif'"
+def add(value):
+    parts.append(value)
 
-def box(x, y, w, h, title, items, fill, stroke, tcolor="#0f172a", title_size=15,
-        item_size=12, title_fill=None):
-    tf = title_fill or fill
-    add(f"<rect x='{x}' y='{y}' width='{w}' height='{h}' rx='10' fill='{fill}' stroke='{stroke}' stroke-width='1.5'/>")
-    add(f"<rect x='{x}' y='{y}' width='{w}' height='30' rx='10' fill='{tf}'/>")
-    add(f"<rect x='{x}' y='{y+15}' width='{w}' height='15' fill='{tf}'/>")
-    add(f"<text x='{x+12}' y='{y+20}' font-size='{title_size}' font-weight='700' fill='{tcolor}' {FONT}>{html.escape(title)}</text>")
-    yy = y + 50
-    for it in items:
-        if it.startswith("##"):
-            add(f"<text x='{x+12}' y='{yy}' font-size='{item_size}' font-weight='700' fill='{stroke}' {FONT}>{html.escape(it[2:].strip())}</text>")
-        else:
-            add(f"<text x='{x+12}' y='{yy}' font-size='{item_size}' fill='#334155' {FONT}>{html.escape(it)}</text>")
-        yy += 19
+def rect(x, y, w, h, fill, stroke, radius=14, width=1.6):
+    add(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" '
+        f'fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>')
 
-def arrow(x1, y1, x2, y2, color="#64748b", w=2, dash=None, label=None):
-    d = f" stroke-dasharray='{dash}'" if dash else ""
-    add(f"<line x1='{x1}' y1='{y1}' x2='{x2}' y2='{y2}' stroke='{color}' stroke-width='{w}'{d} marker-end='url(#arr)'/>")
-    if label:
-        add(f"<text x='{(x1+x2)/2+6}' y='{(y1+y2)/2-4}' font-size='11' fill='{color}' {FONT}>{html.escape(label)}</text>")
+def label(x, y, value, size=13, color="#334155", weight=400, anchor=None):
+    extra = f' text-anchor="{anchor}"' if anchor else ""
+    add(f'<text x="{x}" y="{y}" font-size="{size}" font-weight="{weight}" '
+        f'fill="{color}" font-family="{FONT}"{extra}>{escape(value)}</text>')
 
-# ---------- 画布 ----------
-add(f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 {W} {H}' width='{W}' height='{H}'>")
-add("<defs><marker id='arr' markerWidth='9' markerHeight='9' refX='7' refY='3' orient='auto' markerUnits='strokeWidth'><path d='M0,0 L7,3 L0,6 z' fill='#64748b'/></marker></defs>")
-add(f"<rect width='{W}' height='{H}' fill='#f8fafc'/>")
-add(f"<text x='30' y='38' font-size='24' font-weight='800' fill='#0f172a' {FONT}>AI-Virtual-Company · 架构与执行边界 v4</text>")
-add(f"<text x='30' y='60' font-size='13' fill='#64748b' {FONT}>多类型 AI 技能包生命周期平台 · 中央仓库 v{VERSION} · 蓝=中央通用 / 绿=部署个人存储 / 橙=本地运行时 / 紫=统一通用化升级路线</text>")
+def card(x, y, w, h, title, lines, fill, stroke, title_color="#0f172a",
+         title_size=16, body_size=13, step=26):
+    rect(x, y, w, h, fill, stroke)
+    label(x + 18, y + 31, title, title_size, title_color, 700)
+    for index, line in enumerate(lines):
+        label(x + 18, y + 61 + index * step, line, body_size)
 
-# ---------- Row1 用户入口 ----------
-box(320, 78, 640, 64, "L0 用户入口",
-    ["自然语言 / URI 动作词：初始化 · 检查 · 升级 · 同步 · 体检 · 导入 · 全景图"],
-    "#e2e8f0", "#475569", title_size=14)
+def arrow(x1, y1, x2, y2, color="#64748b", width=2):
+    add(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+        f'stroke="{color}" stroke-width="{width}" marker-end="url(#arrow)"/>')
 
-# ---------- Row2 命令协议 + 大模型 ----------
-box(60, 170, 560, 92, "L1 命令协议层（确定性代码，不靠模型猜）",
-    ["① URI 正则解析（owner/repo/ref） → ② 意图映射（动作词→流程ID）",
-     "→ ③ 预定义流程执行；失败保留证据，不以索引存在宣称安装成功"],
-    "#ede9fe", "#7c3aed", title_size=13)
-box(660, 170, 560, 92, "L2 大模型执行端",
-    ["模型发现桥接 Skill 与 MCP 元数据；所需技能/知识按需读全文",
-     "Codex 已提供原生执行适配；其他平台须独立接入与验收"],
-    "#fef3c7", "#d97706", title_size=13)
-arrow(560, 216, 660, 216, color="#94a3b8")
-arrow(640, 142, 340, 170, color="#94a3b8")
-arrow(640, 142, 940, 170, color="#94a3b8")
+add(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-labelledby="title desc">')
+add('<title id="title">AI-Virtual-Company 现行架构：责任、目录契约与资产升级</title>')
+add('<desc id="desc">展示系统代码、大模型和人工的责任边界；中央、个人与运行时目录契约；资产发现、统计、提炼、复核、发布及本地公开视图隔离。</desc>')
+add('<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 Z" fill="#64748b"/></marker></defs>')
+add(f'<rect width="{W}" height="{H}" fill="#f8fafc"/>')
+label(40, 45, "AI-Virtual-Company · 现行架构", 28, "#0f172a", 800)
+label(40, 72, f"中央目录 v{VERSION}  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化", 14, "#475569")
 
-# ---------- Row3 本地运行时引擎 ----------
-box(120, 290, 1040, 96, "L3 本地运行时 · ted-avc-manager 中介层",
-    ["资产：四类包 + native / 插件缓存发现 → 元数据索引 → 绑定 load_asset 全文",
-     "执行：task_begin → PreToolUse（白名单 / 必需入口 / 预算 / 漂移）→ PostToolUse → closeout",
-     "monitor / enforce；原生回合 nonce + 产物 SHA；隐藏加载、token / cost 仍 unknown"],
-    "#ffedd5", "#ea580c", title_size=14)
-arrow(340, 262, 400, 290, color="#94a3b8")
-arrow(940, 262, 880, 290, color="#94a3b8")
+label(40, 111, "谁负责什么", 19, "#0f172a", 700)
+card(40, 128, 390, 206, "系统代码 · 可重复的确定性动作", [
+    "扫描目录并校验 meta、入口、版本和摘要",
+    "绑定任务，观察宿主可见的 Pre/Post 事件",
+    "按窗口去重统计；证据不足显示“未评分”",
+    "生成本地/公开全景图并隔离私有字段",
+    "不推断满意度，也不自动批准发布",
+], "#e0f2fe", "#0284c7", "#075985")
+card(445, 128, 390, 206, "大模型 · 需要语义判断的工作", [
+    "按需读取资料，检索同课题及必要来源",
+    "比较新旧知识、冲突、反例和适用边界",
+    "合并提炼经验，提出候选和未覆盖清单",
+    "建议升级、降级或审计；结论留待复核",
+    "模型是否实际参与，以运行产物为证",
+], "#f5f3ff", "#7c3aed", "#6d28d9")
+card(850, 128, 390, 206, "用户与人工复核 · 决策和信任门", [
+    "确定课题、授权范围与长期保存选择",
+    "审查来源、脱敏、覆盖映射和候选差异",
+    "批准个人资料清理及通用包 PR",
+    "人审合并并批准 tag；发布由 CI 校验",
+    "岗位标签不等于具名员工实际参与",
+], "#fff7ed", "#ea580c", "#9a3412")
 
-# ---------- Row4 三个存储 ----------
-cy = 418
-# 中央仓库
-box(40, cy, 390, 330, "L4 中央仓库 · GitHub（通用，唯一事实源）",
-    ["##根级入口",
-     f"bootstrap.json v{VERSION} · README · CHANGELOG · AGENTS.md",
-     f"##packs/ 四类包（{sum(COUNTS.values())}）",
-     f"skill ×{COUNTS['skill']} · knowledge ×{COUNTS['knowledge']} · framework ×{COUNTS['framework']} · role ×{COUNTS['role']}",
-     "入口：SKILL.md / PROFILE.md + meta.json（契约）",
-     "##presets/ 统一下发预设",
-     "mcp/（ted-avc-manager 引擎） · rules/base.md",
-     "docs/01-12 · scripts/ · platforms/ · templates/",
-     "##版本与发布",
-     "semver tag · 人审发布=最终信任锚",
-     "Pages：已发布 tag + 公开 PR 元数据；个人数据隔离"],
-    "#dbeafe", "#2563eb", title_size=14)
-# 个人目录
-box(445, cy, 390, 330, "个人目录 · 部署配置（跨设备另验，不入 git）",
-    ["##<personal-root>/",
-     ".personal-manifest.json · README · memory/（全局）",
-     "##projects/<slug>/（slug=仓库名）",
-     ".project-state.json（repo/remote/版本/同步时间）",
-     "##业务目录",
-     "memory · learning · inbox · meetings",
-     "deliverables · output · research · schedule",
-     "plugins · infrastructure",
-     "##治理目录",
-     "experience（非通用经验） · staging（导入暂存）",
-     "archive（只读归档） · preset/custom（配置分层）",
-     "工具白名单：.agents/ · .codex/"],
-    "#dcfce7", "#16a34a", title_size=14)
-# 运行时
-box(850, cy, 390, 330, "运行时 · runtime/（本地临时，可清理）",
-    ["##内容",
-     "asset-inventory.json / asset-events.jsonl",
-     "execution/tasks/ + events.jsonl（任务与原生观察）",
-     "hooks/sessions/（回合回执） · lockfile.json",
-     "runtime/panorama/（本地视图，含个人元数据）",
-     "##规则",
-     "不再写入系统 tmp（FR-7）",
-     "清理模块可执行；定时调度须另验",
-     "##doctor 校验",
-     "缺失/多余/命名违规/哈希不符 → 告警",
-     "init 幂等：缺目录补建，不删用户文件"],
-    "#ffedd5", "#ea580c", title_size=14)
-arrow(300, 386, 235, cy, color="#ea580c", label="按授权读取/写入")
-arrow(980, 386, 1045, cy, color="#ea580c", label="按授权读取/写入")
-arrow(640, 386, 640, cy, color="#ea580c", label="按授权读取/写入")
+label(40, 374, "目录契约：文件身份由位置与元数据共同确定", 19, "#0f172a", 700)
+card(40, 393, 390, 310, "中央仓库 · 通用事实源", [
+    "packs/<type>/<name>/：四类包自动发现",
+    "每包 meta.json + SKILL/PROFILE 等入口",
+    f"当前 {sum(COUNTS.values())} 包：skill {COUNTS['skill']} / knowledge {COUNTS['knowledge']}",
+    f"framework {COUNTS['framework']} / role {COUNTS['role']}",
+    "bootstrap.json 与 presets/ 定义有序下发",
+    "rules/ 定跨包规则；模板由 templates/ 承载",
+    "mcp/ 引擎；docs/、scripts/ 实现与说明",
+    "panorama/ 容纳公开视图；PR 经人审发布",
+], "#dbeafe", "#2563eb", "#1d4ed8", body_size=12.5, step=29)
+card(445, 393, 390, 310, "个人目录 · 私有课题与候选", [
+    "projects/<slug>/topics/<topic-id>/ 是主入口",
+    "topic.json 关联会话和课题生命周期",
+    "课题内按 memory / meetings / deliverables",
+    "及 experience 等用途组织；长期资料可同步",
+    "custom/ 自有资产；外部先入 staging/",
+    "未提炼经验继续保留，复核后才处理",
+    "archive/ 历史；discard/ 受清理门禁约束",
+    "个人正文、路径和使用记录不进入 Git",
+], "#dcfce7", "#16a34a", "#15803d", body_size=12.5, step=29)
+card(850, 393, 390, 310, "运行态 · 同步元数据与本机缓存分离", [
+    "仓库 runtime/：应只留轻量元数据与视图",
+    "原始事件先汇总核验；30 天是最早可删",
+    "活动任务与未完成回执不得直接清理",
+    "大缓存、临时副本、node_modules 不进 iCloud",
+    "正式长期源码与锁文件留在课题或项目",
+    "联网 MCP 只按需做只读连接探测",
+    "宿主沙箱、工具审批继续生效",
+    "本机 Hook 不等于完整模型监督",
+], "#ffedd5", "#ea580c", "#c2410c", body_size=12.5, step=29)
 
-# ---------- Row5 统一通用化升级路线 ----------
-py = 780
-add(f"<rect x='40' y='{py}' width='1200' height='120' rx='12' fill='#f5f3ff' stroke='#7c3aed' stroke-width='1.8'/>")
-add(f"<text x='58' y='{py+28}' font-size='15' font-weight='800' fill='#6d28d9' {FONT}>统一通用化升级路线（所有通用型候选数据同走此通道）</text>")
+label(40, 748, "升级流程：从证据到建议，再由人决定", 19, "#0f172a", 700)
 stages = [
-    ("候选源", "ai-config 内容拆解\n本地自定义资产\n外部导入与本地演化"),
-    ("① 规则初筛", "通用候选 / 个人特有\n待人工确认\n（LLM 初筛须另验）"),
-    ("② 台账", "imports-registry\n来源/标签/状态/版本\n文件哈希，可追溯"),
-    ("③ 人工复核", "核对来源与真实证据\n+ 人工确认\n（标签不是发布许可）"),
-    ("④ 转正", "入 packs/ · 人审\n打新 tag · 全景图更新\n非通用→experience"),
+    ("① 来源发现 · 系统", ["通用包 / custom / 经验", "外部资产先入 staging/", "记录身份、版本、摘要"]),
+    ("② 使用证据 · 系统", ["加载、采用、结果、反馈", "分开计数；按窗口去重", "样本不足＝未评分"]),
+    ("③ 知识提炼 · 模型", ["比较旧资料与新来源", "合并、补全、列未覆盖项", "无模型回执则保持待处理"]),
+    ("④ 候选复核 · 人工", ["个人：本地演化与复核", "通用：冻结内容并脱敏", "旧分数不沿用新摘要"]),
+    ("⑤ 发布门禁 · 人工/CI", ["通用 PR → 人审合并", "tag → CI → 公开全景图", "个人资料不自动上传"]),
+    ("⑥ 再观察 · 系统/模型", ["新版本重新积累证据", "建议升级 / 降级 / 审计", "不自动改资产或删原文"]),
 ]
-sx, sw, gap = 60, 210, 26
-for i, (t, body) in enumerate(stages):
-    x = sx + i * (sw + gap)
-    add(f"<rect x='{x}' y='{py+42}' width='{sw}' height='74' rx='8' fill='#ffffff' stroke='#a78bfa'/>")
-    add(f"<text x='{x+10}' y='{py+62}' font-size='13' font-weight='700' fill='#5b21b6' {FONT}>{html.escape(t)}</text>")
-    for j, line in enumerate(body.split("\n")):
-        add(f"<text x='{x+10}' y='{py+80+j*15}' font-size='11' fill='#475569' {FONT}>{html.escape(line)}</text>")
+for i, (title, lines) in enumerate(stages):
+    x = 40 + i * 202
+    card(x, 768, 190, 178, title, lines, "#ffffff", "#a78bfa", "#5b21b6",
+         title_size=15, body_size=11.5, step=29)
     if i < len(stages) - 1:
-        arrow(x + sw, py + 75, x + sw + gap - 4, py + 75, color="#7c3aed", w=2)
+        arrow(x + 190, 858, x + 201, 858, "#7c3aed", 2)
+label(40, 973, "周度 prepare/complete 与统计已实现；自动子代理完成、满意度归因、外部来源结论和真人复核均须分别取证。", 13, "#6d28d9", 600)
 
-# ---------- 底部：配置分层 + 反馈通道 ----------
-qy = 924
-box(40, qy, 590, 112, "配置分层（preset / custom）",
-    ["中央 presets/ 声明（有序，后者覆盖前者，类似 eslint extends）",
-     "→ 个人 preset/：只读 + manifest（来源/版本/sha256）",
-     "→ 个人 custom/：用户后加，升级永不覆盖",
-     "config 合并：preset 打底 → custom 同名覆盖；冲突保留 .local 并提示"],
-    "#e0f2fe", "#0284c7", title_size=13)
-box(650, qy, 590, 112, "反馈契约（部分实现待验）",
-    ["日志 schema 已实现；自动合并与消费调度待验",
-     "候选 PR 经复核；tag + CI + Pages 已接通",
-     "评分与异常模块可用；真实回传闭环待验",
-     "隐藏加载、模型 token / cost 与完整监督为 unknown"],
-    "#f1f5f9", "#475569", title_size=13)
-
+label(40, 1022, "同一展示逻辑，两种数据范围", 19, "#0f172a", 700)
+card(40, 1040, 580, 112, "本地全景图 · runtime/panorama/", [
+    "通用资产 + 私有课题索引 + 自定义资产 + 本机证据",
+    "候选与已发布分开；配置不等于连接，探测按需触发",
+], "#e0f2fe", "#0284c7", "#075985", title_size=15, body_size=12.5, step=25)
+card(660, 1040, 580, 112, "公开全景图 · panorama/ → Pages", [
+    "只读已发布 tag 与公开候选 PR 固定提交元数据",
+    "不读取个人正文、路径、连接状态或私有评分",
+], "#dbeafe", "#2563eb", "#1d4ed8", title_size=15, body_size=12.5, step=25)
+label(40, 1193, "证据边界：发现 ≠ 加载 ≠ 实际采用 ≠ 业务验收；Hook 回执、模型建议、用户批准与发布版本分别记录。", 13, "#475569")
 add("</svg>")
-
-os.makedirs(os.path.dirname(OUT), exist_ok=True)
-with open(OUT, "w", encoding="utf-8") as f:
-    f.write("\n".join(parts))
+OUT.write_text("\n".join(parts) + "\n", encoding="utf-8")
 print("written:", OUT)
