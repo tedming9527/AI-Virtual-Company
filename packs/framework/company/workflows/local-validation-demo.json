@@ -1,0 +1,64 @@
+{
+  "schema": "avc.workflow.v1",
+  "id": "local-validation-demo",
+  "title": "本地验证示例：生成报告 → 核对报告",
+  "goal": "演示受监督命令与依赖节点的真实产物",
+  "owner": "ai-engineer",
+  "assets": [
+    {
+      "id": "general:skill:test-quality-gate",
+      "usage": "verify",
+      "purpose": "核对验收证据"
+    }
+  ],
+  "maxParallel": 1,
+  "maxAttemptsTotal": 2,
+  "nodes": [
+    {
+      "id": "produce",
+      "title": "生成示例报告",
+      "role": "ai-engineer",
+      "assets": [],
+      "dependsOn": [],
+      "maxAttempts": 1,
+      "executor": {
+        "kind": "command",
+        "command": "node",
+        "args": [
+          "-e",
+          "const fs=require('node:fs');fs.mkdirSync('runtime/workflow-deliverables',{recursive:true});fs.writeFileSync('runtime/workflow-deliverables/demo-report.json',JSON.stringify({generatedAt:new Date().toISOString(),status:'example-only'}))"
+        ],
+        "cwd": ".",
+        "timeoutMs": 5000
+      },
+      "outputs": [
+        "runtime/workflow-deliverables/demo-report.json"
+      ],
+      "acceptance": "命令退出零且输出本次新产物；仅验证示例，不代表项目业务通过"
+    },
+    {
+      "id": "verify",
+      "title": "核对示例报告",
+      "role": "ai-engineer",
+      "assets": [],
+      "dependsOn": [
+        "produce"
+      ],
+      "maxAttempts": 1,
+      "executor": {
+        "kind": "command",
+        "command": "node",
+        "args": [
+          "-e",
+          "const fs=require('node:fs');const report=JSON.parse(fs.readFileSync('runtime/workflow-deliverables/demo-report.json','utf8'));if(report.status!=='example-only')process.exit(1);fs.writeFileSync('runtime/workflow-deliverables/demo-verification.json',JSON.stringify({checkedAt:new Date().toISOString(),reportValid:true}))"
+        ],
+        "cwd": ".",
+        "timeoutMs": 5000
+      },
+      "outputs": [
+        "runtime/workflow-deliverables/demo-verification.json"
+      ],
+      "acceptance": "命令退出零且输出本次新产物；仅验证示例，不代表项目业务通过"
+    }
+  ]
+}

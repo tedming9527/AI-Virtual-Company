@@ -72,3 +72,9 @@ test('candidate descriptions follow proposed head; deleted packs use base and mi
   const result=await collectCandidates('example/repo',{request});assert.equal(result.entries[0].changes[0].description,expected);
  }
 });
+
+test('public templates and shared abilities render without reading private workflow state',t=>{
+ const root=fixture(t);fs.mkdirSync(path.join(root,'runtime/workflows/private-run'),{recursive:true});fs.writeFileSync(path.join(root,'runtime/workflows/private-run/state.json'),'PRIVATE_INVALID');
+ const publicModel=buildPanoramaModel(root,{view:'public'});assert.ok(publicModel.sharedCapabilities.length);assert.equal(publicModel.workflows,undefined);assert.equal(publicModel.skillCandidates,undefined);
+ const html=renderPanorama(publicModel);assert.ok(html.includes('跨包公共能力'));assert.ok(!html.includes('PRIVATE_INVALID'));
+});

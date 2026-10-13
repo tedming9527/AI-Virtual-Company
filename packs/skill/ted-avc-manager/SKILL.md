@@ -19,6 +19,10 @@ description: 在明确绑定 AI Virtual Company 且已启用 ted-avc-manager 的
 
 工具缺失或未启用时，报告可验证的局限并继续用户授权的其他工作；不要通过自写空回执、自报成功或重装来冒充接入。
 
+## 多技能任务与流程节点
+
+按 [任务编排规则](../../framework/company/policies/TASK_ORCHESTRATION.md) 创建明确的任务与节点组合。`workflow_create` 固定合同，`workflow_status` 读取状态，原生节点通过 `task_begin` 的 workflowId/nodeId 关联真实回合；模板只是配置，不代表授权或执行。
+
 ## 本地技能与升级
 
 `find_skill` / `list_assets` 发现 `.codex/skills`、`.agents/skills` 和个人 custom 资产。新文件仅进入库存；原生已安装、已被客户端列入技能清单、正文已交付和实际执行分别记录。
@@ -28,3 +32,5 @@ description: 在明确绑定 AI Virtual Company 且已启用 ted-avc-manager 的
 - 通用技能升级：先形成候选分支和 PR，保留 base/head、包版本与审查状态，通用全景图展示候选而不显示已发布。用户要求并通过门禁后逐步合并、发布和更新。
 
 自动加载技能若宿主没有可观测事件，状态为 unknown；读取了 SKILL.md 也不保证模型采用其语义。对于宿主自身提供的技能目录，保留其原生授权和使用规范。
+
+能力缺口使用 [能力发现与组装](../capability-discovery-assembly/SKILL.md)；`find_skill` 支持中英文描述与声明别名的本地检索，网络双语查询用 `discover_capabilities`。本地候选可用 `validate_local_skill` 获取结构验证 ID，再用 `propose_asset` 关联完整包快照；`list_skill_candidates` 检查验证是否失效。

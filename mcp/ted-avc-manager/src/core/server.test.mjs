@@ -13,6 +13,10 @@ test('stdio handshake serves management tools and malformed resource URI does no
  const hello=await rpc('initialize',{protocolVersion:'2024-11-05',capabilities:{},clientInfo:{name:'probe',version:'1'}});assert.equal(hello.result.serverInfo.name,'ted-avc-manager');
  p.stdin.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/initialized'})+'\n');
  const tools=(await rpc('tools/list')).result.tools;assert.ok(tools.some(t=>t.name==='task_begin'));assert.ok(tools.some(t=>t.name==='find_skill'));
+ for (const name of ['workflow_create','workflow_status','workflow_cancel','workflow_templates','discover_capabilities','validate_local_skill','list_skill_candidates']) assert.ok(tools.some(t=>t.name===name));
+ assert.ok(tools.find(t=>t.name==='task_begin').inputSchema.properties.workflowId);
+ const templates=await rpc('tools/call',{name:'workflow_templates',arguments:{}});assert.deepEqual(JSON.parse(templates.result.content[0].text),[]);
+ const invalid=await rpc('tools/call',{name:'discover_capabilities',arguments:{zhQuery:'only English',enQuery:'skills'}});assert.match(invalid.error.message,/Chinese/);
  assert.equal((await rpc('resources/read',{uri:'tedavc://asset/%INVALID'})).error.code,-32602);
  assert.ok((await rpc('resources/list')).result.resources);
 });

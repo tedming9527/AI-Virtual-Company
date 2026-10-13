@@ -1,11 +1,20 @@
 {
   "type": "skill",
   "name": "docker-lan-access",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "部署本地 Docker 服务供局域网访问时，核对端口绑定并验证本机与其他设备访问。"
+  "description": "部署本地 Docker 服务供局域网访问时，核对端口绑定并验证本机与其他设备访问。",
+  "keywords": [
+    "局域网",
+    "局域网访问",
+    "端口",
+    "Docker",
+    "LAN",
+    "local network"
+  ],
+  "aliases": []
 }

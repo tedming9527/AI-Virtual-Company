@@ -2,7 +2,8 @@ import { existsSync, readdirSync, lstatSync, readFileSync, writeFileSync, mkdirS
 import { join, relative, resolve, basename, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { scanPacks, readBootstrap } from './scan.js';
+import { scanPacks, readBootstrap, assertNoLinks } from './scan.js';
+import { searchAssets, searchMetadata } from './asset-search.js';
 import { describeAsset } from './description.js';
 import { resolvePersonal, projectDirOf, PROJECT_DIRS } from './personal.js';
 
@@ -33,6 +34,12 @@ function registry(root) {
   const file = registryFile(root);
   return existsSync(file) ? read(file) : { schema: 'avc.local-skill-registry.v1', entries: [] };
 }
+export function skillBundle(dir) {
+  const warnings = [], inventory = fileInventory(dir, warnings);
+  if (warnings.length || inventory.length > 256 || inventory.reduce((n, f) => n + f.bytes, 0) > 10 * 1024 * 1024) throw new Error('Skill bundle contains links or exceeds file/size limits');
+  const files = inventory.map(f => ({ path: f.relativePath, bytes: f.bytes, sha256: sha(f.path) }));
+  return { files, bundleSha256: createHash('sha256').update(JSON.stringify(files)).digest('hex') };
+}
 function skillFromDir(dir, source, root) {
   if (!existsSync(dir) || lstatSync(dir).isSymbolicLink() || !lstatSync(dir).isDirectory()) return null;
   const entry = join(dir, 'SKILL.md');
@@ -48,7 +55,7 @@ function skillFromDir(dir, source, root) {
   const name = meta.name || content.match(/^name:\s*["']?([^\n"']+)/m)?.[1]?.trim() || basename(dir);
   const displayName = meta.displayName || content.match(/^#\s+(.+)$/m)?.[1] || name;
   return { id: `${source}:${dir}`, name, displayName, type: 'skill', source, dir, entry,
-    ...describeAsset(meta, content),
+    ...describeAsset(meta, content), ...searchMetadata(meta),
     version: meta.version || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
     sha256: createHash('sha256').update(sha(entry) + ':' + (existsSync(metaFile) ? sha(metaFile) : '')).digest('hex'), error,
     metadataValid: meta.type === 'skill' && meta.name === basename(dir) && /^\d+\.\d+\.\d+$/.test(meta.version || '') && Array.isArray(meta.rubric) && meta.rubric.length > 0,
@@ -85,20 +92,24 @@ export function discoverSkills(root, opts = {}) {
       const skill = skillFromDir(dir, item.source, root);
       if (!skill) continue;
       const registration = entries.find(e => e.dir === realpathSync(dir));
+      if (registration || item.source === 'local-custom') try { skill.bundleSha256 = skillBundle(dir).bundleSha256; } catch (e) { skill.error = e.message; }
       skill.management = item.source === 'general' ? 'central-managed'
         : registration ? registration.sha256 === skill.sha256 ? 'local-managed' : 'local-changed'
         : 'discovered-unregistered';
+      if (registration && (!registration.bundleSha256 || registration.bundleSha256 !== skill.bundleSha256 || skill.error)) skill.management = 'local-changed';
       skills.push(skill);
     }
   }
   return { skills, warnings, personal };
 }
 export function findSkills(root, query = '', opts = {}) {
-  const result = discoverSkills(root, opts), term = query.toLowerCase();
-  return { ...result, skills: result.skills.filter(s => [s.name, s.displayName, s.source, s.pathLabel].some(x => x.toLowerCase().includes(term))) };
+  const result = discoverSkills(root, opts);
+  return { ...result, skills: searchAssets(result.skills, query), evidence: 'metadata-and-declared-aliases; local inventory, not web or semantic translation' };
 }
 export function registerLocalSkill(root, input) {
   const personal = personalProject(root), allowed = realpathSync(join(personal.directory, 'custom'));
+  if (!resolve(input).startsWith(allowed + sep)) throw new Error('外部资产先走 import-scan / staging 复核');
+  assertNoLinks(allowed, resolve(input));
   const dir = realpathSync(resolve(input));
   if (!dir.startsWith(allowed + sep)) throw new Error('只登记 personal/custom 内原创本地技能；外部资产先走 import-scan / staging 复核');
   const skill = skillFromDir(dir, 'local-custom', root);
@@ -106,7 +117,7 @@ export function registerLocalSkill(root, input) {
   const data = registry(root), file = registryFile(root);
   if (existsSync(join(root, 'runtime')) && lstatSync(join(root, 'runtime')).isSymbolicLink()) throw new Error('拒绝 runtime 符号链接');
   if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('拒绝 registry 符号链接');
-  const record = { name: skill.name, dir, source: 'local-custom', version: skill.version, sha256: skill.sha256, entrySha256: skill.entrySha256, metaSha256: skill.metaSha256, registeredAt: new Date().toISOString() };
+  const record = { name: skill.name, dir, source: 'local-custom', version: skill.version, sha256: skill.sha256, bundleSha256: skillBundle(dir).bundleSha256, entrySha256: skill.entrySha256, metaSha256: skill.metaSha256, registeredAt: new Date().toISOString() };
   const index = data.entries.findIndex(e => e.dir === dir);
   if (index < 0) data.entries.push(record); else data.entries[index] = record;
   mkdirSync(join(root, 'runtime'), { recursive: true });

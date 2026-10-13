@@ -1,3 +1,8 @@
+---
+name: test-quality-gate
+description: Select risk-appropriate tests and verify evidence for code behavior changes or release acceptance; use for regression testing and quality gates.
+---
+
 # Test quality gate
 
 Use only when the routed task changes behaviour or needs release evidence.

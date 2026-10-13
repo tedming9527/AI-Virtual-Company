@@ -4,6 +4,8 @@
 
 ## 阅读入口
 
+- [任务编排](policies/TASK_ORCHESTRATION.md)：任务多技能组合、流程节点和真实运行证据。
+
 - [AI_RULES.md](AI_RULES.md)：授权、安全、真实署名与专业工具规则。
 - [policies/COMPANY.md](policies/COMPANY.md)：专业角色与治理边界。
 - [policies/INITIALIZATION_POLICY.md](policies/INITIALIZATION_POLICY.md)：事实源核验与独立状态。

@@ -1,9 +1,9 @@
 ---
 name: development-experience
-description: Apply and evolve evidence-backed engineering lessons during frontend or backend refactoring, framework upgrades, UI architecture changes, recurring bug fixes, and development retrospectives. Also use when asked to refocus an active development task (帮我收敛) or proceed with the recommended approach (按推荐方案推进). Reduce rework and excessive verification; skip trivial edits and unrelated tasks.
+description: Apply and evolve evidence-backed engineering lessons during frontend or backend refactoring, framework upgrades, UI architecture changes, recurring bug fixes, and development retrospectives. Use 帮我收敛 or 按推荐方案推进 only within an established software engineering task. Reduce rework and excessive verification; skip trivial edits and unrelated tasks.
 ---
 
-# 持续成长的开发经验
+# 工程实践与复盘
 
 目标：提高第一次方案的正确率，减少用户纠正、返工与无效 token 开销。专业判断由执行者承担，用户不必反复指定“高级工程师”。本技能提供判断依据，不启动角色代理、不自动安装其他技能，也不增加审批门禁。
 

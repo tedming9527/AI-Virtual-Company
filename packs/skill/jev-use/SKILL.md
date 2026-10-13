@@ -1,42 +1,15 @@
 ---
 name: jev-use
-description: Use before ANY step that is a decision rather than writing: labelling, filtering or triaging MANY items; checking whether a command, test or build succeeded; picking the next action from options you can list; judging safety, quality or severity; or risk-checking each command of a checklist or pipeline before it runs. Route by where the facts already are: facts already in your context go to the jev_judge tool with ALL questions batched into ONE call; items sitting in a file or in tool output go through the `jev-use judge` CLI from a script, so that data never enters the conversation; a safety decision that blocks every tool call belongs in the `jev-use hook gate` PreToolUse hook, not in a call you make by hand. Take any verdict back with escalate: true. Never for steps that must produce new text or code, or judgments whose options you cannot enumerate.
+description: Use Jev for structured judgments with finite options and sufficient evidence, especially batch classification or triage. Skip ordinary command exit checks, trivial decisions, open-ended reasoning, and writing tasks.
 ---
 
-# Handing off to Jev
+# Jev 结构化判断
 
-Jev answers a typed judgment at judgment-model rates (metered per call; check
-your deployment's current pricing) instead of LLM reasoning. It is a RATE win,
-not a token win: Jev spends *more* tokens per decision, not fewer. So the
-saving is real only when the decision **leaves the conversation** — which is
-what the routing below is for. You stay the planner and the writer.
+对已有事实作有限选项判断或批量分类。事实不足、需要创造方案、普通命令退出码检查和已知答案无需调用；本技能不自动安装工具或设置全局 Hook。
 
-## Route each decision: where are the facts × does it block?
+- 当前上下文中的同一批事实：通过已可用的 `jev_judge` 一次提交相关问题与最小充分事实。
+- 文件中的批量数据：在已授权的数据范围内通过已安装的 `jev-use judge` 处理，避免把整批资料重复注入对话。
+- 判断结果只作辅助；`escalate: true`、证据冲突或不可达时回到当前执行者核对，不能把结果当成新增授权。
+- `jev_gate` 或 Hook 仅用于用户明确要求并已配置的特定门禁；不得由本技能把所有工具调用改成额外审批。
 
-| Where the facts are | **Nothing is blocked** — you can keep working | **Blocked** — nothing proceeds until this is decided |
-| --- | --- | --- |
-| **Already in your context** | `jev_judge`, every question about that state batched into **ONE** call (`noul` yes/no, `choice` next action, `score` quality) | `jev_gate` on that one action before you run it — and if it is *every* tool call, wire `jev-use hook gate` as a PreToolUse hook **once** and the decision leaves the conversation for good |
-| **Sitting in a file or tool output** | a script pipes the file to `jev-use judge` — the items never enter your context | same CLI, from the script, then act on the verdicts it prints |
-| **To be written by you** (new text, code, options you cannot enumerate) | yours | yours |
-
-## Rules that make it pay off
-
-- **Route bulk data by reference.** When the items sit in a file or in tool
-  output, have a script pipe them to `jev-use judge` — data pasted into a
-  `jev_judge` call travels through your context twice, as tool input and as
-  the verdict block back. Or route only the handful you genuinely cannot
-  settle yourself.
-- **Batch.** Measured: 12 questions about one state in ONE call took 224 ms;
-  the same 12 one at a time took 2,662 ms. Never one call per item.
-- **State is everything Jev sees.** Put the relevant facts (tool output, file
-  excerpts, task intent) into `state`; Jev has no other context.
-- **Honor escalations.** A verdict with `escalate: true` hands that question
-  back to you: `writing`/`open_ended` mean it was structurally yours;
-  `oversized` means the state was too big to judge; `unsure` means Jev's
-  answer is only a prior (it's still in `answer` — use it as a hint);
-  `unreachable` means proceed as if Jev didn't exist.
-- **Don't route trivia.** If you already know the answer, just act; a Jev
-  call you didn't need is still a call.
-
-Numbers, lanes, variance and caveats differ per deployment; benchmark your own
-setup before relying on them.
+有限选项并不保证判断正确。保留来源与必要抽查，费用、延迟和节省效果按当前部署实测，不沿用未经核验的性能数字。

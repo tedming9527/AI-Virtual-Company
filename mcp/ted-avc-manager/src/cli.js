@@ -21,6 +21,25 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'discover-capabilities':
+    try { const {discoverCapabilities} = await import('./core/discovery.js'); const input = JSON.parse(readFileSync(args[1], 'utf8')); const result = await discoverCapabilities(input); ok(JSON.stringify(result,null,2)); if (result.coverage !== 'both-languages') process.exitCode = 1; } catch(e) { fail(e); }
+    break;
+  case 'validate-local-skill': case 'list-skill-candidates':
+    try { const {validateLocalSkill,listSkillCandidates} = await import('./core/skill-candidates.js'); ok(JSON.stringify(cmd === 'validate-local-skill' ? validateLocalSkill(ROOT,{assetId:args[1]}) : listSkillCandidates(ROOT),null,2)); } catch(e) { fail(e); }
+    break;
+  case 'workflow-create': case 'workflow-status': case 'workflow-run': case 'workflow-cancel': case 'workflow-templates':
+    try {
+      const {createWorkflow,workflowStatus,runWorkflow,cancelWorkflow,workflowTemplates} = await import('./core/workflow.js');
+      let result;
+      if(cmd === 'workflow-create') result = createWorkflow(ROOT,JSON.parse(readFileSync(args[1],'utf8')));
+      if(cmd === 'workflow-status') result = workflowStatus(ROOT,args[1]);
+      if(cmd === 'workflow-run') result = await runWorkflow(ROOT,args[1],{authorized:args.includes('--authorize-commands')});
+      if(cmd === 'workflow-cancel') result = cancelWorkflow(ROOT,args[1]);
+      if(cmd === 'workflow-templates') result = workflowTemplates(ROOT);
+      ok(JSON.stringify(result,null,2));
+      if(cmd === 'workflow-run' && ['completed_with_failures','needs_attention','cancelled'].includes(result.status)) process.exitCode=1;
+    } catch(e) { fail(e); }
+    break;
   case 'maintenance-doctor':
     try {
       const { maintenanceDoctor } = await import('./core/maintenance-diagnostics.js');

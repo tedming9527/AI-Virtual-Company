@@ -35,6 +35,9 @@ export function validatePackMeta(meta, typeDir, { requireDescription = false } =
   if (!Array.isArray(meta.rubric) || meta.rubric.length === 0) {
     errors.push('meta.rubric 必须为非空数组（评分维度）');
   }
+  for (const key of ['aliases', 'keywords']) {
+    if (meta[key] !== undefined && (!Array.isArray(meta[key]) || meta[key].length > 32 || meta[key].some(v => typeof v !== 'string' || !v.trim() || v.length > 100 || /[\r\n]/.test(v)))) errors.push(`meta.${key} 必须为最多 32 个单行短语`);
+  }
   if (requireDescription) {
     if (typeof meta.description !== 'string' || !meta.description.trim() || meta.description.length > 160 || /[\r\n]/.test(meta.description)) {
       errors.push('meta.description 必须为 1–160 字的单行用途说明');

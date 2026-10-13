@@ -1,11 +1,23 @@
 {
   "type": "skill",
   "name": "test-quality-gate",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "代码行为变更或发布验收时，选择相称测试，核对结果、环境与未覆盖风险。"
+  "description": "代码行为变更或发布验收时，选择相称测试，核对结果、环境与未覆盖风险。",
+  "keywords": [
+    "测试验收",
+    "验收",
+    "回归",
+    "质量门禁",
+    "quality gate",
+    "regression",
+    "testing"
+  ],
+  "aliases": [
+    "测试质量门禁"
+  ]
 }
