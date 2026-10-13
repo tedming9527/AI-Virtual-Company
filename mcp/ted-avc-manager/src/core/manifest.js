@@ -38,6 +38,21 @@ export function validatePackMeta(meta, typeDir, { requireDescription = false } =
   for (const key of ['aliases', 'keywords']) {
     if (meta[key] !== undefined && (!Array.isArray(meta[key]) || meta[key].length > 32 || meta[key].some(v => typeof v !== 'string' || !v.trim() || v.length > 100 || /[\r\n]/.test(v)))) errors.push(`meta.${key} 必须为最多 32 个单行短语`);
   }
+  if (meta.origin !== undefined) {
+    const origin = meta.origin;
+    let validUrl = false, repositoryMatches = true;
+    try {
+      const url = new URL(origin?.url);
+      validUrl = url.protocol === 'https:' && !url.username && !url.password && !url.search && !url.hash;
+      if (url.hostname === 'github.com' && origin?.repository) repositoryMatches = url.pathname.split('/').slice(1,3).join('/').toLowerCase() === origin.repository.toLowerCase();
+    } catch { /* Invalid URL. */ }
+    if (!origin || typeof origin !== 'object' || !validUrl || !repositoryMatches ||
+        typeof origin.revision !== 'string' || !origin.revision.trim() ||
+        (origin.repository !== undefined && !/^[\w.-]+\/[\w.-]+$/.test(origin.repository)) ||
+        (origin.npm !== undefined && !/^(?:@[-\w.]+\/)?[-\w.]+$/.test(origin.npm))) {
+      errors.push('meta.origin 需包含第三方 HTTPS URL、固定 revision，repository/npm 可选');
+    }
+  }
   if (requireDescription) {
     if (typeof meta.description !== 'string' || !meta.description.trim() || meta.description.length > 160 || /[\r\n]/.test(meta.description)) {
       errors.push('meta.description 必须为 1–160 字的单行用途说明');

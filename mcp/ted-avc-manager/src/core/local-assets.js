@@ -56,7 +56,7 @@ function skillFromDir(dir, source, root) {
   const displayName = meta.displayName || content.match(/^#\s+(.+)$/m)?.[1] || name;
   return { id: `${source}:${dir}`, name, displayName, type: 'skill', source, dir, entry,
     ...describeAsset(meta, content), ...searchMetadata(meta),
-    version: meta.version || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
+    version: meta.version || null, origin: meta.origin || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
     sha256: createHash('sha256').update(sha(entry) + ':' + (existsSync(metaFile) ? sha(metaFile) : '')).digest('hex'), error,
     metadataValid: meta.type === 'skill' && meta.name === basename(dir) && /^\d+\.\d+\.\d+$/.test(meta.version || '') && Array.isArray(meta.rubric) && meta.rubric.length > 0,
     pathLabel: source === 'general' ? relative(root, entry) : source === 'local-custom' ? relative(personalProject(root).directory, entry) : entry };

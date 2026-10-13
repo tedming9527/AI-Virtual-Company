@@ -4,19 +4,20 @@
 
 import {
   existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync,
-  copyFileSync, statSync,
+  copyFileSync, statSync, lstatSync, realpathSync,
 } from 'node:fs';
-import { join, dirname, relative, isAbsolute } from 'node:path';
+import { join, dirname, relative, isAbsolute, resolve, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import { resolvePersonalStorage } from './storage.js';
 
 // 固定目录集合（docs/08 §4：业务 10 + 治理 3 + 配置 2 + 工具白名单 2）
 export const BUSINESS_DIRS = ['memory', 'learning', 'inbox', 'meetings', 'deliverables', 'output', 'research', 'schedule', 'plugins', 'infrastructure'];
-export const GOVERNANCE_DIRS = ['experience', 'staging', 'archive'];
+export const GOVERNANCE_DIRS = ['experience', 'staging', 'archive', 'discard'];
 export const CONFIG_DIRS = ['preset', 'custom'];
 export const WHITELIST_DIRS = ['.agents', '.codex'];
-export const PROJECT_DIRS = [...BUSINESS_DIRS, ...GOVERNANCE_DIRS, ...CONFIG_DIRS, ...WHITELIST_DIRS];
+export const TOPIC_DIRS = [...BUSINESS_DIRS, 'experience'];
+export const PROJECT_DIRS = ['topics', ...BUSINESS_DIRS, ...GOVERNANCE_DIRS, ...CONFIG_DIRS, ...WHITELIST_DIRS];
 
 // 不参与活跃扫描（doctor 不检查其内部命名）
 const SCAN_EXEMPT_DIRS = ['archive', 'staging'];
@@ -54,6 +55,72 @@ export const resolvePersonal = resolvePersonalStorage;
 
 export function projectDirOf(personalRoot, slug) {
   return join(personalRoot, 'projects', slug);
+}
+
+// A conversation identifies a user topic; several sessions may share one topic.
+export function createPersonalTopic(personalRoot, slug, input) {
+  const { id, title, sessionId, description = '' } = input || {};
+  if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(id || '') || typeof title !== 'string' || !title.trim() || title.length > 300 || typeof sessionId !== 'string' || !sessionId.trim() || sessionId.length > 300) throw new Error('课题需有效 ID、标题和会话 ID');
+  const base = join(projectDirOf(personalRoot, slug), 'topics');
+  if (existsSync(base) && lstatSync(base).isSymbolicLink()) throw new Error('拒绝课题目录符号链接');
+  const dir = join(base, id);
+  if (existsSync(dir)) throw new Error('课题目录已存在；后续会话需显式关联，不能覆盖');
+  for (const name of TOPIC_DIRS) mkdirSync(join(dir, name), { recursive: true });
+  const topic = { schema: 'avc.personal-topic.v1', id, title: title.trim(), description: description.trim(), status: 'active', sessions: [{ id: sessionId, status: 'active' }], createdAt: new Date().toISOString() };
+  writeJson(join(dir, 'topic.json'), topic);
+  return { directory: dir, topic };
+}
+
+export function archivePersonalTopicSession(personalRoot, slug, topicId, sessionId) {
+  if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(topicId || '')) throw new Error('课题 ID 无效');
+  const file = join(projectDirOf(personalRoot, slug), 'topics', topicId, 'topic.json');
+  if (!existsSync(file)) throw new Error('课题不存在');
+  const topic = readJson(file), session = topic.sessions?.find(item => item.id === sessionId);
+  if (!session) throw new Error('会话不属于该课题');
+  session.status = 'archived'; session.archivedAt = new Date().toISOString();
+  if (topic.sessions.every(item => item.status === 'archived')) topic.status = 'archived';
+  writeJson(file, topic);
+  return topic;
+}
+
+export function addPersonalTopicSession(personalRoot, slug, topicId, sessionId) {
+  if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(topicId || '') || typeof sessionId !== 'string' || !sessionId.trim() || sessionId.length > 300) throw new Error('课题或会话 ID 无效');
+  const file = join(projectDirOf(personalRoot, slug), 'topics', topicId, 'topic.json');
+  if (!existsSync(file)) throw new Error('课题不存在');
+  const topic = readJson(file);
+  if (topic.sessions?.some(item => item.id === sessionId)) return topic;
+  topic.sessions.push({ id: sessionId, status: 'active' });
+  topic.status = 'active';
+  writeJson(file, topic);
+  return topic;
+}
+
+export function copyLegacyFilesToTopic(personalRoot, slug, { topicId, paths, reason }) {
+  if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(topicId || '') || !Array.isArray(paths) || !paths.length || paths.length > 1000 || typeof reason !== 'string' || !reason.trim()) throw new Error('迁移输入无效');
+  const project = projectDirOf(personalRoot, slug), topicDir = join(project, 'topics', topicId);
+  if (!existsSync(join(topicDir, 'topic.json'))) throw new Error('先创建课题目录');
+  const manifestFile = join(topicDir, 'migration.json');
+  if (existsSync(manifestFile) && lstatSync(manifestFile).isSymbolicLink()) throw new Error('拒绝迁移台账符号链接');
+  const manifest = existsSync(manifestFile) ? readJson(manifestFile) : { schema: 'avc.topic-migration.v1', copies: [] };
+  const copied = [];
+  for (const path of paths) {
+    if (typeof path !== 'string' || !path.split('/').every(part => part && part !== '.' && part !== '..' && !/[\\\0]/.test(part)) || !TOPIC_DIRS.includes(path.split('/')[0])) throw new Error(`非法旧资料路径: ${path}`);
+    const source = resolve(project, path), target = resolve(topicDir, path);
+    if (!source.startsWith(resolve(project) + sep) || !target.startsWith(resolve(topicDir) + sep) || !existsSync(source) || !lstatSync(source).isFile() || !realpathSync(source).startsWith(realpathSync(project) + sep)) throw new Error(`旧资料不存在或不安全: ${path}`);
+    let cursor = topicDir;
+    for (const part of path.split('/')) { cursor = join(cursor, part); if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink()) throw new Error(`课题目标包含符号链接: ${path}`); }
+    if (existsSync(target)) {
+      if (sha256(target) !== sha256(source)) throw new Error(`课题内已有不同内容: ${path}`);
+      continue;
+    }
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(source, target);
+    if (sha256(target) !== sha256(source)) throw new Error(`复制校验失败: ${path}`);
+    const record = { source: path, target: `topics/${topicId}/${path}`, sha256: sha256(source), reason: reason.trim(), copiedAt: new Date().toISOString() };
+    manifest.copies.push(record); copied.push(record);
+  }
+  writeJson(manifestFile, manifest);
+  return { topicId, copied: copied.length, preservedOriginals: true, manifestFile };
 }
 
 // —— init（幂等补建，docs/08 §1/§4）——
@@ -124,6 +191,8 @@ function personalReadme(slug) {
 
 ## 项目级固定目录（目录即契约，固定目录之外自建 = 违规）
 
+- 新资料主入口：\`topics/<topic-id>/\`；会话确定课题，课题内再按用途放入 ${TOPIC_DIRS.join(' · ')}。
+- 原顶层业务目录是兼容区，旧资料不自动移动；废弃会话只更新课题状态，不删除文件。
 - 业务：${BUSINESS_DIRS.join(' · ')}
 - 治理：${GOVERNANCE_DIRS.join(' · ')}（archive/staging 不参与活跃扫描）
 - 配置分层：${CONFIG_DIRS.join(' · ')}（preset 只读由中央下发；custom 用户自有，升级永不覆盖）
@@ -149,6 +218,18 @@ export function doctorPersonal(personalRoot, slug) {
   for (const name of readdirSync(projDir)) {
     if (name === '.project-state.json' || name === '.DS_Store') continue;
     if (!PROJECT_DIRS.includes(name)) issues.push({ kind: 'unexpected', detail: `顶层未约定项: projects/${slug}/${name}` });
+  }
+  const topicsDir = join(projDir, 'topics');
+  if (existsSync(topicsDir) && lstatSync(topicsDir).isSymbolicLink()) issues.push({ kind: 'topic', detail: '课题目录是符号链接' });
+  else if (existsSync(topicsDir)) for (const id of readdirSync(topicsDir)) {
+    const dir = join(topicsDir, id), meta = join(dir, 'topic.json');
+    if (!/^[a-z0-9][a-z0-9-]{1,79}$/.test(id) || !lstatSync(dir).isDirectory()) { issues.push({ kind: 'topic', detail: `无效课题目录: topics/${id}` }); continue; }
+    if (!existsSync(meta)) { issues.push({ kind: 'topic', detail: `课题清单缺失: topics/${id}/topic.json` }); continue; }
+    try {
+      const value = readJson(meta);
+      if (value.schema !== 'avc.personal-topic.v1' || value.id !== id || !value.title || !Array.isArray(value.sessions) || !value.sessions.length || value.sessions.some(item => !item.id || !['active','archived'].includes(item.status))) issues.push({ kind: 'topic', detail: `课题清单无效: topics/${id}/topic.json` });
+    } catch { issues.push({ kind: 'topic', detail: `课题清单无法解析: topics/${id}/topic.json` }); }
+    for (const name of TOPIC_DIRS) if (!existsSync(join(dir, name))) issues.push({ kind: 'topic', detail: `课题分类目录缺失: topics/${id}/${name}/` });
   }
   for (const d of EVENT_DIRS) {
     const dir = join(projDir, d);

@@ -48,6 +48,23 @@ switch (cmd) {
       ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : process.env.AVC_DEPLOYMENT_FILE || join(ROOT, 'runtime/footer-hook-deployment.json')), null, 2));
     } catch (e) { fail(e); }
     break;
+  case 'governance-weekly-status': case 'governance-weekly-prepare': case 'governance-weekly-complete':
+    try {
+      const { weeklyStatus, prepareWeekly, completeWeekly } = await import('./governance/weekly.js');
+      const result = cmd === 'governance-weekly-status' ? weeklyStatus(ROOT) :
+        cmd === 'governance-weekly-prepare' ? prepareWeekly(ROOT) : completeWeekly(ROOT, JSON.parse(readFileSync(args[1], 'utf8')));
+      ok(JSON.stringify(result, null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'experience-recovery-stage': case 'experience-recovery-cleanup': case 'experience-recovery-restore': case 'experience-recovery-reconcile':
+    try {
+      const { stageReviewedExperience, cleanupReviewedExperience, restoreReviewedExperience, reconcileReviewedExperience } = await import('./governance/experience-recovery.js');
+      const result = cmd === 'experience-recovery-stage' ? stageReviewedExperience(ROOT, JSON.parse(readFileSync(args[1], 'utf8')), { apply: args.includes('--apply') }) :
+        cmd === 'experience-recovery-cleanup' ? cleanupReviewedExperience(ROOT, { apply: args.includes('--apply') }) :
+        cmd === 'experience-recovery-reconcile' ? reconcileReviewedExperience(ROOT, { apply: args.includes('--apply') }) : restoreReviewedExperience(ROOT, args[1]);
+      ok(JSON.stringify(result, null, 2));
+    } catch (e) { fail(e); }
+    break;
   case 'maintenance-open': case 'maintenance-status': case 'maintenance-close':
     try {
       if (!args[1]) throw new Error(`${cmd} <input.json> [--authorize-unbound-maintenance]`);
@@ -99,6 +116,56 @@ switch (cmd) {
       if (!args.includes('--offline')) await syncCandidates(ROOT);
       const pos = args.indexOf('--catalog-ref');
       ok(flowPanorama(ROOT, { view, ...(pos >= 0 ? { catalogRef: args[pos + 1] } : {}) }).summary);
+    } catch (e) { fail(e); }
+    break;
+  case 'panorama-topic-add': case 'panorama-topic-link':
+    try {
+      if (!args[1]) throw new Error(`${cmd} <input.json>`);
+      const { addPanoramaTopic, linkPanoramaFile } = await import('./panorama/topics.js');
+      const input = JSON.parse(readFileSync(args[1], 'utf8'));
+      ok(JSON.stringify(cmd === 'panorama-topic-add' ? addPanoramaTopic(ROOT, input) : linkPanoramaFile(ROOT, input), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'topic-create': case 'topic-session-add': case 'topic-session-archive': case 'topic-copy-legacy':
+    try {
+      if (!args[1]) throw new Error(`${cmd} <input.json>`);
+      const { createPersonalTopic, addPersonalTopicSession, archivePersonalTopicSession, copyLegacyFilesToTopic } = await import('./core/personal.js');
+      const { resolvePersonal } = await import('./core/personal.js');
+      const storage = resolvePersonal(ROOT, readBootstrap(ROOT));
+      const input = JSON.parse(readFileSync(args[1], 'utf8'));
+      ok(JSON.stringify(cmd === 'topic-create' ? createPersonalTopic(storage.root, storage.slug, input) : cmd === 'topic-session-add' ? addPersonalTopicSession(storage.root, storage.slug, input.topicId, input.sessionId) : cmd === 'topic-copy-legacy' ? copyLegacyFilesToTopic(storage.root, storage.slug, input) : archivePersonalTopicSession(storage.root, storage.slug, input.topicId, input.sessionId), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'personal-discard': case 'personal-discard-cleanup':
+    try {
+      const { discardPersonalFile, cleanupPersonalDiscard } = await import('./core/discard.js');
+      if (cmd === 'personal-discard' && !args[1]) throw new Error('personal-discard <input.json>');
+      ok(JSON.stringify(cmd === 'personal-discard' ? discardPersonalFile(ROOT, JSON.parse(readFileSync(args[1], 'utf8'))) : cleanupPersonalDiscard(ROOT, { dryRun: !args.includes('--apply') }), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'panorama-mcp-check':
+    try {
+      if (!args[1]) throw new Error('用法：panorama-mcp-check <网上 MCP 名称>');
+      const { checkRemoteMcp } = await import('./panorama/mcp-connections.js');
+      ok(JSON.stringify(await checkRemoteMcp(ROOT, args[1]), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'panorama-mcp-quality':
+    try {
+      const githubAt = args.indexOf('--github'), npmAt = args.indexOf('--npm');
+      if (!args[1] || githubAt < 0 || !args[githubAt + 1]) throw new Error('用法：panorama-mcp-quality <网上 MCP 名称> --github owner/repo [--npm 包名]');
+      const { updateRemoteMcpQuality } = await import('./panorama/mcp-connections.js');
+      ok(JSON.stringify(await updateRemoteMcpQuality(ROOT, args[1], args[githubAt + 1], npmAt < 0 ? null : args[npmAt + 1], { deep: args.includes('--deep') }), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'panorama-source-snapshot':
+    try {
+      const { buildSourceQuality, validateSourceQuality } = await import('./panorama/source-quality.js');
+      if (args.includes('--check')) {
+        const result = validateSourceQuality(ROOT);
+        ok(JSON.stringify(result, null, 2));
+        if (!result.valid) process.exitCode = 1;
+      } else ok(JSON.stringify(await buildSourceQuality(ROOT, { deep: args.includes('--deep') }), null, 2));
     } catch (e) { fail(e); }
     break;
   case 'find-skill':
@@ -165,7 +232,7 @@ switch (cmd) {
     try {
       const llm = flag('--llm', 4);
       const res = mergeScore({ llm, empirical: { sampleSize: flag('--sample', 5), successRate: flag('--rate', 0.8), avgScore: flag('--avg', 3.8) } });
-      ok(`质量分：${res.quality}${res.provisional ? '（临时，样本不足）' : ''}${res.note ? `；${res.note}` : ''}`);
+      ok(`质量分：${res.quality === null ? '未评分／证据不足' : res.quality}；静态评估：${res.staticQuality}${res.note ? `；${res.note}` : ''}`);
     } catch (e) { fail(e); }
     break;
   }
@@ -178,7 +245,7 @@ switch (cmd) {
   }
   case 'cleanup': {
     try {
-      const res = cleanupRuntime(runtimeDirOf(ROOT), { dryRun: args.includes('--dry-run') });
+      const res = cleanupRuntime(runtimeDirOf(ROOT), { dryRun: !args.includes('--apply') });
       ok(`${res.dryRun ? '[dry-run] ' : ''}清理完成：cache ${res.removed.cache} 条 / logs ${res.removed.logs} 条。规则：${res.rule}`);
     } catch (e) { fail(e); }
     break;
@@ -204,6 +271,17 @@ switch (cmd) {
   ted-avc-manager cleanup [--dry-run]
   ted-avc-manager install-codex-hooks <deployment.json> <codex-home> （原生署名 Hook，信任和触发另验）
   ted-avc-manager panorama [--local|--public] [--catalog-ref vX.Y.Z] [--offline]
+  ted-avc-manager panorama-topic-add <input.json> （登记用户课题，可附会话 ID）
+  ted-avc-manager panorama-topic-link <input.json> （按个人目录相对路径登记文件关联与依据）
+  ted-avc-manager topic-create <input.json> （按会话建立 topics/<课题>/ 分类目录）
+  ted-avc-manager topic-session-add <input.json> （后续会话延续已有课题）
+  ted-avc-manager topic-copy-legacy <input.json> （按内容复制旧资料并核对摘要，保留原路径）
+  ted-avc-manager topic-session-archive <input.json> （归档会话；全部会话归档后课题归档，不删文件）
+  ted-avc-manager personal-discard <input.json> （明确核对后将旧资料移入 90 天废弃区）
+  ted-avc-manager personal-discard-cleanup [--apply] （预览／清理到期且摘要未变的废弃文件）
+  ted-avc-manager panorama-mcp-check <网上 MCP 名称> （按需只读握手，记录本地状态）
+  ted-avc-manager panorama-mcp-quality <名称> --github owner/repo [--npm 包名] [--deep] （按需查询公开网络指标）
+  ted-avc-manager panorama-source-snapshot [--check|--deep] （发布前采集或校验第三方来源证据）
   ted-avc-manager find-skill <query> | register-skill <personal/custom/skill-dir>
   ted-avc-manager sync-candidates
   ted-avc-manager install-execution-hooks <deployment.json> <codex-home>

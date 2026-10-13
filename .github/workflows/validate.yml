@@ -27,7 +27,7 @@ jobs:
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
       - name: 通用层回归
-        run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+        run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 校验现有日志 schema
         run: |
           for f in runtime/logs/*.json; do

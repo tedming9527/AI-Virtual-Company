@@ -3,6 +3,8 @@
 /logs/
 *.tmp
 *.swp
+__pycache__/
+*.pyc
 
 # Misrouted local views must never be committed or published.
 /output/

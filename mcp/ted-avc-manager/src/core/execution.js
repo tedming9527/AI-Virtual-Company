@@ -186,7 +186,8 @@ export function loadAsset(root, input, deploymentFile) {
   const meta = read(safePath(input.source === 'general' ? d.root : directory, join(directory, 'meta.json')));
   if (meta.type !== input.type || meta.name !== input.name) throw new Error('Asset metadata/identity mismatch');
   if (registryEntry && meta.version !== registryEntry.version) throw new Error('Registered personal skill version changed');
-  const asset = { source: input.source, type: input.type, name: input.name, entry, version: meta.version, sha256: sha(content), ...(registryEntry ? { registrationSha256: registryEntry.sha256 } : {}) };
+  const asset = { source: input.source, type: input.type, name: input.name, entry, version: meta.version, sha256: sha(content),
+    bundleSha256: skillBundle(directory).bundleSha256, ...(registryEntry ? { registrationSha256: registryEntry.sha256 } : {}) };
   locked(d.root, key.taskId, paths => {
     const task = active(paths, key);
     task.assets.push({ ...asset, file, metaFile: join(directory, 'meta.json'), metaSha256: sha(readFileSync(join(directory, 'meta.json'))), loadedAt: now() }); atomic(paths.task, task); record(paths, task, 'asset_context_returned', asset);

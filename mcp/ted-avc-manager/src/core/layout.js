@@ -1,7 +1,7 @@
 // layout.js —— 中央仓库布局门禁（FR-1 白名单 + 防逃逸）
 // 仓库根只允许约定项；packs/<type>/ 下散落文件/无 meta.json 目录 = 逃逸，CI 与本地共用。
 
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // FR-1 必备项（缺失 = missing）
@@ -49,6 +49,20 @@ export function validateLayout(root) {
         } else if (!ALLOWED_PACK_FILES.has(name)) {
           issues.push({ kind: 'stray', detail: `packs/${type} 下散落文件: ${name}` });
         }
+      }
+    }
+  }
+  // A task checkout is not repository runtime state. In particular, a synced
+  // repository must not become the home of a second checkout and its deps.
+  const taskCache = join(root, 'runtime', 'cache', 'tasks');
+  if (existsSync(taskCache) && lstatSync(taskCache).isDirectory() && !lstatSync(taskCache).isSymbolicLink()) {
+    for (const name of readdirSync(taskCache)) {
+      const task = join(taskCache, name);
+      if (!lstatSync(task).isDirectory() || lstatSync(task).isSymbolicLink()) continue;
+      const candidates = [task, ...readdirSync(task).map(child => join(task, child))];
+      if (candidates.some(dir => lstatSync(dir).isDirectory() && !lstatSync(dir).isSymbolicLink() &&
+        (existsSync(join(dir, '.git')) || existsSync(join(dir, 'node_modules'))))) {
+        issues.push({ kind: 'task-copy', detail: `runtime/cache/tasks/${name} 包含临时检出或依赖；中介层不得把任务副本写入仓库 runtime/，请使用客户端原有工作区` });
       }
     }
   }

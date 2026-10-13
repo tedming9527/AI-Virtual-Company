@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, realpathSync, lstat
 import { resolve, dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
+import { weeklyStatus } from '../governance/weekly.js';
 
 const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const hash = text => createHash('sha256').update(text).digest('hex');
@@ -94,8 +95,15 @@ export function runCodexHook(input, deploymentFile) {
     // Resume/compact can run after UserPromptSubmit. Never issue a competing
     // delivery instruction or mutate a turn nonce at session scope.
     record('session_context_injected', { receiptScope: 'session', turnReceiptIssued: false });
+    let weekly = '';
+    if (existsSync(join(project.root, 'runtime', 'storage.json'))) {
+      try {
+        const status = weeklyStatus(project.root);
+        if (status.due && status.writerAvailable) weekly = ' Weekly governance is due: after binding the user turn, dispatch one background subagent to run governance-weekly-prepare, review private experience and sources within the user-authorized scope, then submit a source-bound proposal through governance-weekly-complete. Do not mark complete from this hook or publish/delete assets.';
+      } catch { weekly = ' Weekly governance status unavailable; do not claim a completed run.'; }
+    }
     return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext:
-      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Allowed logical owners: ${Object.entries(project.owners).map(([role, display]) => `${role}: ${display}`).join('; ')}. Actual executor is the platform agent. SessionStart supplies project context only and does not issue a delivery receipt. For the final footer and execution binding use the exact current-turn UserPromptSubmit context; preserve it across resume/compact. Never use a session-scoped or another turn's receipt. The footer alone does not prove supervision.` } };
+      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Allowed logical owners: ${Object.entries(project.owners).map(([role, display]) => `${role}: ${display}`).join('; ')}. Actual executor is the platform agent. SessionStart supplies project context only and does not issue a delivery receipt. For the final footer and execution binding use the exact current-turn UserPromptSubmit context; preserve it across resume/compact. Never use a session-scoped or another turn's receipt. The footer alone does not prove supervision.${weekly}` } };
   }
   text(input.turn_id, 'turn_id');
   const turn = input.turn_id;

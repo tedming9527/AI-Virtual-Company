@@ -4,6 +4,12 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
+function publicOrigin(value) {
+  if (!value || typeof value.revision !== 'string' || !value.revision.trim()) return null;
+  try { const url = new URL(value.url); if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) return null; return {url:url.href,revision:value.revision}; }
+  catch { return null; }
+}
+
 export function repositoryOf(root) {
   try {
     const remote = execFileSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -52,6 +58,7 @@ export async function collectCandidates(repository, options = {}) {
       const base = await getMeta(pr.base.sha), head = await getMeta(pr.head.sha);
       changes.push({ type: path.split('/')[0], name: path.split('/')[1], displayName: head?.displayName || base?.displayName || path.split('/')[1],
         description: compactDescription((head || base)?.description),
+        origin: publicOrigin((head || base)?.origin),
         baseVersion: base?.version || null, proposedVersion: head?.version || null, operation: !head ? 'remove' : !base ? 'add' : 'update' });
     }
     entries.push({ number: pr.number, title: pr.title, url: `https://github.com/${repository}/pull/${pr.number}`, draft: !!pr.draft, state: 'open', updatedAt: pr.updated_at, headSha: pr.head.sha, baseSha: pr.base.sha, changes });
@@ -68,14 +75,40 @@ export async function syncCandidates(root, options = {}) {
   writeFileSync(file, JSON.stringify(result, null, 2) + '\n');
   return result;
 }
+function locallyMergedCandidates(root, entries) {
+  if (!entries.length) return [];
+  let merges;
+  try {
+    merges = execFileSync('git', ['-C', root, 'log', '--first-parent', '--merges', '--format=%H%x00%P%x00%s', 'HEAD'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1024 * 1024 }).trim().split('\n');
+  } catch { return []; }
+  const matching = [];
+  for (const entry of entries) {
+    const merge = merges.map(line => line.split('\0')).find(([, parents, subject]) =>
+      subject === `Merge pull request #${entry.number}` || subject?.startsWith(`Merge pull request #${entry.number} `));
+    if (!merge) continue;
+    const [sha, parents] = merge;
+    const mergedHead = parents?.split(' ')[1];
+    if (!mergedHead) continue;
+    try {
+      execFileSync('git', ['-C', root, 'merge-base', '--is-ancestor', entry.headSha, mergedHead],
+        { stdio: 'ignore' });
+      matching.push({ number: entry.number, mergeCommitSha: sha });
+    } catch { /* A matching message without the candidate commit is insufficient evidence. */ }
+  }
+  return matching;
+}
 export function readCandidates(root, file = join(root, 'runtime', 'cache', 'pack-candidates.json')) {
   if (!existsSync(file)) return { status: 'not-synced', entries: [] };
   assertNoLinks(root,file);
   const data = JSON.parse(readFileSync(file, 'utf8'));
   if (data.schema !== 'avc.public-pack-candidates.v1' || data.status !== 'available' || data.repositoryPublic !== true) return { status: 'unavailable', entries: [], fetchedAt: data.fetchedAt };
   if (data.repository !== repositoryOf(root)) return { status: 'repository-mismatch', entries: [] };
-  return { schema: data.schema, repository: data.repository, repositoryPublic: true, status: 'available', fetchedAt: data.fetchedAt,
-    entries: data.entries.filter(p => Number.isInteger(p.number) && /^[a-f0-9]{40}$/.test(p.headSha || '') && /^[a-f0-9]{40}$/.test(p.baseSha || '')).map(p => ({ number: p.number, title: String(p.title),
+  const valid = data.entries.filter(p => Number.isInteger(p.number) && /^[a-f0-9]{40}$/.test(p.headSha || '') && /^[a-f0-9]{40}$/.test(p.baseSha || ''));
+  const locallyMerged = locallyMergedCandidates(root, valid);
+  const mergedNumbers = new Set(locallyMerged.map(p => p.number));
+  return { schema: data.schema, repository: data.repository, repositoryPublic: true, status: 'available', fetchedAt: data.fetchedAt, locallyMerged,
+    entries: valid.filter(p => !mergedNumbers.has(p.number)).map(p => ({ number: p.number, title: String(p.title),
       url: `https://github.com/${data.repository}/pull/${p.number}`, draft: !!p.draft, state: 'open', updatedAt: p.updatedAt, headSha: p.headSha, baseSha: p.baseSha,
-      changes: p.changes.map(c => ({ type:c.type, name:String(c.name), displayName:String(c.displayName), description:compactDescription(c.description), baseVersion:c.baseVersion, proposedVersion:c.proposedVersion, operation:c.operation })) })) };
+      changes: p.changes.map(c => ({ type:c.type, name:String(c.name), displayName:String(c.displayName), description:compactDescription(c.description), origin:publicOrigin(c.origin), baseVersion:c.baseVersion, proposedVersion:c.proposedVersion, operation:c.operation })) })) };
 }

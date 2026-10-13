@@ -49,6 +49,11 @@ export function prepareSkillCandidate(root, input, candidateId) {
   const snapshot = skillBundle(skill.dir);
   check(validation.status === 'passed' && validation.assetName === skill.name && validation.bundleSha256 === snapshot.bundleSha256, 'Skill changed since validation; revalidate');
   const sources = validateSources(input.sources);
+  const externalSources = sources.filter(source => source.kind !== 'original');
+  if (externalSources.length) {
+    const meta = read(join(skill.dir, 'meta.json'));
+    check(meta.origin && externalSources.some(source => source.url === meta.origin.url && source.revision === meta.origin.revision), 'External candidate meta.origin must pin one reviewed source URL and revision');
+  }
   // Refuse obvious private exports. This structural check does not replace human review.
   const privateText = /(?:\/Users\/|\/home\/|[A-Z]:\\Users\\|-----BEGIN .*PRIVATE KEY-----|\b(?:sk-proj-|ghp_)[A-Za-z0-9_-]{12,}|(?:password|api[_-]?key|access[_-]?token)\s*[:=]\s*["']?[A-Za-z0-9_/-]{16,})/i;
   for (const f of snapshot.files) {
@@ -70,11 +75,12 @@ export function listSkillCandidates(root) {
   return readdirSync(dir).filter(f => f.endsWith('.json')).flatMap(file => {
     const p = read(assertNoLinks(dir, join(dir, file)));
     if (!p.sourceSkill) return [];
-    let validationState = 'current';
+    let validationState = 'current', description = null;
     try {
       const skill = managedSkill(root, p.sourceSkill.name);
+      description = skill.description || null;
       if (skill.bundleSha256 !== p.sourceSkill.bundleSha256 || skillBundle(assertNoLinks(dir, join(dir, p.snapshot.path))).bundleSha256 !== p.snapshot.bundleSha256) validationState = 'invalidated';
     } catch { validationState = 'invalidated'; }
-    return [{id:p.id,name:p.name,status:p.status,version:p.sourceSkill.version,validationState,bundleSha256:p.snapshot.bundleSha256,publication:p.publication,installation:p.installation}];
+    return [{id:p.id,name:p.name,description,status:p.status,version:p.sourceSkill.version,validationState,bundleSha256:p.snapshot.bundleSha256,sources:(p.sources||[]).filter(s=>s.url).map(s=>({url:s.url,revision:s.revision})),publication:p.publication,installation:p.installation}];
   });
 }

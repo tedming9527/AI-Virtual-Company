@@ -45,9 +45,10 @@ jobs:
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout
           node mcp/ted-avc-manager/src/cli.js validate-packs
+          node mcp/ted-avc-manager/src/cli.js panorama-source-snapshot --check
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
-          node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+          node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 采集公开候选 PR（仅读元数据）
         env:
           GITHUB_TOKEN: ${{ github.token }}
