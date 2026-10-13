@@ -8,6 +8,8 @@ import { resolvePersonalStorage } from './storage.js';
 import { refreshInventory, recordObservedRead, listAssets } from './awareness.js';
 import { endMaintenance, runMaintenanceHook } from './maintenance.js';
 import { diagnosticCall, isDiagnosticCall } from './maintenance-diagnostics.js';
+import { skillBundle } from './local-assets.js';
+import { workflowNodeContract, claimNativeNode, assertNativeNode, observeNativeNode, finishNativeNode } from './workflow.js';
 
 const engineVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -15,7 +17,7 @@ const read = file => JSON.parse(readFileSync(file, 'utf8'));
 const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
 const now = () => new Date().toISOString();
 const owns = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
-const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|check_update|load_asset|task_begin|task_closeout)$/;
+const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|workflow_status|workflow_templates|check_update|load_asset|task_begin|task_closeout)$/;
 function identifier(value, name) {
   if (typeof value !== 'string' || !value.trim() || value.length > 512 || /[\r\n\0]/.test(value)) throw new Error(`Invalid ${name}`);
   return value;
@@ -91,10 +93,10 @@ function active(paths, key) {
 function registeredFingerprint(base, directory) {
   const entrySha256 = sha(readFileSync(safePath(base, join(directory, 'SKILL.md'))));
   const metaSha256 = sha(readFileSync(safePath(base, join(directory, 'meta.json'))));
-  return { entrySha256, metaSha256, sha256: sha(entrySha256 + ':' + metaSha256) };
+  return { entrySha256, metaSha256, bundleSha256: skillBundle(directory).bundleSha256, sha256: sha(entrySha256 + ':' + metaSha256) };
 }
 function registrationMatches(record, fingerprint) {
-  return record.sha256 === fingerprint.sha256 && (!record.entrySha256 || record.entrySha256 === fingerprint.entrySha256) && (!record.metaSha256 || record.metaSha256 === fingerprint.metaSha256);
+  return (typeof record.bundleSha256 === 'string' && record.bundleSha256 === fingerprint.bundleSha256) && record.sha256 === fingerprint.sha256 && (!record.entrySha256 || record.entrySha256 === fingerprint.entrySha256) && (!record.metaSha256 || record.metaSha256 === fingerprint.metaSha256);
 }
 function integrity(root, task, catalogVersion) {
   const issues = [];
@@ -130,9 +132,15 @@ export function beginTask(root, input, deploymentFile) {
   if (!profile.trim()) throw new Error('Role PROFILE is empty');
   if (d.settings.allowedTools && input.allowedTools.some(tool => !d.settings.allowedTools.includes(tool))) throw new Error('Task tool outside deployment-approved tool set');
   if (input.requiredAssets !== undefined && !Array.isArray(input.requiredAssets)) throw new Error('requiredAssets must be an array');
-  const requiredAssets = [...new Set([...(d.settings.requiredAssets || []), ...(input.requiredAssets || [])])].sort();
+  let workflow;
+  if (input.workflowId !== undefined || input.nodeId !== undefined) {
+    workflow = workflowNodeContract(d.root, input.workflowId, input.nodeId);
+    if (workflow.node.executor.kind !== 'native' || workflow.node.role !== input.role) throw new Error('Workflow node requires its declared native role');
+    if (input.maxToolCalls > workflow.node.executor.maxToolCalls || input.allowedTools.some(t => !workflow.node.executor.allowedTools.includes(t))) throw new Error('Task exceeds workflow node tool contract');
+  }
+  const requiredAssets = [...new Set([...(d.settings.requiredAssets || []), ...(input.requiredAssets || []), ...(workflow?.requiredAssets || [])])].sort();
   if (requiredAssets.some(id=>!/^general:(skill|knowledge|framework|role):[a-z0-9][a-z0-9-]*$/.test(id) && !/^local-custom:skill:[a-z0-9][a-z0-9-]*$/.test(id))) throw new Error('Invalid required asset identity');
-  const contract = { role: input.role, goal: input.goal, allowedTools: [...new Set(input.allowedTools)].sort(), maxToolCalls: input.maxToolCalls, requiredAssets };
+  const contract = { role: input.role, goal: input.goal, allowedTools: [...new Set(input.allowedTools)].sort(), maxToolCalls: input.maxToolCalls, requiredAssets, ...(workflow ? { workflow: { workflowId: input.workflowId, nodeId: input.nodeId, specSha256: workflow.specSha256 } } : {}) };
   return locked(d.root, key.taskId, paths => {
     if (existsSync(paths.task)) {
       const existing = active(paths, key);
@@ -143,6 +151,10 @@ export function beginTask(root, input, deploymentFile) {
     }
     const task = { schema: 'avc.execution-task.v1', ...key, projectRoot: d.root, engineVersion, catalogVersion: d.catalogVersion, catalogSha256: pinnedCatalog(d.root), mode: d.settings.mode, status: 'active', startedAt: now(), contract,
       role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
+    if (workflow) {
+      const attempt = claimNativeNode(d.root, input.workflowId, input.nodeId, key.taskId);
+      task.workflow = { ...contract.workflow, attemptId: attempt.id };
+    }
     atomic(paths.task, task); record(paths, task, 'task_started', { roleId: input.role, mode: task.mode, roleProfileSha256: task.role.profileSha256 });
     endMaintenance(d.root, input, deploymentFile, task.taskId);
     return { ...task, roleProfile: profile, contextDelivery: 'MCP returned complete role PROFILE; actual model compliance requires separate evidence' };
@@ -206,6 +218,7 @@ export function closeTask(root, input, deploymentFile) {
     task.status = 'closed'; task.closedAt = now(); task.artifacts = artifacts;
     task.integrity = integrity(d.root, task, d.catalogVersion);
     task.observation = { reservedCalls: Object.keys(task.calls).length, observedCalls: Object.values(task.calls).filter(call => call.status === 'observed').length, unknownCalls: Object.values(task.calls).filter(call => call.status === 'unknown').length, violations: task.violations.length, modelTokens: 'unknown', modelCost: 'unknown', scope: 'Native hooks observed only; user can disable adapter; no hosted gateway or full supervision claim' };
+    if (task.workflow) finishNativeNode(d.root, task.workflow, task);
     atomic(paths.task, task); record(paths, task, 'task_closed', { integrity: task.integrity, observation: task.observation, artifactSha256: artifacts.map(item => item.sha256) });
     return task;
   });
@@ -253,6 +266,7 @@ function executeHook(input, deploymentFile) {
       const response = responseField && input[responseField];
       call.exitCode = owns(input, 'exit_code') && Number.isInteger(input.exit_code) ? input.exit_code : response && typeof response === 'object' && Number.isInteger(response.exit_code) ? response.exit_code : 'unknown';
       if (!responseField) call.unknownReason = 'PostToolUse exposed no response field';
+      if (task.workflow) observeNativeNode(d.root, task.workflow, task.taskId, input.tool_use_id);
       atomic(paths.task, task); record(paths, task, 'tool_completion_observed', { toolUseId: input.tool_use_id, tool: call.tool, status: call.status, responseSha256: call.responseSha256, exitCode: call.exitCode });
       return {};
     }
@@ -260,7 +274,9 @@ function executeHook(input, deploymentFile) {
     const control = MCP_TOOL.test(input.tool_name) && /__(task_closeout|load_asset)$/.test(input.tool_name);
     if (task.status !== 'active') reasons.push(`Task is ${task.status}`);
     if (!control) reasons.push(...integrity(d.root, task, d.catalogVersion).issues);
+    if (!control && task.workflow) try { assertNativeNode(d.root, task.workflow, task.taskId); } catch (error) { reasons.push(error.message); }
     if (!control) for (const id of task.contract.requiredAssets || []) {
+      if (id === `general:role:${task.role.id}`) continue; // beginTask already returned this exact PROFILE.
       if (!task.assets.some(a=>`${a.source}:${a.type}:${a.name}`===id && a.entry===(a.type==='role'?'PROFILE.md':'SKILL.md'))) reasons.push(`Required asset body not delivered: ${id}`);
     }
     if (!task.contract.allowedTools.includes(input.tool_name)) reasons.push('Tool outside exact task allowlist');

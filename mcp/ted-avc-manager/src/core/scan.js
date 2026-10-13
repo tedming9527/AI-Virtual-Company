@@ -3,6 +3,7 @@
 import { readdirSync, existsSync, statSync, lstatSync, readFileSync } from 'node:fs';
 import { join, resolve, relative, sep } from 'node:path';
 import { readJson, validateBootstrap, validatePackMeta } from './manifest.js';
+import { searchMetadata } from './asset-search.js';
 import { describeAsset } from './description.js';
 
 export function assertNoLinks(root, file) {
@@ -62,7 +63,7 @@ export function scanPacks(root, options = {}) {
       found.push({ type, name, displayName: meta.displayName || name,
         ...describeAsset(meta, readFileSync(join(dir, entry), 'utf8')),
         ...(type === 'role' ? { nameZh: meta.nameZh, professionZh: meta.professionZh } : {}),
-        version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
+        ...searchMetadata(meta), version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
     }
   }
   return { packs: found, errors };

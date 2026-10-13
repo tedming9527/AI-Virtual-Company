@@ -1,0 +1,97 @@
+{
+  "schema": "avc.workflow.v1",
+  "id": "capability-to-candidate",
+  "title": "能力发现 → 本地组装 → 候选验收",
+  "goal": "发现可复用能力并形成可核验的本地技能候选",
+  "owner": "ai-engineer",
+  "assets": [
+    {
+      "id": "general:skill:capability-discovery-assembly",
+      "usage": "primary",
+      "purpose": "本节点主方法"
+    }
+  ],
+  "maxParallel": 1,
+  "maxAttemptsTotal": 3,
+  "nodes": [
+    {
+      "id": "discover",
+      "title": "双语发现与来源核对",
+      "role": "ai-engineer",
+      "assets": [],
+      "dependsOn": [],
+      "maxAttempts": 1,
+      "executor": {
+        "kind": "native",
+        "allowedTools": [
+          "functions.exec",
+          "mcp__ted_avc_manager__load_asset",
+          "mcp__ted_avc_manager__task_closeout"
+        ],
+        "maxToolCalls": 60
+      },
+      "outputs": [
+        "runtime/workflow-deliverables/discover.json"
+      ],
+      "acceptance": "提供本节点来源、产物和验证证据；业务正确性另行核验"
+    },
+    {
+      "id": "assemble",
+      "title": "组装与本地登记",
+      "role": "ai-engineer",
+      "assets": [
+        {
+          "id": "general:skill:development-experience",
+          "usage": "support",
+          "purpose": "按需提供专业依据"
+        }
+      ],
+      "dependsOn": [
+        "discover"
+      ],
+      "maxAttempts": 1,
+      "executor": {
+        "kind": "native",
+        "allowedTools": [
+          "functions.exec",
+          "mcp__ted_avc_manager__load_asset",
+          "mcp__ted_avc_manager__task_closeout"
+        ],
+        "maxToolCalls": 60
+      },
+      "outputs": [
+        "runtime/workflow-deliverables/assemble.json"
+      ],
+      "acceptance": "提供本节点来源、产物和验证证据；业务正确性另行核验"
+    },
+    {
+      "id": "verify",
+      "title": "独立核对候选证据",
+      "role": "test-expert",
+      "assets": [
+        {
+          "id": "general:skill:test-quality-gate",
+          "usage": "verify",
+          "purpose": "核对验收证据"
+        }
+      ],
+      "dependsOn": [
+        "assemble"
+      ],
+      "maxAttempts": 1,
+      "executor": {
+        "kind": "native",
+        "allowedTools": [
+          "functions.exec",
+          "mcp__ted_avc_manager__load_asset",
+          "mcp__ted_avc_manager__task_closeout"
+        ],
+        "maxToolCalls": 60
+      },
+      "outputs": [
+        "runtime/workflow-deliverables/verify.json"
+      ],
+      "acceptance": "提供本节点来源、产物和验证证据；业务正确性另行核验"
+    }
+  ]
+}

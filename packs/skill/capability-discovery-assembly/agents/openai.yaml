@@ -1,0 +1,4 @@
+interface:
+  display_name: "能力发现与组装"
+  short_description: "双语寻找现有技能与方法，核对来源并组装可验证的本地技能和升级候选"
+  default_prompt: "使用 $capability-discovery-assembly 发现可复用能力，完成当前任务的能力组合与验证。"

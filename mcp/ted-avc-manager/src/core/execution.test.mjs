@@ -5,6 +5,7 @@ import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync, symlinkSyn
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { skillBundle } from './local-assets.js';
 import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks } from './execution.js';
 import { runCodexHook } from './codex-hooks.js';
 import { openMaintenance, maintenanceStatus, endMaintenance } from './maintenance.js';
@@ -102,6 +103,8 @@ test('general and registered personal skills load, staging/unregistered/drift/tr
   assert.throws(() => loadAsset(f.root, input, f.deployment), /registration/);
   const entrySha256 = sha('# Original local content'), metaSha256 = sha(readFileSync(join(dir, 'meta.json')));
   writeFileSync(join(f.root, 'runtime/skill-registry.json'), JSON.stringify({ entries: [{ name: 'local-demo', dir, source: 'local-custom', version: '1.0.0', entrySha256, metaSha256, sha256: sha(entrySha256 + ':' + metaSha256) }] }));
+  assert.throws(() => loadAsset(f.root, input, f.deployment), /legacy digest/);
+  const registered = JSON.parse(readFileSync(join(f.root, 'runtime/skill-registry.json'))); registered.entries[0].bundleSha256 = skillBundle(dir).bundleSha256; writeFileSync(join(f.root, 'runtime/skill-registry.json'), JSON.stringify(registered));
   assert.equal(loadAsset(f.root, input, f.deployment).source, 'local-custom');
   writeFileSync(join(dir, 'SKILL.md'), 'unreviewed edit'); assert.throws(() => loadAsset(f.root, input, f.deployment), /changed/);
   assert.throws(() => loadAsset(f.root, { ...input, source: 'staging' }, f.deployment), /source/);
@@ -276,4 +279,31 @@ test('maintenance paths reject symlinks and CLI entry requires explicit authoriz
   const audit = join(monitored.root, 'runtime/execution/maintenance/events.jsonl');
   rmSync(audit); symlinkSync(join(monitored.root, 'missing-target'), audit);
   assert.match(monitored.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /symlink/);
+});
+
+// Adapter integration fixtures are simulated hook receipts, not live-host verification.
+import { createWorkflow, workflowStatus, cancelWorkflow } from './workflow.js';
+function nativeWorkflow(f) {
+ const spec={schema:'avc.workflow.v1',id:'native-flow',title:'Native workflow',goal:'Verify node binding',owner:'ai-engineer',assets:[{id:'general:skill:demo',usage:'support',purpose:'Required method'}],maxParallel:1,maxAttemptsTotal:1,nodes:[{id:'work',title:'Work',role:'ai-engineer',assets:[],dependsOn:[],maxAttempts:1,executor:{kind:'native',allowedTools:[tool,close],maxToolCalls:2},outputs:['result.md'],acceptance:'Actual tool result and artifact'}]};
+ createWorkflow(f.root,spec);return {workflowId:spec.id,nodeId:'work'};
+}
+test('workflow native claim uses real adapter binding and required asset delivery before effects',t=>{
+ const f=fixture(t),ref=nativeWorkflow(f);
+ assert.throws(()=>f.begin({...ref,receipt:'invented'}),/receipt mismatch/);
+ assert.throws(()=>f.begin({...ref,maxToolCalls:3}),/workflow node tool/);
+ const task=f.begin(ref);assert.equal(workflowStatus(f.root,ref.workflowId).nodes.work.status,'reserved');assert.ok(task.contract.requiredAssets.includes('general:skill:demo'));
+ loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ assert.deepEqual(f.event('PreToolUse'),{});writeFileSync(join(f.root,'result.md'),'new artifact');f.event('PostToolUse','call-a',{tool_response:{exit_code:0}});
+ closeTask(f.root,{...f.key,artifacts:[{path:'result.md'}]},f.deployment);
+ const run=workflowStatus(f.root,ref.workflowId);assert.equal(run.status,'succeeded');assert.equal(run.nodes.work.attempts[0].nativeTaskId,task.taskId);assert.equal(run.nodes.work.attempts[0].outputs.length,1);
+});
+test('workflow required assets, cancellation and unknown completion cannot be claimed successful',t=>{
+ const f=fixture(t),ref=nativeWorkflow(f);f.begin(ref);
+ assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason,/Required asset/);
+ loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ f.event('PreToolUse','call-b');f.event('PostToolUse','call-b');writeFileSync(join(f.root,'result.md'),'artifact');
+ closeTask(f.root,{...f.key,artifacts:[{path:'result.md'}]},f.deployment);assert.equal(workflowStatus(f.root,ref.workflowId).status,'needs_attention');
+ const g=fixture(t),other=nativeWorkflow(g);g.begin(other);cancelWorkflow(g.root,other.workflowId);
+ assert.match(g.event('PreToolUse').hookSpecificOutput.permissionDecisionReason,/cancelled/);
+ writeFileSync(join(g.root,'result.md'),'cancel evidence');closeTask(g.root,{...g.key,artifacts:[{path:'result.md'}]},g.deployment);assert.equal(workflowStatus(g.root,other.workflowId).status,'cancelled');
 });

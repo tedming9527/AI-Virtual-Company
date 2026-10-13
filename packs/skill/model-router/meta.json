@@ -1,11 +1,18 @@
 {
   "type": "skill",
   "name": "model-router",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "选择 AI 模型时，按任务复杂度、质量要求和当前可用模型匹配能力层级。"
+  "description": "选择 AI 模型时，按任务复杂度、质量要求和当前可用模型匹配能力层级。",
+  "keywords": [
+    "模型选择",
+    "模型路由",
+    "model selection",
+    "model routing"
+  ],
+  "aliases": []
 }

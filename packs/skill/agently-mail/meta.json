@@ -1,11 +1,19 @@
 {
   "type": "skill",
   "name": "agently-mail",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "需要处理邮件时，通过 agently-cli 搜索、阅读和管理邮件，按授权发送或回复。"
+  "description": "需要处理邮件时，通过 agently-cli 搜索、阅读和管理邮件，按授权发送或回复。",
+  "keywords": [
+    "邮件",
+    "邮箱",
+    "收件箱",
+    "email",
+    "mail"
+  ],
+  "aliases": []
 }

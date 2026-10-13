@@ -1,11 +1,18 @@
 {
   "type": "skill",
   "name": "figma-reader",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "对照 Figma 设计时，读取目标节点与截图，核对布局、样式和交互依据。"
+  "description": "对照 Figma 设计时，读取目标节点与截图，核对布局、样式和交互依据。",
+  "keywords": [
+    "设计稿",
+    "设计节点",
+    "Figma",
+    "design inspection"
+  ],
+  "aliases": []
 }

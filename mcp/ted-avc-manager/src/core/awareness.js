@@ -4,6 +4,8 @@ import { join, resolve, relative, basename, sep, isAbsolute, dirname } from 'nod
 import { homedir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import { discoverSkills, personalProject, nativeSkillRoots } from './local-assets.js';
+import { prepareSkillCandidate } from './skill-candidates.js';
+import { searchAssets, searchMetadata } from './asset-search.js';
 import { describeAsset, compactDescription } from './description.js';
 
 const hash = data => createHash('sha256').update(data).digest('hex');
@@ -69,7 +71,7 @@ function bundle(dir, type, name, source, management) {
   const content = readFileSync(entry, 'utf8');
   if (!content.trim()) return null;
   return { id: `${source}:${type}:${resolve(dir)}`, type, name, displayName: meta.displayName || name,
-    description: describeAsset(meta, content).description || '',
+    description: describeAsset(meta, content).description || '', ...searchMetadata(meta),
     version: meta.version || null, source, management, dir: resolve(dir), entry: resolve(entry),
     entrySha256: hash(content), sha256: hash(content + '\0' + (existsSync(metaFile) ? readFileSync(metaFile) : '')),
     discovery: 'metadata-only', nativeInstalled: 'unverified', loaded: false };
@@ -129,8 +131,7 @@ export function listAssets(root, filter = {}, options = {}) {
   for (const asset of assets) {
     try { Object.assign(asset, bundleFiles(asset.dir)); } catch (e) { asset.bundleIntegrity = 'unverified'; warnings.push(`${asset.name}: ${e.message}`); }
   }
-  const query = String(filter.query || '').toLowerCase();
-  return { assets: assets.filter(a => (!filter.type || a.type === filter.type) && (!filter.source || a.source === filter.source) && (!query || [a.name, a.displayName, a.description].some(x => x.toLowerCase().includes(query)))), warnings };
+  return { assets: searchAssets(assets.filter(a => (!filter.type || a.type === filter.type) && (!filter.source || a.source === filter.source)), filter.query), warnings };
 }
 export function refreshInventory(root, options = {}) {
   const current = listAssets(root, {}, options), file = runtimeFile(root, 'asset-inventory.json');
@@ -161,8 +162,7 @@ export function watchAssets(root, options = {}) {
   return { errors, dispose() { disposed = true; clearTimeout(debounce); clearInterval(poll); for (const w of watchers) w.close(); } };
 }
 export function recommendAssets(root, query = '', options = {}) {
-  const terms = String(query).toLowerCase().split(/\s+/).filter(Boolean);
-  return { recommendations: listAssets(root, {}, options).assets.map(a => ({ ...a, score: terms.reduce((n, term) => n + (a.name.toLowerCase().includes(term) ? 3 : 0) + (a.displayName.toLowerCase().includes(term) ? 2 : 0) + (a.description.toLowerCase().includes(term) ? 1 : 0), 0) })).filter(a => a.score > 0).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)), evidence: 'metadata-relevance; not automatic activation' };
+  return { recommendations: query.trim() ? listAssets(root, {query}, options).assets : [], evidence: 'metadata-and-declared-aliases; not automatic activation' };
 }
 function resolveAsset(root, input, options) {
   const assets = listAssets(root, {}, options).assets;
@@ -186,6 +186,7 @@ export function proposeAsset(root, input) {
   const id = randomUUID(), file = safePath(personal, join(personal, 'staging', 'proposals', id + '.json'));
   const proposal = { schema: 'avc.asset-proposal.v1', id, at: new Date().toISOString(), name: String(input.name).slice(0, 200), type: input.type || 'skill', origin: String(input.origin || 'model-recommendation').slice(0, 500), purpose: String(input.purpose || '').slice(0, 1000), status: 'pending-review', publication: 'none', installation: 'none' };
   runtimeFile(root, 'asset-events.jsonl'); // Preflight audit path before candidate write.
+  if (input.assetId || input.validationId) Object.assign(proposal, prepareSkillCandidate(root, input, id));
   atomic(file, proposal); event(root, { kind: 'candidate-proposed', candidateId: id, name: proposal.name, type: proposal.type, status: proposal.status });
   return { ...proposal, file };
 }

@@ -1,0 +1,29 @@
+{
+  "type": "skill",
+  "name": "capability-discovery-assembly",
+  "displayName": "能力发现与组装",
+  "version": "1.0.0",
+  "rubric": [
+    "traceability",
+    "reusability",
+    "validation"
+  ],
+  "status": "stable",
+  "description": "在新领域、能力缺口或准备自建公共能力时，双语发现已有技能与方法，审查来源并组装可验证的本地技能及升级候选。",
+  "aliases": [
+    "能力招聘官",
+    "能力发现与组装",
+    "capability discovery and assembly"
+  ],
+  "keywords": [
+    "寻找技能",
+    "技能发现",
+    "组装技能",
+    "本地技能",
+    "候选升级",
+    "find skills",
+    "skill discovery",
+    "skill assembly",
+    "capability discovery"
+  ]
+}

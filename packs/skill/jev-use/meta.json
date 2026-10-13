@@ -1,11 +1,22 @@
 {
   "type": "skill",
   "name": "jev-use",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "description": "需要对明确选项作批量判断或操作检查时，调用 Jev 形成结构化判断与升级信号。"
+  "description": "需要对明确选项作批量判断或操作检查时，调用 Jev 形成结构化判断与升级信号。",
+  "keywords": [
+    "结构化判断",
+    "批量分类",
+    "Jev",
+    "structured judgment",
+    "classification"
+  ],
+  "aliases": [
+    "Jev 结构化判断"
+  ],
+  "displayName": "Jev 结构化判断"
 }

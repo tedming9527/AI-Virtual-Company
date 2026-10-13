@@ -4,25 +4,32 @@
 import { createInterface } from 'node:readline';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { discoverCapabilities } from './core/discovery.js';
+import { validateLocalSkill, listSkillCandidates } from './core/skill-candidates.js';
 import { scanPacks } from './core/scan.js';
 import { flowCheck, flowUpgrade, flowPanorama, flowSync } from './core/flows.js';
 import { validateLog } from './governance/schema.js';
 import { findSkills, registerLocalSkill } from './core/local-assets.js';
 import { syncCandidates } from './panorama/candidates.js';
+import { createWorkflow, workflowStatus, cancelWorkflow, workflowTemplates } from './core/workflow.js';
 import { beginTask, loadAsset, closeTask } from './core/execution.js';
 import { listAssets, recommendAssets, proposeAsset, recordAssetUse, watchAssets, noteDeliveredAsset } from './core/awareness.js';
 
 const VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 const TOOLS = [
+  {name:'discover_capabilities', description:'向 GitHub 发送明确的中英文公开能力查询，合并仓库候选；不读取私有文件、不下载或安装', inputSchema:{type:'object',properties:{zhQuery:{type:'string'},enQuery:{type:'string'},owners:{type:'array',items:{type:'string'}}},required:['zhQuery','enQuery']}},
+  {name:'validate_local_skill', description:'验证已登记本地技能结构并保存绑定完整包哈希的证据；不代替行为验收', inputSchema:{type:'object',properties:{assetId:{type:'string'}},required:['assetId']}},
+  {name:'list_skill_candidates', description:'查看本地技能候选及验证是否仍有效', inputSchema:{type:'object',properties:{}}},
+  ...['workflow_create', 'workflow_status', 'workflow_cancel', 'workflow_templates'].map(name => ({name, description: ({workflow_create:'固定任务级多技能组合与流程节点；不启动执行',workflow_status:'查询任务依赖、节点状态与实际证据',workflow_cancel:'请求停止后续节点；活动执行需真实停止后才能记取消',workflow_templates:'列出公共流程模板，模板不是授权或运行事实'})[name], inputSchema: {type:'object', properties:{spec:{type:'object'},workflowId:{type:'string'}}}})),
   { name: 'list_packs', description: '列出全部技能包（目录规约扫描，约定大于配置）', inputSchema: { type: 'object', properties: {} } },
   { name: 'check_update', description: '检查当前版本与中央最新版本差异', inputSchema: { type: 'object', properties: {} } },
   { name: 'upgrade', description: '升级到中央最新版本（major 需 force 人审）', inputSchema: { type: 'object', properties: { force: { type: 'boolean' } } } },
   { name: 'generate_panorama', description: '生成本地全景图（默认 runtime/panorama）或通用公开目录（public）', inputSchema: { type: 'object', properties: { view: { type: 'string', enum: ['local', 'public'] }, catalogRef: { type: 'string' }, offline: { type: 'boolean' } } } },
   { name: 'find_skill', description: '发现中央、本地自定义及本机技能，区分发现与管理状态', inputSchema: { type: 'object', properties: { query: { type: 'string' } } } },
   { name: 'register_skill', description: '登记 personal/custom 内原创技能，绑定版本与正文/元数据哈希；外部先导入复核', inputSchema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
-  ...['list_assets','recommend_assets','report_asset_use','propose_asset'].map(name=>({name,description:({list_assets:'列出通用/本地/native技能与知识元数据；不等于正文加载',recommend_assets:'根据任务关键词推荐可发现资产，不自动激活',report_asset_use:'记录模型使用声明，与真实读取/正文交付分开统计',propose_asset:'将技能/插件建议写入个人待复核候选；不自动安装或发布'})[name],inputSchema:{type:'object',properties:{query:{type:'string'},type:{type:'string'},source:{type:'string'},assetId:{type:'string'},name:{type:'string'},origin:{type:'string'},purpose:{type:'string'},sessionId:{type:'string'},turnId:{type:'string'}}}})),
-  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, description: ({task_begin:'建立原生回合绑定任务，固定角色全文与工具合同',load_asset:'交付明确选定的通用或已登记本地资产正文并固定摘要',task_closeout:'核对原生调用观察与真实产物 SHA，关闭任务'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},role:{type:'string'},goal:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
+  ...['list_assets','recommend_assets','report_asset_use','propose_asset'].map(name=>({name,description:({list_assets:'列出通用/本地/native技能与知识元数据；不等于正文加载',recommend_assets:'根据任务关键词推荐可发现资产，不自动激活',report_asset_use:'记录模型使用声明，与真实读取/正文交付分开统计',propose_asset:'将技能/插件建议写入个人待复核候选；不自动安装或发布'})[name],inputSchema:{type:'object',properties:{query:{type:'string'},type:{type:'string'},source:{type:'string'},assetId:{type:'string'},name:{type:'string'},origin:{type:'string'},purpose:{type:'string'},validationId:{type:'string'},sources:{type:'array',items:{type:'object'}},sessionId:{type:'string'},turnId:{type:'string'}}}})),
+  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, description: ({task_begin:'建立原生回合绑定任务，固定角色全文与工具合同',load_asset:'交付明确选定的通用或已登记本地资产正文并固定摘要',task_closeout:'核对原生调用观察与真实产物 SHA，关闭任务'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},workflowId:{type:'string'},nodeId:{type:'string'},role:{type:'string'},goal:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
   { name: 'submit_log', description: '校验并暂存使用日志（免审合并前提：过 schema 校验门）', inputSchema: { type: 'object', properties: { log: { type: 'object' } } } },
 ];
 
@@ -72,9 +79,23 @@ export function start() {
     const args = (params.arguments) || {};
     try {
       let text;
-      if (name === 'list_packs') {
+      if (name === 'discover_capabilities') {
+        text = JSON.stringify(await discoverCapabilities(args));
+      } else if (name === 'validate_local_skill') {
+        text = JSON.stringify(validateLocalSkill(ROOT,args));
+      } else if (name === 'list_skill_candidates') {
+        text = JSON.stringify(listSkillCandidates(ROOT));
+      } else if (name === 'workflow_create') {
+        text = JSON.stringify(createWorkflow(ROOT,args.spec));
+      } else if (name === 'workflow_status') {
+        text = JSON.stringify(workflowStatus(ROOT,args.workflowId));
+      } else if (name === 'workflow_cancel') {
+        text = JSON.stringify(cancelWorkflow(ROOT,args.workflowId));
+      } else if (name === 'workflow_templates') {
+        text = JSON.stringify(workflowTemplates(ROOT));
+      } else if (name === 'list_packs') {
         const { packs, errors } = scanPacks(ROOT);
-        text = JSON.stringify({ packs: packs.map((p) => ({ type: p.type, name: p.name, displayName: p.displayName,
+        text = JSON.stringify({ packs: packs.map((p) => ({ type: p.type, name: p.name, displayName: p.displayName, description:p.description, aliases:p.aliases, keywords:p.keywords,
           ...(p.type === 'role' ? { nameZh: p.nameZh, professionZh: p.professionZh } : {}), version: p.version, status: p.status })), errors });
       } else if (name === 'check_update') {
         text = flowCheck(ROOT).summary;

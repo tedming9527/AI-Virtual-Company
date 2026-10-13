@@ -30,6 +30,10 @@
 - 用户明确点名的 Skill 必须使用；规则冻结为必需的 Skill 缺失时停止受影响部分并报告，不静默用手工等价流程绕过。非必需能力缺失可在授权内选可验证替代并记限制。
 - 样式任务采用 [react-scoped-styles](../../skill/react-scoped-styles/SKILL.md)；Java 解释采用 [java-code-explainer](../../skill/java-code-explainer/SKILL.md)；设计稿采用任务指定的真实设计读取能力；邮件采用 [agently-mail](../../skill/agently-mail/SKILL.md)；模型选择采用 [model-router](../../skill/model-router/SKILL.md) 及部署实例的当前模型映射。保存总结的目的地与工具依当前用户请求，不预设个人系统。
 
+## 通用任务编排
+
+多技能组合与节点执行遵守 [任务编排规则](policies/TASK_ORCHESTRATION.md)。能力缺口或准备自建公共能力时，先使用 [能力发现与组装](../../skill/capability-discovery-assembly/SKILL.md)，保留中英文查询与来源复用决定。
+
 ## 模型、委派与上下文
 
 - 子任务或模型选择登记 role ID、目标、fast/balanced/deep 能力层级、请求模型、推理强度、速度/质量取向、最低限制、理由与复核。实际模型无法确认时 unknown，不能声称符合下限。
