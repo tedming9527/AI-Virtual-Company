@@ -5,7 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { managedSkill } from './skill-candidates.js';
 import { skillBundle } from './local-assets.js';
 import { assertNoLinks } from './scan.js';
-import { supervise, status as processStatus, cancel as cancelProcess } from '../../../../scripts/supervisor-runtime.mjs';
+import { supervise, status as processStatus, cancel as cancelProcess } from './supervisor-runtime.mjs';
 const hash = x => createHash('sha256').update(x).digest('hex');
 const read = p => JSON.parse(readFileSync(p, 'utf8'));
 const stamp = () => new Date().toISOString();
