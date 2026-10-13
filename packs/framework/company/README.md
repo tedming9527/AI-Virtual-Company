@@ -15,10 +15,10 @@
 从中央仓库根可运行现存入口：
 
 ```sh
-node mcp/pack-manager/src/cli.js validate-packs
-node mcp/pack-manager/src/cli.js validate-layout
-node mcp/pack-manager/src/cli.js doctor
-node mcp/pack-manager/src/cli.js config
+node mcp/ted-avc-manager/src/cli.js validate-packs
+node mcp/ted-avc-manager/src/cli.js validate-layout
+node mcp/ted-avc-manager/src/cli.js doctor
+node mcp/ted-avc-manager/src/cli.js config
 ```
 
 这些命令只验证各自声明的结构或配置，不证明公司初始化、项目绑定、平台 Hook、人员身份或持续监督。平台规则同步、身份鉴证、可信发布器、预算解析与模型计量由部署适配器提供；未部署不能声称具备，也不存在可在本包直接运行的这些命令。平台配置改动须保留现有内容、先核对差异与恢复方案，再按已授权范围执行；新会话验收与静态校验分别报告。

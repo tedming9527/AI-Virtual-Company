@@ -8,22 +8,33 @@
 
 ```bash
 # 1. 初始化本机状态与包索引（客户端 MCP 安装另行验收）
-node mcp/pack-manager/src/cli.js init "根据 github://<owner>/<repo> 开始执行初始化，安装 mcp"
+node mcp/ted-avc-manager/src/cli.js init "根据 github://<owner>/<repo> 开始执行初始化，安装 mcp"
 
 # 2. 版本管理（版本可见：汇报必带当前版本号）
-node mcp/pack-manager/src/cli.js check
-node mcp/pack-manager/src/cli.js upgrade [--force]   # major 需 --force（人审）
+node mcp/ted-avc-manager/src/cli.js check
+node mcp/ted-avc-manager/src/cli.js upgrade [--force]   # major 需 --force（人审）
 
 # 3. 治理（日志 schema 校验门 → 免审合并前提）
-node mcp/pack-manager/src/cli.js validate-packs
-node mcp/pack-manager/src/cli.js validate-log <file.json>
+node mcp/ted-avc-manager/src/cli.js validate-packs
+node mcp/ted-avc-manager/src/cli.js validate-log <file.json>
 
 # 4. 全景图
-node mcp/pack-manager/src/cli.js panorama            # 本地生成 panorama/index.html
+node mcp/ted-avc-manager/src/cli.js panorama            # 本地生成 runtime/panorama/index.html
 
 # 5. 对外 MCP 适配器（stdio）
-node mcp/pack-manager/src/cli.js server
+node mcp/ted-avc-manager/src/cli.js server
 ```
+
+## v1.2.0 管理入口
+
+服务名、目录及主命令统一为 `ted-avc-manager`（旧 `pack-manager` 命令保留兼容别名）。本地配置和安装需显式迁移；更名不证明插件市场安装。
+
+- `find-skill` / `register-skill`：区分通用、本地原创和外部已安装技能；外部资产先暂存复核。
+- MCP `list_assets` / `recommend_assets`：返回元数据，使用时通过绑定回合的 `load_asset` 获取正文。
+- `task_begin` → `load_asset` → 原生 Pre/Post 工具观察 → `task_closeout`：固定角色、资产、白名单和工具预算。
+- `panorama --local`：个人视图位于 `runtime/panorama/`；`panorama --public --catalog-ref vX.Y.Z`：只用已发布通用目录和公开 PR。
+
+执行适配见 [11](docs/11-执行介入架构.md)，资产感知见 [12](docs/12-资产发现与使用追踪.md)。客户端发现、正文交付和实际使用分别验收。
 
 ## 目录规约（约定大于配置）
 

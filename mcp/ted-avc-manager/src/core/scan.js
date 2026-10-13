@@ -1,13 +1,24 @@
 // scan.js —— 目录规约扫描（约定大于配置：FR-1）
 
-import { readdirSync, existsSync, statSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, existsSync, statSync, lstatSync, readFileSync } from 'node:fs';
+import { join, resolve, relative, sep } from 'node:path';
 import { readJson, validateBootstrap, validatePackMeta } from './manifest.js';
+
+export function assertNoLinks(root, file) {
+  const base=resolve(root), target=resolve(file);
+  if(target!==base && !target.startsWith(base+sep)) throw new Error('Path outside project root');
+  let cursor=base;
+  for(const part of relative(base,target).split(sep).filter(Boolean)) {
+    cursor=join(cursor,part);
+    try {if(lstatSync(cursor).isSymbolicLink()) throw new Error('Refusing symlink in public asset path');} catch(error) {if(error.code!=='ENOENT')throw error;}
+  }
+  return file;
+}
 
 export const PACK_TYPES = ['skill', 'knowledge', 'framework', 'role'];
 
 export function readBootstrap(root) {
-  const json = readJson(join(root, 'bootstrap.json'));
+  const json = readJson(assertNoLinks(root, join(root, 'bootstrap.json')));
   const res = validateBootstrap(json);
   if (!res.valid) throw new Error(`bootstrap 校验失败: ${res.errors.join('; ')}`);
   return json;
@@ -18,12 +29,18 @@ export function scanPacks(root) {
   const packsDir = join(root, 'packs');
   const found = [];
   const errors = [];
+  assertNoLinks(root,packsDir);
   if (!existsSync(packsDir)) return { packs: [], errors: ['packs/ 目录缺失'] };
   for (const type of PACK_TYPES) {
     const typeDir = join(packsDir, type);
+    assertNoLinks(root,typeDir);
     if (!existsSync(typeDir)) continue;
     for (const name of readdirSync(typeDir)) {
       const dir = join(typeDir, name);
+      assertNoLinks(root,dir);
+      if(!lstatSync(dir).isDirectory()) continue;
+      assertNoLinks(root,join(dir,'meta.json'));
+      for(const entry of ['SKILL.md','PROFILE.md']) assertNoLinks(root,join(dir,entry));
       if (!existsSync(join(dir, 'meta.json'))) continue;
       const meta = readJson(join(dir, 'meta.json'));
       const res = validatePackMeta(meta, `${type}/${name}`);

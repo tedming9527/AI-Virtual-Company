@@ -1,6 +1,6 @@
 # Codex 原生署名 Hook
 
-`pack-manager install-codex-hooks <deployment.json> <codex-home>` 安装 SessionStart、UserPromptSubmit 与 Stop 命令 Hook。显式安装，不随 `init` 自动改客户端账号配置。不依赖项目首次使用技能。保留其他 Hook，不自动写入信任授权。
+`ted-avc-manager install-codex-hooks <deployment.json> <codex-home>` 安装 SessionStart、UserPromptSubmit 与 Stop 命令 Hook。显式安装，不随 `init` 自动改客户端账号配置。不依赖项目首次使用技能。保留其他 Hook，不自动写入信任授权。
 
 部署 JSON 保存在本机 `runtime/`，不提交组织名和本机路径；专业包中文显示身份保留在中央 meta.json：
 

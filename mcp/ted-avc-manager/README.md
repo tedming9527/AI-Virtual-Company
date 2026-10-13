@@ -1,6 +1,6 @@
-# pack-manager —— 技能包管理器（预置 MCP）
+# ted-avc-manager —— 技能包管理器（预置 MCP）
 
-中央仓库预置的 MCP 安装包。**目录名即工具名**：`mcp/pack-manager` 可作为 `pack-manager` 工具包被发现；客户端注册与启动由部署适配器单独完成并验证。
+中央仓库预置的 MCP 安装包。**目录名即工具名**：`mcp/ted-avc-manager` 可作为 `ted-avc-manager` 工具包被发现；客户端注册与启动由部署适配器单独完成并验证。
 
 ## 能力（命令协议 → 预定义流程）
 
@@ -26,7 +26,7 @@
 ## 运行
 
 ```bash
-node mcp/pack-manager/src/cli.js <command> ...
+node mcp/ted-avc-manager/src/cli.js <command> ...
 # 或安装为命令
-npm link   # 之后可直接 pack-manager <command>
+npm link   # 之后可直接 ted-avc-manager <command>
 ```

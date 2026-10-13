@@ -10,7 +10,7 @@
       "command": "node",
       "args": [
         "--test",
-        "mcp/pack-manager/src/core/personal.test.mjs"
+        "mcp/ted-avc-manager/src/core/personal.test.mjs"
       ]
     },
     {

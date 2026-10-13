@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-10-13
+
+- 修复绑定工具不可用时的恢复自锁：固定只读自检可在绑定前运行，Hook 精确校验工具名、命令参数与工作目录。
+- 新增独立本地受限维护入口，按显式授权固定会话、回合、操作摘要、有效期与次数；拒绝越界、重放和无效维护状态。
+- 维护期间如实保留未绑定审计；真实任务绑定成功后自动关闭维护授权，不追记旧操作为已绑定执行。
+- 公司框架规则更新至 1.0.2，明确自检、授权维护、平台权限与恢复后重新绑定的边界。
+
+## [1.2.3] - 2026-10-13
+
+- 原生读取统计优先匹配精确文档入口；岗位 PROFILE 与同目录知识条目分别归属，支持文件不冒算为特定知识正文。
+
+## [1.2.2] - 2026-10-13
+
+- 本地全景图将插件缓存与外部技能标记为文件发现，单列原生客户端列表和启用状态快照；不再以目录存在暗示安装或激活。
+
+## [1.2.1] - 2026-10-13
+
+- 修复完整知识目录中独立知识包与岗位文档的加载路径识别；原生资产列表覆盖全部 50 条知识索引。
+- 增加真实中央知识目录回归，避免隔离小样本遗漏混合来源。
+
+## [1.2.0] - 2026-10-13
+
+- 管理引擎与 MCP 统一更名为 `ted-avc-manager`，保留旧命令兼容入口。
+- 本地全景图增加个人固定目录、配置来源、自定义/native 技能状态、知识正文、资产事件和任务记录；公开全景图严格隔离个人数据。
+- 公开候选 PR 单列 base/head 版本与提交，目录只从已发布 tag 构建，PR 事件仅读取公开元数据。
+- 新增原生回合绑定任务、角色全文交付、requiredAssets 入口正文门禁、工具白名单、调用预算、漂移检查与真实产物收口。
+- 新增四类资产及 native skill 文件发现、变更事件、关键词推荐与待复核提案；正文交付、模型声明、原生读取证据分别记录。
+- 发布桥接技能 `ted-avc-manager`；客户端技能列表只证明可发现，隐藏的自动加载与模型实际遵守保持 unknown。
+- 用户自管 Hook 仅约束客户端实际公开的事件，不声称管理员级不可绕过控制、模型计量或全局监督。
+
 ## [1.1.1] - 2026-10-13
 
 ### Added
@@ -27,7 +57,7 @@
 ### Implemented（FR-3 / FR-11 / FR-12 / FR-13）
 
 - **FR-3** 命令协议补齐 4 个动作词：`doctor` / `config` / `import-scan` / `bind`（意图映射 + 预定义流程 + CLI 入口）；修复既有缺陷「检查更新」被 upgrade 分支抢占（docs/03：应为 check dry-run）
-- **FR-11** 个人目录规约落地：`mcp/pack-manager/src/core/personal.js`——`init` 幂等补建骨架（不删除不移动）、`doctor` 六类校验（missing/unexpected/naming/tampered/state/layout，exit code 表示结果）；init 可幂等补齐个人目录 `staging/`、`preset/`、`custom/`、`.project-state.json`、`.personal-manifest.json`、`README.md`
+- **FR-11** 个人目录规约落地：`mcp/ted-avc-manager/src/core/personal.js`——`init` 幂等补建骨架（不删除不移动）、`doctor` 六类校验（missing/unexpected/naming/tampered/state/layout，exit code 表示结果）；init 可幂等补齐个人目录 `staging/`、`preset/`、`custom/`、`.project-state.json`、`.personal-manifest.json`、`README.md`
 - **FR-12** 配置分层：中央 `presets/base/`（bootstrap `presets` 有序声明）→ 个人 `preset/base/` 只读 + `.preset-manifest.json` + sha256；用户改过 preset 同步时保留 `.local` 副本；`custom/` 永不触碰；`config` 命令合并输出并逐项标注来源
 - **FR-13** 导入暂存：`import-scan` 外部资产入 `staging/imports/`，规则自动打标（general-candidate/personal/needs-human）+ `imports-registry.json` 台账（来源/标签/状态/哈希），状态 pending-review 待人工复核
 - **FR-2** init 流程接入第 3/5 步：个人目录骨架补建 + 预设同步；版本漂移修复（lockfile current 1.0.0 → 1.0.1）

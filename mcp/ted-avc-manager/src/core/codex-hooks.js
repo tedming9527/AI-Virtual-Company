@@ -41,7 +41,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
   if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('Refusing hooks.json symlink');
   const entry = fileURLToPath(new URL('../codex-hook.js', import.meta.url));
   const suffix = ` --deployment ${quote(config)}`;
-  const command = `${quote(process.execPath)} ${quote(entry)} --pack-manager-footer${suffix}`;
+  const command = `${quote(process.execPath)} ${quote(entry)} --ted-avc-manager-footer${suffix}`;
   const document = existsSync(file) ? json(file) : { hooks: {} };
   document.hooks ??= {};
   for (const event of ['SessionStart', 'UserPromptSubmit', 'Stop']) {
@@ -50,7 +50,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
     document.hooks[event] = groups.map(g => ({ ...g, hooks: g.hooks.filter(h => !(h.command?.includes('/src/codex-hook.js') && h.command.endsWith(suffix))) })).filter(g => g.hooks.length);
     document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact' } : {}), hooks: [{
       type: 'command', command, timeout: 10,
-      statusMessage: `pack-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
+      statusMessage: `ted-avc-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
       ...(event !== 'Stop' ? { additionalContextLimit: 1500 } : {}),
     }] });
   }
@@ -85,39 +85,62 @@ export function runCodexHook(input, deploymentFile) {
   const stateFile = join(stateDir, hash(input.session_id) + '.json');
   const auditFile = join(base, 'events.jsonl');
   for (const file of [stateFile, auditFile]) if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('Refusing hook receipt symlink');
-  const turn = input.turn_id ?? 'session';
   let state = existsSync(stateFile) ? json(stateFile) : { turns: {} };
   const record = (status, extra = {}) => appendFileSync(auditFile, JSON.stringify({
     at: new Date().toISOString(), event: input.hook_event_name,
     sessionId: input.session_id, turnId: input.turn_id ?? null, version, status, ...extra,
   }) + '\n', { mode: 0o600 });
-  const footer = (owner, receipt) => `以上内容由 ${c.organization} 提供；发布版本：v${version}；任务主责：${owner}；实际执行者：platform agent；Hook 回执：${receipt}`;
-  if (input.hook_event_name !== 'Stop') {
-    // Reuse a turn nonce when a Stop continuation causes UserPromptSubmit again.
-    state.turns[turn] ??= { receipt: randomBytes(6).toString('hex') };
-    const receipt = state.turns[turn].receipt;
+  if (input.hook_event_name === 'SessionStart') {
+    // Resume/compact can run after UserPromptSubmit. Never issue a competing
+    // delivery instruction or mutate a turn nonce at session scope.
+    record('session_context_injected', { receiptScope: 'session', turnReceiptIssued: false });
+    return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext:
+      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Allowed logical owners: ${Object.entries(project.owners).map(([role, display]) => `${role}: ${display}`).join('; ')}. Actual executor is the platform agent. SessionStart supplies project context only and does not issue a delivery receipt. For the final footer and execution binding use the exact current-turn UserPromptSubmit context; preserve it across resume/compact. Never use a session-scoped or another turn's receipt. The footer alone does not prove supervision.` } };
+  }
+  text(input.turn_id, 'turn_id');
+  const turn = input.turn_id;
+  // Older adapters stored a nonce without the issuing release. Recover only
+  // the matching native prompt audit; do not substitute the current release.
+  const issuedVersion = pending => {
+    if (pending?.deliveryVersion) return pending.deliveryVersion;
+    if (pending && existsSync(auditFile)) {
+      for (const line of readFileSync(auditFile, 'utf8').trim().split('\n').reverse()) {
+        if (!line) continue;
+        const event = JSON.parse(line);
+        if (event.event === 'UserPromptSubmit' && event.status === 'context_injected' && event.sessionId === input.session_id && event.turnId === turn && event.receipt === pending.receipt) return event.deliveryVersion ?? event.version;
+      }
+    }
+    return version;
+  };
+  const footer = (owner, receipt, deliveryVersion) => `以上内容由 ${c.organization} 提供；发布版本：v${deliveryVersion}；任务主责：${owner}；实际执行者：platform agent；Hook 回执：${receipt}`;
+  if (input.hook_event_name === 'UserPromptSubmit') {
+    // Reuse both the nonce and issuing version during a Stop continuation.
+    state.turns[turn] ??= { receipt: randomBytes(6).toString('hex'), deliveryVersion: version };
+    const pending = state.turns[turn];
+    pending.deliveryVersion = issuedVersion(pending);
     writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 });
-    const options = Object.entries(project.owners).map(([role, display]) => `${role}: ${footer(display, receipt)}`).join('\n');
-    record('context_injected', { receipt });
+    const options = Object.entries(project.owners).map(([role, display]) => `${role}: ${footer(display, pending.receipt, pending.deliveryVersion)}`).join('\n');
+    record('context_injected', { receipt: pending.receipt, deliveryVersion: pending.deliveryVersion, receiptScope: 'turn' });
     return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext:
-      `pack-manager native delivery adapter v${version} is scoped to this configured project. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Do not use the footer for unrelated projects.\n${options}` } };
+      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. The following footer belongs exclusively to sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(turn)}; SessionStart does not replace it. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Do not use the footer for unrelated projects.\n${options}` } };
   }
   const pending = state.turns[turn];
+  const deliveryVersion = issuedVersion(pending);
   const message = input.last_assistant_message ?? '';
   // Required application memory citations may follow the visible delivery footer.
   const visible = message.replace(/\s*<oai-mem-citation>[\s\S]*<\/oai-mem-citation>\s*$/, '').trimEnd();
-  const selected = pending && Object.entries(project.owners).find(([, display]) => visible.endsWith(footer(display, pending.receipt)));
+  const selected = pending && Object.entries(project.owners).find(([, display]) => visible.endsWith(footer(display, pending.receipt, deliveryVersion)));
   if (selected) {
-    record('footer_verified', { receipt: pending.receipt, owner: selected[0], messageSha256: hash(message) });
+    record('footer_verified', { receipt: pending.receipt, deliveryVersion, owner: selected[0], messageSha256: hash(message) });
     return {};
   }
   if (input.stop_hook_active || pending?.correctionRequested) {
     record('correction_failed', { receipt: pending?.receipt ?? null });
-    return { continue: false, stopReason: 'Delivery footer still invalid after one correction', systemMessage: `pack-manager v${version}: footer verification FAILED; no mediation acceptance claim.` };
+    return { continue: false, stopReason: 'Delivery footer still invalid after one correction', systemMessage: `ted-avc-manager v${version}: footer verification FAILED; no mediation acceptance claim.` };
   }
-  state.turns[turn] ??= { receipt: randomBytes(6).toString('hex') };
+  state.turns[turn] ??= { receipt: randomBytes(6).toString('hex'), deliveryVersion: version };
   state.turns[turn].correctionRequested = true;
   writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 });
   record('correction_requested', { receipt: state.turns[turn].receipt });
-  return { decision: 'block', reason: `Preserve the answer and add the exact delivery footer for the actual routed role at the end (before required memory citations). Do not claim a real employee executed it. Choose one:\n${Object.values(project.owners).map(display => footer(display, state.turns[turn].receipt)).join('\n')}` };
+  return { decision: 'block', reason: `Preserve the answer and add the exact delivery footer for the actual routed role at the end (before required memory citations). Do not claim a real employee executed it. Choose one:\n${Object.values(project.owners).map(display => footer(display, state.turns[turn].receipt, deliveryVersion)).join('\n')}` };
 }

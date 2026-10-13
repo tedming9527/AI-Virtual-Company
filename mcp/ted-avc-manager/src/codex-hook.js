@@ -7,6 +7,6 @@ try {
   console.log(JSON.stringify(runCodexHook(JSON.parse(readFileSync(0, 'utf8')), process.argv[pos + 1])));
 } catch (error) {
   // Errors remain visibly unverified; never emit a success receipt.
-  console.error(`pack-manager footer hook: ${error.message}`);
+  console.error(`ted-avc-manager footer hook: ${error.message}`);
   process.exitCode = 1;
 }
