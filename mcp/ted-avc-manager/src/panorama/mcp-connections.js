@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { assertNoLinks } from '../core/scan.js';
 
 const cacheName = 'mcp-connections.json';
+const clientVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
 const safeName = name => typeof name === 'string' && /^[\w. -]{1,100}$/.test(name);
 const cacheFile = root => join(root, 'runtime', 'cache', cacheName);
 const readJson = (root, file, fallback) => {
@@ -49,7 +50,7 @@ export async function checkRemoteMcp(root, name, opts = {}) {
   let status = 'unreachable';
   try {
     const response = await request(url, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'mcp-protocol-version': '2025-06-18' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'ted-avc-manager-panorama', version: '1.3.0' } } }), signal: AbortSignal.timeout(8000) });
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'ted-avc-manager-panorama', version: clientVersion } } }), signal: AbortSignal.timeout(8000) });
     if (response.status === 401 || response.status === 403) status = 'auth-required';
     else if (!response.ok) status = 'server-error';
     else {
