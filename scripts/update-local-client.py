@@ -30,6 +30,9 @@ for f in source.rglob('*'):
  if f.is_symlink():raise SystemExit('Linked package file refused')
  if f.is_file():assert (pkg/f.relative_to(source)).read_bytes()==f.read_bytes(),'Installed version differs from released source'
 node=str(pathlib.Path(a.node).resolve());assert int(run(node,'-p','process.versions.node.split(".")[0]'))>=22
+# Validate the copied package as a standalone installation before replacing a
+# working launcher. This catches imports that accidentally reach into the repo.
+subprocess.run([node,str(pkg/'src/cli.js'),'--help'],check=True,stdout=subprocess.DEVNULL)
 bin_dir=pathlib.Path.home()/'.local/bin';bin_dir.mkdir(parents=True,exist_ok=True)
 for name in ['ted-avc-manager','pack-manager']:
  launcher=bin_dir/name;tmp=launcher.with_name(name+'.update')
