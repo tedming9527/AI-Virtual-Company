@@ -21,6 +21,23 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'maintenance-doctor':
+    try {
+      const { maintenanceDoctor } = await import('./core/maintenance-diagnostics.js');
+      const pos = args.indexOf('--deployment');
+      if (pos >= 0 && !args[pos + 1]) throw new Error('--deployment requires a file');
+      ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : process.env.AVC_DEPLOYMENT_FILE || join(ROOT, 'runtime/footer-hook-deployment.json')), null, 2));
+    } catch (e) { fail(e); }
+    break;
+  case 'maintenance-open': case 'maintenance-status': case 'maintenance-close':
+    try {
+      if (!args[1]) throw new Error(`${cmd} <input.json> [--authorize-unbound-maintenance]`);
+      if (cmd === 'maintenance-open' && !args.includes('--authorize-unbound-maintenance')) throw new Error('Explicit --authorize-unbound-maintenance required; use only after user authorization');
+      const { openMaintenance, maintenanceStatus, endMaintenance } = await import('./core/maintenance.js');
+      const input = JSON.parse(readFileSync(args[1], 'utf8'));
+      ok(JSON.stringify(({'maintenance-open':openMaintenance,'maintenance-status':maintenanceStatus,'maintenance-close':endMaintenance})[cmd](ROOT,input,process.env.AVC_DEPLOYMENT_FILE || join(ROOT,'runtime','footer-hook-deployment.json')),null,2));
+    } catch (e) { fail(e); }
+    break;
   case 'install-execution-hooks':
     try { const { installExecutionHooks } = await import('./core/execution.js'); if (!args[1] || !args[2]) throw new Error('install-execution-hooks <deployment.json> <codex-home>'); ok(JSON.stringify(installExecutionHooks(args[1], args[2]), null, 2)); } catch (e) { fail(e); }
     break;
@@ -172,6 +189,9 @@ switch (cmd) {
   ted-avc-manager sync-candidates
   ted-avc-manager install-execution-hooks <deployment.json> <codex-home>
   ted-avc-manager task-begin|load-asset|task-closeout <input.json>
+  ted-avc-manager maintenance-open <input.json> --authorize-unbound-maintenance
+  ted-avc-manager maintenance-doctor [--deployment <deployment.json>] （固定只读自检，绑定前可用）
+  ted-avc-manager maintenance-status|maintenance-close <input.json> （独立本地维护控制；非 MCP 工具）
   ted-avc-manager server   （对外 MCP 适配器，stdio）`);
   }
 }
