@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: 校验仓库布局、包与知识索引
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout

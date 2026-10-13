@@ -15,6 +15,10 @@ test('stdio handshake serves management tools and malformed resource URI does no
  const tools=(await rpc('tools/list')).result.tools;assert.ok(tools.some(t=>t.name==='task_begin'));assert.ok(tools.some(t=>t.name==='find_skill'));
  for (const name of ['workflow_create','workflow_status','workflow_cancel','workflow_templates','discover_capabilities','validate_local_skill','list_skill_candidates']) assert.ok(tools.some(t=>t.name===name));
  assert.ok(tools.find(t=>t.name==='task_begin').inputSchema.properties.workflowId);
+ for (const name of ['task_begin','load_asset','task_closeout']) {
+  assert.deepEqual(tools.find(t=>t.name===name).annotations,{readOnlyHint:false,destructiveHint:false,openWorldHint:false});
+ }
+ assert.equal(tools.find(t=>t.name==='upgrade').annotations,undefined);
  const templates=await rpc('tools/call',{name:'workflow_templates',arguments:{}});assert.deepEqual(JSON.parse(templates.result.content[0].text),[]);
  const invalid=await rpc('tools/call',{name:'discover_capabilities',arguments:{zhQuery:'only English',enQuery:'skills'}});assert.match(invalid.error.message,/Chinese/);
  assert.equal((await rpc('resources/read',{uri:'tedavc://asset/%INVALID'})).error.code,-32602);
