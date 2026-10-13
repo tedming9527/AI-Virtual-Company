@@ -24,7 +24,7 @@ export function validateBootstrap(json) {
   return { valid: errors.length === 0, errors };
 }
 
-export function validatePackMeta(meta, typeDir) {
+export function validatePackMeta(meta, typeDir, { requireDescription = false } = {}) {
   const errors = [];
   if (!meta) return { valid: false, errors: [`${typeDir} 缺少 meta.json`] };
   if (typeof meta.type !== 'string') errors.push('meta.type 必填');
@@ -34,6 +34,11 @@ export function validatePackMeta(meta, typeDir) {
   }
   if (!Array.isArray(meta.rubric) || meta.rubric.length === 0) {
     errors.push('meta.rubric 必须为非空数组（评分维度）');
+  }
+  if (requireDescription) {
+    if (typeof meta.description !== 'string' || !meta.description.trim() || meta.description.length > 160 || /[\r\n]/.test(meta.description)) {
+      errors.push('meta.description 必须为 1–160 字的单行用途说明');
+    }
   }
   if (meta.type === 'role') {
     for (const field of ['nameZh', 'professionZh']) {

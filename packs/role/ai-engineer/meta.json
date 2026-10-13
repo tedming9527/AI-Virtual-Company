@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "ai-engineer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "辛澈",
   "professionZh": "AI工程师",
-  "displayName": "辛澈·AI工程师"
+  "displayName": "辛澈·AI工程师",
+  "description": "处理 AI 工作流和工具治理任务，核验技术资料、能力边界与执行证据。"
 }

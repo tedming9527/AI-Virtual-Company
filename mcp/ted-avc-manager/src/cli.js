@@ -117,7 +117,7 @@ switch (cmd) {
   case 'validate-packs': {
     try {
       readBootstrap(ROOT);
-      const { packs, errors } = scanPacks(ROOT);
+      const { packs, errors } = scanPacks(ROOT, { requireDescription: true });
       if (errors.length) throw new Error(`规约校验未通过:\n${errors.map(e => `  - ${e}`).join('\n')}`);
       ok(`规约校验通过：${packs.length} 个包（${packs.map(p => `${p.type}/${p.name}@v${p.version}`).join(', ')}）`);
     } catch (e) { fail(e); }

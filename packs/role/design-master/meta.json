@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "design-master",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "苏映雪",
   "professionZh": "交互与视觉设计师",
-  "displayName": "苏映雪·交互与视觉设计师"
+  "displayName": "苏映雪·交互与视觉设计师",
+  "description": "设计产品界面与交互时，梳理信息层级、视觉规范和可用性验收。"
 }

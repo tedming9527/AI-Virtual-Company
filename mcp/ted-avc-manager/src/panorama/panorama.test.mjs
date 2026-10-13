@@ -36,3 +36,39 @@ test('external cached skill discovery is separate from native client listed and 
  const html=renderPanorama(model);assert.ok(html.includes('已列出 · 已禁用'));assert.ok(html.includes('本机外部 · 文件发现'));assert.ok(!html.includes('本机已安装'));
  fs.writeFileSync(path.join(root,'runtime/native-skill-index.json'),'INVALID_PRIVATE_NATIVE_STATE');assert.equal(buildPanoramaModel(root,{view:'public'}).skills,undefined);
 });
+
+test('purpose metadata and knowledge context reach public rendering as escaped searchable text',t=>{
+ const root=fixture(t),metaFile=path.join(root,'packs/skill/example/meta.json');
+ fs.writeFileSync(metaFile,JSON.stringify({...JSON.parse(fs.readFileSync(metaFile)),description:'验收时 <script>核对</script> 证据'}));
+ fs.mkdirSync(path.join(root,'packs/knowledge'));
+ fs.writeFileSync(path.join(root,'packs/knowledge/catalog.json'),JSON.stringify({entries:[{id:'demo',summary:'定位 <问题>',trigger:'接入 & 调试',detail:'packs/knowledge/demo.md',owner:'example',status:'active'}]}));
+ const model=buildPanoramaModel(root,{view:'public'}),html=renderPanorama(model);
+ assert.equal(model.general[0].descriptionSource,'meta');assert.equal(model.knowledgeEntries[0].trigger,'接入 & 调试');
+ assert.ok(html.includes('验收时 &lt;script&gt;核对&lt;/script&gt; 证据'));assert.ok(!html.includes('<script>核对'));
+ assert.ok(html.includes('定位 &lt;问题&gt;'));assert.ok(html.includes('适用：接入 &amp; 调试'));
+});
+
+test('legacy external skills expose declared purpose or missing marker, never body text in either view',t=>{
+ const root=fixture(t),external=path.join(root,'cache/skills');
+ for(const [name,body] of [['declared','---\ndescription: 接入时核对端口\n---\nPRIVATE_SENTINEL'],['missing','# Missing description\nPRIVATE_SENTINEL']]){
+  const dir=path.join(external,name);fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'SKILL.md'),body);
+ }
+ const model=buildPanoramaModel(root,{view:'local',externalRoots:[external]}),html=renderPanorama(model);
+ assert.equal(model.skills.find(s=>s.name==='declared').description,'接入时核对端口');assert.equal(model.skills.find(s=>s.name==='missing').description,null);
+ assert.ok(html.includes('用途待补充'));assert.ok(!html.includes('PRIVATE_SENTINEL'));
+ const pub=renderPanorama(buildPanoramaModel(root,{view:'public'}));assert.ok(!pub.includes('接入时核对端口'));assert.ok(!pub.includes('PRIVATE_SENTINEL'));
+});
+
+test('candidate descriptions follow proposed head; deleted packs use base and missing head purpose stays missing',async()=>{
+ const base='a'.repeat(40),head='b'.repeat(40);
+ for(const [headMeta,expected] of [[{version:'1.0.1',description:'新用途'},'新用途'],[{version:'1.0.1'},null],[null,'旧用途']]){
+  const request=async route=>{
+   if(route==='')return {private:false};if(route.startsWith('pulls?'))return [{number:7,title:'candidate',base:{sha:base},head:{sha:head}}];
+   if(route.includes('/files?'))return [{filename:'packs/skill/example/meta.json'}];
+   const meta=route.includes(base)?{version:'1.0.0',description:'旧用途'}:headMeta;
+   if(!meta){const error=new Error('missing');error.status=404;throw error;}
+   return {content:Buffer.from(JSON.stringify(meta)).toString('base64')};
+  };
+  const result=await collectCandidates('example/repo',{request});assert.equal(result.entries[0].changes[0].description,expected);
+ }
+});

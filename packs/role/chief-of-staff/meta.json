@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "chief-of-staff",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "陈知行",
   "professionZh": "路由官",
-  "displayName": "陈知行·路由官"
+  "displayName": "陈知行·路由官",
+  "description": "处理跨岗位任务时，明确目标、分工与依赖，协调交付并跟踪阻塞。"
 }

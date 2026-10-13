@@ -1,10 +1,11 @@
 {
   "type": "skill",
   "name": "model-router",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "选择 AI 模型时，按任务复杂度、质量要求和当前可用模型匹配能力层级。"
 }

@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "backend-training-architect",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "沈砚舟",
   "professionZh": "后端培训导师（资深后端架构师）",
-  "displayName": "沈砚舟·后端培训导师（资深后端架构师）"
+  "displayName": "沈砚舟·后端培训导师（资深后端架构师）",
+  "description": "学习后端业务与架构时，设计课程、练习和验收，基于真实代码核验理解。"
 }

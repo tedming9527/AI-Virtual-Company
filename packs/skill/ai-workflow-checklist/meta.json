@@ -1,11 +1,12 @@
 {
   "type": "skill",
   "name": "ai-workflow-checklist",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
   "status": "stable",
-  "displayName": "AI 工作流验收清单"
+  "displayName": "AI 工作流验收清单",
+  "description": "验收 AI 工作流时，核对授权、资产加载、工具执行、失败处理与数据边界。"
 }

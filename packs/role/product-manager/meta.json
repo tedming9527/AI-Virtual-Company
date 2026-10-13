@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "product-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "林知夏",
   "professionZh": "产品经理",
-  "displayName": "林知夏·产品经理"
+  "displayName": "林知夏·产品经理",
+  "description": "定义产品需求时，梳理用户旅程、范围、优先级和可验证的成功标准。"
 }

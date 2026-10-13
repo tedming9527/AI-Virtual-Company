@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "frontend-expert",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "周启明",
   "professionZh": "前端工程师",
-  "displayName": "周启明·前端工程师"
+  "displayName": "周启明·前端工程师",
+  "description": "实现或维护网页时，处理路由、组件、状态和样式，并验证体验与性能。"
 }

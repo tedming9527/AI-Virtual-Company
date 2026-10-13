@@ -1,10 +1,11 @@
 {
   "type": "skill",
   "name": "jev-use",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "需要对明确选项作批量判断或操作检查时，调用 Jev 形成结构化判断与升级信号。"
 }

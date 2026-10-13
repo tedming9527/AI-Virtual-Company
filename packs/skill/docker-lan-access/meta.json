@@ -1,10 +1,11 @@
 {
   "type": "skill",
   "name": "docker-lan-access",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "部署本地 Docker 服务供局域网访问时，核对端口绑定并验证本机与其他设备访问。"
 }
