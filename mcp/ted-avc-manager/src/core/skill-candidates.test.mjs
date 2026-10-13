@@ -48,3 +48,15 @@ test('malformed or non-string frontmatter cannot produce structural validation e
   assert.throws(()=>validateLocalSkill(root,{assetId:'example'}));
  }
 });
+
+test('external skill candidate carries a pinned public source URL into its metadata',t=>{
+ const {root,dir}=fixture(t), external=[{kind:'adapted',license:'MIT',note:'Reviewed upstream',url:'https://github.com/demo/tool',revision:'abc123'}];
+ let validation=validateLocalSkill(root,{assetId:'example'});
+ assert.throws(()=>proposeAsset(root,{name:'example',assetId:'example',validationId:validation.id,sources:external}),/meta.origin/);
+ const metaFile=path.join(dir,'meta.json'),meta=JSON.parse(fs.readFileSync(metaFile));
+ meta.origin={url:external[0].url,revision:external[0].revision,repository:'demo/tool'};
+ fs.writeFileSync(metaFile,JSON.stringify(meta));registerLocalSkill(root,dir);validation=validateLocalSkill(root,{assetId:'example'});
+ const candidate=proposeAsset(root,{name:'example',assetId:'example',validationId:validation.id,sources:external});
+ assert.equal(candidate.status,'pending-review');
+ assert.equal(listSkillCandidates(root)[0].sources[0].url,external[0].url);
+});

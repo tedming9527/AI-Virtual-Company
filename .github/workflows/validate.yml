@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: 校验仓库布局、包与知识索引
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout
@@ -24,7 +27,7 @@ jobs:
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
       - name: 通用层回归
-        run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+        run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 校验现有日志 schema
         run: |
           for f in runtime/logs/*.json; do

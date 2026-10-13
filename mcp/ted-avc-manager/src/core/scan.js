@@ -63,7 +63,7 @@ export function scanPacks(root, options = {}) {
       found.push({ type, name, displayName: meta.displayName || name,
         ...describeAsset(meta, readFileSync(join(dir, entry), 'utf8')),
         ...(type === 'role' ? { nameZh: meta.nameZh, professionZh: meta.professionZh } : {}),
-        ...searchMetadata(meta), version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
+        ...searchMetadata(meta), version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, origin: meta.origin || null, dir, entry });
     }
   }
   return { packs: found, errors };

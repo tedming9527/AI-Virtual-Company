@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { prepareWeekly, completeWeekly, weeklyStatus } from './weekly.js';
+
+test('weekly preparation catches up, freezes source hashes, and requires matching completion', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'avc-weekly-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const personal = path.join(root, 'private/projects/demo');
+  fs.mkdirSync(path.join(root, 'runtime/execution/tasks'), { recursive: true });
+  fs.mkdirSync(path.join(personal, 'experience'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'bootstrap.json'), JSON.stringify({ name: 'demo', version: '1.0.0', presets: [] }));
+  fs.writeFileSync(path.join(root, 'runtime/storage.json'), JSON.stringify({ personal }));
+  fs.writeFileSync(path.join(personal, 'experience/one.md'), 'one experience');
+  const at = Date.parse('2026-10-13T00:00:00Z');
+  fs.writeFileSync(path.join(root, 'runtime/execution/tasks/one.json'), JSON.stringify({ taskId: 'task-one', assets: [{ source: 'general', type: 'knowledge', name: 'example', version: '1.0.0', bundleSha256: 'a'.repeat(64), loadedAt: '2026-10-12T00:00:00Z' }] }));
+  assert.equal(weeklyStatus(root, { now: at }).due, true);
+  const pending = prepareWeekly(root, { now: at, writerId: 'writer_one' });
+  assert.equal(pending.status, 'pending-ai');
+  assert.equal(pending.experienceCount, 1);
+  assert.equal(prepareWeekly(root, { now: at, writerId: 'writer_one' }).runId, pending.runId);
+  assert.throws(() => completeWeekly(root, { runId: pending.runId, proposals: [] }, { now: at, writerId: 'other_writer' }), /不匹配/);
+  const prepared = JSON.parse(fs.readFileSync(path.join(personal, pending.file)));
+  const proposal = { title: '整理经验', action: 'extract', sources: prepared.experience, reason: '复核可复用步骤' };
+  assert.equal(completeWeekly(root, { runId: pending.runId, proposals: [proposal] }, { now: at, writerId: 'writer_one' }).status, 'awaiting-human-review');
+  assert.equal(weeklyStatus(root, { now: at + 6 * 86400000 }).due, false);
+  assert.equal(weeklyStatus(root, { now: at + 7 * 86400000 }).due, true);
+});

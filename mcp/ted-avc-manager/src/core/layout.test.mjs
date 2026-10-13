@@ -62,3 +62,11 @@ test('packs root rejects imported directories and loose files outside the four t
   assert.equal(result.ok, false);
   assert.equal(result.issues.filter(i => i.kind === 'stray').length, 2);
 });
+
+test('任务副本不能塞进仓库 runtime/cache/tasks', t => {
+  const root = fixture(t);
+  const site = path.join(root, 'runtime/cache/tasks/example/site');
+  fs.mkdirSync(path.join(site, 'node_modules'), { recursive: true });
+  const result = validateLayout(root);
+  assert.ok(result.issues.some(issue => issue.kind === 'task-copy'));
+});

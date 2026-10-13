@@ -3,8 +3,10 @@
 """Update a reviewed Git tag and the local Codex MCP/skill/hook installation.
 Call from the bound checkout. Personal data is never copied, removed or published.
 Hook trust and native activation must be verified separately through the client API.
+Python 3.11+; includes task_begin/load_asset/task_closeout approval defaults and
+preserves existing tool approval choices. No global approval policy is changed.
 """
-import argparse, hashlib, json, pathlib, re, shlex, shutil, subprocess, datetime, os
+import argparse, hashlib, json, pathlib, re, shlex, shutil, subprocess, datetime, os, sys, tomllib
 p=argparse.ArgumentParser();p.add_argument('tag');p.add_argument('--node',default=shutil.which('node'));p.add_argument('--codex-home',default=str(pathlib.Path.home()/'.codex'));a=p.parse_args()
 if not re.fullmatch(r'v\d+\.\d+\.\d+',a.tag):p.error('Expected exact semver release tag')
 root=pathlib.Path.cwd().resolve();home=pathlib.Path(a.codex_home).resolve();version=a.tag[1:];cache=root/'runtime/cache/client-update'/version;cache.mkdir(parents=True,exist_ok=True)
@@ -49,7 +51,21 @@ if bridge.exists():
 else:shutil.copytree(root/'packs/skill/ted-avc-manager',bridge)
 command='cd '+shlex.quote(str(root))+' && exec '+shlex.quote(node)+' '+shlex.quote(str(pkg/'src/cli.js'))+' server'
 client_env={**os.environ,'CODEX_HOME':str(home)}
+client_config=home/'config.toml'
+previous_config=client_config.read_bytes() if client_config.exists() else None
+previous_server=tomllib.loads(previous_config.decode()).get('mcp_servers',{}).get('ted-avc-manager',{}) if previous_config else {}
+previous_tools=previous_server.get('tools',{})
+previous_policy={key:previous_server[key] for key in ['enabled','enabled_tools','disabled_tools','default_tools_approval_mode'] if key in previous_server}
 subprocess.run(['codex','mcp','add','ted-avc-manager','--env','CODEX_HOME='+str(home),'--','/bin/sh','-c',command],check=True,env=client_env)
+registered_config=client_config.read_bytes()
+# Reviewed installation includes only the three local monitoring-tool defaults.
+# Run after MCP registration, which may rewrite the server's configuration.
+try:
+ approval_result=json.loads(subprocess.check_output([sys.executable,str(root/'scripts/install-codex-approvals.py'),'--codex-home',str(home),'--server-id','ted-avc-manager','--authorize-monitor-tools','--preserve-tools-json',json.dumps(previous_tools),'--preserve-server-policy-json',json.dumps(previous_policy)],text=True))
+except subprocess.CalledProcessError:
+ # Do not leave a re-registered server with the user's previous policies lost.
+ if previous_config is not None and client_config.read_bytes()==registered_config:client_config.write_bytes(previous_config)
+ raise
 subprocess.run(['codex','mcp','remove','pack-manager'],check=True,env=client_env)
 # Native clients can retain a reviewed command path after an upgrade. Preserve
 # each known older manager entry before forwarding just that entry to this tag.
@@ -68,6 +84,6 @@ if home == (pathlib.Path.home()/'.codex').resolve():
   target=pkg/'src/codex-hook.js'
   old.write_text('// Compatibility forwarding entry; original preserved by reviewed update.\nawait import('+json.dumps(target.as_uri())+');\n')
   compat.append({'path':str(old),'backup':str(backup),'target':str(target),'originalSha256':hashlib.sha256(backup.read_bytes()).hexdigest(),'forwarderSha256':hashlib.sha256(old.read_bytes()).hexdigest()})
-evidence={'tag':a.tag,'commit':commit,'updatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'package':str(pkg),'bridge':str(bridge),'service':'ted-avc-manager','executionMode':'monitor','cachedFooterCompatibility':compat,'nativeHookTrust':'pending reviewed API hashes','nativeActivation':'pending client reload and acceptance'}
+evidence={'tag':a.tag,'commit':commit,'updatedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'package':str(pkg),'bridge':str(bridge),'service':'ted-avc-manager','executionMode':'monitor','monitorToolApprovals':approval_result,'cachedFooterCompatibility':compat,'nativeHookTrust':'pending reviewed API hashes','nativeActivation':'pending client reload and acceptance'}
 (cache/'installation.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(evidence,ensure_ascii=False))

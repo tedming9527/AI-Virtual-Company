@@ -38,13 +38,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: 发布目录校验
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout
           node mcp/ted-avc-manager/src/cli.js validate-packs
+          node mcp/ted-avc-manager/src/cli.js panorama-source-snapshot --check
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
-          node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+          node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 采集公开候选 PR（仅读元数据）
         env:
           GITHUB_TOKEN: ${{ github.token }}

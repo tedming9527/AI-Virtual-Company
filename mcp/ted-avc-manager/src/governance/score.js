@@ -8,17 +8,18 @@ const MIN_SAMPLE = 20;
 
 export function mergeScore({ llm, empirical }) {
   if (typeof llm !== 'number' || llm < 0 || llm > 5) throw new Error('llm 分必须为 0~5 数字');
-  const sample = Math.max(0, empirical.sampleSize || 0);
-  const successRate = Math.min(1, Math.max(0, empirical.successRate || 0));
-  const avgScore = Math.min(5, Math.max(0, empirical.avgScore || 0));
+  const sample = Math.max(0, empirical?.sampleSize || 0);
+  const successRate = Math.min(1, Math.max(0, empirical?.successRate || 0));
+  const avgScore = Math.min(5, Math.max(0, empirical?.avgScore || 0));
   const emp = 0.6 * (successRate * 5) + 0.4 * avgScore;
 
   let wE = W_EMP;
   let provisional = sample < MIN_SAMPLE;
   if (provisional) wE = W_EMP * (sample / MIN_SAMPLE);
 
-  const quality = Math.round(((W_LLM * llm + wE * emp) / (W_LLM + wE)) * 100) / 100;
-  return { quality, provisional, sampleSize: sample, note: provisional ? '样本量不足，为临时分' : null };
+  const quality = provisional ? null : Math.round(((W_LLM * llm + wE * emp) / (W_LLM + wE)) * 100) / 100;
+  return { quality, staticQuality: llm, empiricalQuality: sample ? Math.round(emp * 100) / 100 : null,
+    provisional, sampleSize: sample, note: provisional ? '未评分／证据不足；静态评估单独展示' : null };
 }
 
 // 异常触发：成功率骤降超过阈值（相对上一周期）
