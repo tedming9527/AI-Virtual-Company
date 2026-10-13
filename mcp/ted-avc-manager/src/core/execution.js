@@ -6,6 +6,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { readHookDeployment } from './codex-hooks.js';
 import { resolvePersonalStorage } from './storage.js';
 import { refreshInventory, recordObservedRead, listAssets } from './awareness.js';
+import { endMaintenance, runMaintenanceHook } from './maintenance.js';
+import { diagnosticCall, isDiagnosticCall } from './maintenance-diagnostics.js';
 
 const engineVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -136,11 +138,13 @@ export function beginTask(root, input, deploymentFile) {
       const existing = active(paths, key);
       if (JSON.stringify(existing.contract) !== JSON.stringify(contract)) throw new Error('Task contract already pinned; cannot expand in the same turn');
       if (existing.role.profileSha256 !== sha(profile) || existing.role.metaSha256 !== sha(readFileSync(metaFile)) || existing.catalogSha256 !== pinnedCatalog(d.root) || existing.catalogVersion !== d.catalogVersion) throw new Error('Pinned assets changed; begin a new native turn');
+      endMaintenance(d.root, input, deploymentFile, existing.taskId);
       return { ...existing, roleProfile: profile, contextDelivery: 'MCP returned complete role PROFILE; actual model compliance requires separate evidence' };
     }
     const task = { schema: 'avc.execution-task.v1', ...key, projectRoot: d.root, engineVersion, catalogVersion: d.catalogVersion, catalogSha256: pinnedCatalog(d.root), mode: d.settings.mode, status: 'active', startedAt: now(), contract,
       role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
     atomic(paths.task, task); record(paths, task, 'task_started', { roleId: input.role, mode: task.mode, roleProfileSha256: task.role.profileSha256 });
+    endMaintenance(d.root, input, deploymentFile, task.taskId);
     return { ...task, roleProfile: profile, contextDelivery: 'MCP returned complete role PROFILE; actual model compliance requires separate evidence' };
   });
 }
@@ -228,7 +232,7 @@ function executeHook(input, deploymentFile) {
     const assets=listAssets(d.root).assets.filter(a=>a.source==='general'||a.management==='local-managed');
     const index=assets.slice(0,36).map(a=>({type:a.type,name:a.name,source:a.source,version:a.version}));
     return { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext:
-      `ted-avc-manager execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, receipt=${JSON.stringify(receipt)}. Before task execution call task_begin with these exact fields, one allowed role ID, the goal, exact allowed native tool names and maxToolCalls <= ${d.settings.maxToolCalls}. task_begin returns the actual role PROFILE; read it and apply it. bootstrapTools before task_begin: ${JSON.stringify(d.settings.bootstrapTools)}. Asset metadata (not loaded bodies): ${JSON.stringify(index)}. Full inventory ${assets.length} via list_assets/recommend_assets. Use bound load_asset for needed skill/knowledge/framework documents before use. New native skill files are tracked separately from actual reads; report_asset_use is declaration only. Include task_closeout in allowedTools; it is a recorded control call outside execution budget. Close with real file artifacts and explicitly classify any unobserved calls unknown. This adapter covers only hooks exposed by this native client; do not claim hidden model/token/cost or full supervision control.` } };
+      `ted-avc-manager execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, receipt=${JSON.stringify(receipt)}. Before ordinary task execution call task_begin with these exact fields, one allowed role ID, the goal, exact allowed native tool names and maxToolCalls <= ${d.settings.maxToolCalls}. If task_begin is unavailable, the fixed read-only self-check is permitted without binding: ${JSON.stringify(diagnosticCall(cwd, deploymentFile))}. Broader recovery needs explicit user authorization and a bounded maintenance-open grant via the independent local operator entry; remain unbound until a real task_begin succeeds. Never infer maintenance authorization from prompt keywords. task_begin returns the actual role PROFILE; read it and apply it. bootstrapTools before task_begin: ${JSON.stringify(d.settings.bootstrapTools)}. Asset metadata (not loaded bodies): ${JSON.stringify(index)}. Full inventory ${assets.length} via list_assets/recommend_assets. Use bound load_asset for needed skill/knowledge/framework documents before use. New native skill files are tracked separately from actual reads; report_asset_use is declaration only. Include task_closeout in allowedTools; it is a recorded control call outside execution budget. Close with real file artifacts and explicitly classify any unobserved calls unknown. This adapter covers only hooks exposed by this native client; do not claim hidden model/token/cost or full supervision control.` } };
   }
   identifier(input.tool_name, 'tool_name'); identifier(input.tool_use_id, 'tool_use_id');
   return locked(d.root, key.taskId, paths => {
@@ -276,9 +280,13 @@ function executeHook(input, deploymentFile) {
   });
 }
 export function runExecutionHook(input, deploymentFile) {
-  try { return executeHook(input, deploymentFile); }
+  try {
+    if (isDiagnosticCall(input, deploymentFile)) return input.hook_event_name === 'PostToolUse' ? {} : { systemMessage: 'Read-only maintenance self-check; no task binding claimed. Native permissions still apply.' };
+    return runMaintenanceHook(input, deploymentFile) ?? executeHook(input, deploymentFile);
+  }
   catch (error) {
     if (input.hook_event_name !== 'PreToolUse') throw error;
+    if (error.maintenance) return denial('enforce', `Maintenance verification unavailable: ${error.message}`);
     // A corrupt/locked receipt must not silently admit execution in enforce mode.
     let project;
     try {

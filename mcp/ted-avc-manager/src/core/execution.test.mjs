@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks } from './execution.js';
 import { runCodexHook } from './codex-hooks.js';
+import { openMaintenance, maintenanceStatus, endMaintenance } from './maintenance.js';
+import { diagnosticCall, maintenanceDoctor } from './maintenance-diagnostics.js';
 const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const sha = value => createHash('sha256').update(value).digest('hex');
 const tool = 'functions.exec', close = 'mcp__ted_avc_manager__task_closeout';
@@ -146,4 +148,132 @@ test('required entry body gates execution and controls remain callable after bud
   f.event('PostToolUse','first',{tool_response:{exit_code:0}});
   assert.match(f.event('PreToolUse','second').hookSpecificOutput.permissionDecisionReason,/budget/i);
   assert.deepEqual(f.event('PreToolUse','control',{tool_name:load}),{});
+});
+
+function maintenance(f, extra = {}) {
+  return { sessionId: f.key.sessionId, turnId: f.key.turnId, userAuthorized: true,
+    reason: 'task_begin_unavailable', authorizationRef: 'current user authorized adapter recovery',
+    unavailableEvidence: 'current host tools/list does not expose task_begin', ttlSeconds: 600,
+    operations: [{ purpose: 'test', tool, input: { cmd: 'example' }, maxCalls: 1 }], ...extra };
+}
+test('fixed read-only self-check works without binding or usable deployment; command injection does not', t => {
+  const f = fixture(t), diagnostic = diagnosticCall(f.root, f.deployment);
+  const invoke = args => f.event('PreToolUse', 'doctor', { tool_name: diagnostic.tool, tool_input: args });
+  assert.equal(invoke(diagnostic.input).hookSpecificOutput, undefined);
+  for (const changed of [
+    { cmd: diagnostic.input.cmd + '; touch injected' },
+    { cmd: diagnostic.input.cmd + ' --other' },
+    { login: true }, { shell: '/bin/zsh' }, { workdir: resolve('.') },
+    { env: { NODE_OPTIONS: '--import injected' } }, { sandbox_permissions: 'require_escalated' },
+  ]) assert.equal(invoke({ ...diagnostic.input, ...changed }).hookSpecificOutput.permissionDecision, 'deny');
+  assert.equal(f.event('PreToolUse', 'keyword', { tool_input: { cmd: 'echo 自检 maintenance-doctor' } }).hookSpecificOutput.permissionDecision, 'deny');
+  rmSync(join(f.root, 'runtime/hooks'), { recursive: true });
+  writeFileSync(f.deployment, '{broken');
+  assert.equal(invoke(diagnostic.input).hookSpecificOutput, undefined);
+  assert.deepEqual(f.event('PostToolUse', 'doctor', { tool_name: diagnostic.tool, tool_input: diagnostic.input, tool_response: {} }), {});
+  const cli = fileURLToPath(new URL('../cli.js', import.meta.url));
+  const result = spawnSync(process.execPath, [cli, 'maintenance-doctor', '--deployment', f.deployment], { cwd: f.root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).checks.deploymentReadable, false);
+  assert.equal(existsSync(join(f.root, 'runtime/hooks')), false);
+  assert.equal(maintenanceDoctor(f.root, f.deployment).bindingActive, 'unknown');
+});
+test('unbound authorized maintenance needs no footer/role assets, matches exact operations and records observations', t => {
+  const f = fixture(t), grant = openMaintenance(f.root, maintenance(f), f.deployment);
+  rmSync(join(f.root, 'runtime/hooks'), { recursive: true });
+  rmSync(f.roleDir, { recursive: true });
+  assert.match(runExecutionHook(f.native, f.deployment).hookSpecificOutput.additionalContext, /Unbound maintenance active/);
+  assert.equal(f.event('PreToolUse').hookSpecificOutput, undefined);
+  assert.equal(f.event('PreToolUse').hookSpecificOutput, undefined); // pending retry uses one slot
+  const denied = f.event('PreToolUse', 'changed', { tool_input: { cmd: 'unrelated-write' } });
+  const sentinel = join(f.root, 'not-executed');
+  if (denied.hookSpecificOutput?.permissionDecision !== 'deny') writeFileSync(sentinel, 'executed');
+  assert.equal(existsSync(sentinel), false);
+  f.event('PostToolUse', 'call-a', { tool_response: { output: 'private result', exit_code: 0 } });
+  assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /replay/);
+  assert.match(f.event('PreToolUse', 'new').hookSpecificOutput.permissionDecisionReason, /budget/);
+  const state = maintenanceStatus(f.root, f.key, f.deployment);
+  assert.equal(state.bindingActive, 'unknown'); assert.equal(state.calls['call-a'].status, 'observed');
+  assert.equal(state.calls['call-a'].exitCode, 0); assert.equal(state.id, grant.id);
+  const audit = readFileSync(join(f.root, 'runtime/execution/maintenance/events.jsonl'), 'utf8');
+  assert.match(audit, /unbound_maintenance/); assert.ok(!audit.includes('private result')); assert.ok(!audit.includes('"cmd"'));
+  assert.equal(existsSync(join(f.root, 'runtime/execution/tasks')), false);
+});
+test('maintenance authorization, bounded scope and immutable budget cannot be omitted or enlarged', t => {
+  const f = fixture(t);
+  for (const extra of [
+    { userAuthorized: false }, { reason: 'convenience' }, { authorizationRef: '' }, { unavailableEvidence: '' },
+    { ttlSeconds: 3601 }, { operations: [] },
+    { operations: [{ purpose: 'deploy', tool, input: {}, maxCalls: 1 }] },
+    { operations: [{ purpose: 'test', tool: '*', input: {}, maxCalls: 1 }] },
+    { operations: [{ purpose: 'test', tool, maxCalls: 1 }] },
+    { operations: [{ purpose: 'test', tool, input: {}, cwd: '..', maxCalls: 1 }] },
+    { operations: [{ purpose: 'test', tool, input: {}, maxCalls: 101 }] },
+  ]) assert.throws(() => openMaintenance(f.root, maintenance(f, extra), f.deployment));
+  openMaintenance(f.root, maintenance(f), f.deployment);
+  assert.throws(() => openMaintenance(f.root, maintenance(f, { ttlSeconds: 3600 }), f.deployment), /pinned/);
+  for (const extra of [{ session_id: 'other-session' }, { turn_id: 'other-turn' }, { tool_name: 'functions.other' }]) {
+    assert.equal(f.event('PreToolUse', 'scope', extra).hookSpecificOutput.permissionDecision, 'deny');
+  }
+  mkdirSync(join(f.root, 'subdir'));
+  assert.equal(f.event('PreToolUse', 'cwd', { cwd: join(f.root, 'subdir') }).hookSpecificOutput.permissionDecision, 'deny');
+});
+test('expiry and revocation restore blocking; post observations remain factual and immutable', t => {
+  const f = fixture(t), grant = openMaintenance(f.root, maintenance(f), f.deployment);
+  f.event('PreToolUse');
+  const file = join(f.root, 'runtime/execution/maintenance', grant.id + '.json');
+  const state = JSON.parse(readFileSync(file, 'utf8')); state.expiresAt = new Date(Date.now() - 1).toISOString();
+  writeFileSync(file, JSON.stringify(state));
+  assert.match(f.event('PreToolUse', 'expired').hookSpecificOutput.permissionDecisionReason, /expired/);
+  assert.equal(maintenanceStatus(f.root, f.key, f.deployment).status, 'expired');
+  endMaintenance(f.root, f.key, f.deployment);
+  assert.match(f.event('PreToolUse', 'revoked').hookSpecificOutput.permissionDecisionReason, /task_begin/);
+  f.event('PostToolUse');
+  f.event('PostToolUse', 'call-a', { tool_response: { exit_code: 0 } });
+  assert.equal(maintenanceStatus(f.root, f.key, f.deployment).calls['call-a'].status, 'unknown');
+});
+test('successful genuine binding retires maintenance without backfilling its calls', t => {
+  const f = fixture(t); openMaintenance(f.root, maintenance(f), f.deployment);
+  f.event('PreToolUse'); f.event('PostToolUse', 'call-a', { tool_response: { exit_code: 0 } });
+  assert.throws(() => f.begin({ receipt: 'forged' }), /receipt/);
+  assert.equal(maintenanceStatus(f.root, f.key, f.deployment).status, 'active');
+  assert.equal(f.event('PreToolUse', 'begin', { tool_name: 'mcp__pack_manager__task_begin' }).hookSpecificOutput, undefined);
+  const task = f.begin();
+  const state = maintenanceStatus(f.root, f.key, f.deployment);
+  assert.equal(state.status, 'rebound'); assert.equal(state.reboundTaskId, task.taskId);
+  assert.deepEqual(task.calls, {}); assert.equal(state.calls['call-a'].status, 'observed');
+  assert.equal(f.event('PreToolUse', 'wrong', { tool_name: 'functions.other' }).hookSpecificOutput.permissionDecision, 'deny');
+  assert.deepEqual(f.event('PreToolUse', 'bound'), {});
+  assert.throws(() => openMaintenance(f.root, maintenance(f), f.deployment), /pinned/);
+  const other = fixture(t); other.begin();
+  assert.throws(() => openMaintenance(other.root, maintenance(other), other.deployment), /already bound/);
+});
+test('maintenance corruption and contention fail closed even when ordinary policy is monitor', t => {
+  const f = fixture(t, 'monitor'), grant = openMaintenance(f.root, maintenance(f), f.deployment);
+  assert.equal(f.event('PreToolUse', 'wrong', { tool_input: { cmd: 'not approved' } }).hookSpecificOutput.permissionDecision, 'deny');
+  const base = join(f.root, 'runtime/execution/maintenance'), lock = join(base, grant.id + '.lock');
+  mkdirSync(lock);
+  assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /locked/);
+  rmSync(lock, { recursive: true });
+  writeFileSync(join(base, grant.id + '.json'), '{corrupt');
+  assert.equal(f.event('PreToolUse').hookSpecificOutput.permissionDecision, 'deny');
+});
+test('maintenance paths reject symlinks and CLI entry requires explicit authorization', t => {
+  const f = fixture(t), input = join(f.root, 'maintenance-input.json');
+  writeFileSync(input, JSON.stringify(maintenance(f)));
+  const cli = fileURLToPath(new URL('../cli.js', import.meta.url));
+  const run = args => spawnSync(process.execPath, [cli, ...args], { cwd: f.root, env: { ...process.env, AVC_DEPLOYMENT_FILE: f.deployment }, encoding: 'utf8' });
+  assert.equal(run(['maintenance-open', input]).status, 1);
+  assert.equal(maintenanceStatus(f.root, f.key, f.deployment).status, 'absent');
+  const opened = run(['maintenance-open', input, '--authorize-unbound-maintenance']);
+  assert.equal(opened.status, 0, opened.stderr); assert.equal(JSON.parse(opened.stdout).status, 'active');
+  assert.equal(JSON.parse(run(['maintenance-status', input]).stdout).bindingActive, 'unknown');
+  assert.equal(JSON.parse(run(['maintenance-close', input]).stdout).status, 'revoked');
+  const other = fixture(t), directory = join(other.root, 'runtime/execution');
+  mkdirSync(directory, { recursive: true }); symlinkSync(f.root, join(directory, 'maintenance'));
+  assert.throws(() => openMaintenance(other.root, maintenance(other), other.deployment), /symlink/);
+  const monitored = fixture(t, 'monitor'); openMaintenance(monitored.root, maintenance(monitored), monitored.deployment);
+  const audit = join(monitored.root, 'runtime/execution/maintenance/events.jsonl');
+  rmSync(audit); symlinkSync(join(monitored.root, 'missing-target'), audit);
+  assert.match(monitored.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /symlink/);
 });
