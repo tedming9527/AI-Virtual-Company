@@ -73,6 +73,10 @@ Codex 客户端安装/升级脚本 `scripts/update-local-client.py`（Python 3.1
 - 本地生效版本：`runtime/lockfile.json`（唯一权威来源）
 - 所有流程汇报语句带当前版本号（FR-5）
 
+## 发布流程
+
+特性分支 PR 经人审合并 `master` 后，`master-release` 自动验证、打不可变 tag、创建 Release 并发布 Pages。每个发布 PR 须递增版本和更新 CHANGELOG；tag 不单独触发 Pages 部署。详细约定见 [发布流程](docs/14-master发布流程.md)。
+
 ## 治理要点
 
 - 反馈双通道：使用日志 PR（免审 + schema 校验门）/ 晋升 PR（人审）；
