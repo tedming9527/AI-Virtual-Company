@@ -1,7 +1,7 @@
 {
   "type": "role",
   "name": "test-expert",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "rubric": [
     "capability_coverage",
     "consistency"
@@ -9,5 +9,6 @@
   "status": "stable",
   "nameZh": "顾清妍",
   "professionZh": "质量测试工程师",
-  "displayName": "顾清妍·质量测试工程师"
+  "displayName": "顾清妍·质量测试工程师",
+  "description": "验收改动和发布时，设计分层测试、关键状态与失败场景，核对实际证据。"
 }

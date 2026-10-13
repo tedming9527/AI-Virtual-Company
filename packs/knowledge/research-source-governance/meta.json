@@ -1,11 +1,12 @@
 {
   "type": "knowledge",
   "name": "research-source-governance",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "accuracy",
     "relevance",
     "freshness"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "开展资料研究时，核对来源权威性、证据质量和时效，保留可追溯引用。"
 }

@@ -1,11 +1,12 @@
 {
   "type": "knowledge",
   "name": "learner-adaptive-requirement-communication",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "accuracy",
     "relevance",
     "freshness"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "向不熟悉业务的读者解释需求时，先讲清流程与关键概念，再说明技术契约。"
 }

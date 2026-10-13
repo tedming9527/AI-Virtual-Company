@@ -1,11 +1,12 @@
 {
   "type": "knowledge",
   "name": "verifiable-work-evidence-ledger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "accuracy",
     "relevance",
     "freshness"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "记录工作进展与交付时，将计划、实际执行和验收证据分开，避免虚报完成。"
 }

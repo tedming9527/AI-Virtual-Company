@@ -1,11 +1,12 @@
 {
   "type": "knowledge",
   "name": "2026-09-09-ai-delivery-principles",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "accuracy",
     "relevance",
     "freshness"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "设计和验收 AI 功能时，明确人工控制、来源、不确定性及质量指标。"
 }

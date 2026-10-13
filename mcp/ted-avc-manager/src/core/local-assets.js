@@ -3,6 +3,7 @@ import { join, relative, resolve, basename, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { scanPacks, readBootstrap } from './scan.js';
+import { describeAsset } from './description.js';
 import { resolvePersonal, projectDirOf, PROJECT_DIRS } from './personal.js';
 
 const sha = file => createHash('sha256').update(readFileSync(file)).digest('hex');
@@ -47,6 +48,7 @@ function skillFromDir(dir, source, root) {
   const name = meta.name || content.match(/^name:\s*["']?([^\n"']+)/m)?.[1]?.trim() || basename(dir);
   const displayName = meta.displayName || content.match(/^#\s+(.+)$/m)?.[1] || name;
   return { id: `${source}:${dir}`, name, displayName, type: 'skill', source, dir, entry,
+    ...describeAsset(meta, content),
     version: meta.version || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
     sha256: createHash('sha256').update(sha(entry) + ':' + (existsSync(metaFile) ? sha(metaFile) : '')).digest('hex'), error,
     metadataValid: meta.type === 'skill' && meta.name === basename(dir) && /^\d+\.\d+\.\d+$/.test(meta.version || '') && Array.isArray(meta.rubric) && meta.rubric.length > 0,

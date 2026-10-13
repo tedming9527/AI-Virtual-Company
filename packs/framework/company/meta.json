@@ -1,10 +1,11 @@
 {
   "type": "framework",
   "name": "company",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "rubric": [
     "structure",
     "applicability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "组织协作时统一任务分工、授权、交付和知识维护规则，并说明平台接入边界。"
 }

@@ -1,11 +1,12 @@
 {
   "type": "knowledge",
   "name": "project-context-first-delivery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "accuracy",
     "relevance",
     "freshness"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "首次介入项目或跨模块改动时，梳理入口、依赖与约束，优先复用已有资产。"
 }

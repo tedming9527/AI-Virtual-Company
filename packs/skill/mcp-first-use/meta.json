@@ -1,10 +1,11 @@
 {
   "type": "skill",
   "name": "mcp-first-use",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "rubric": [
     "completion_rate",
     "reusability"
   ],
-  "status": "stable"
+  "status": "stable",
+  "description": "首次连接或修复 MCP 时，核对来源、环境与权限，分层验证本地启动和客户端接入。"
 }

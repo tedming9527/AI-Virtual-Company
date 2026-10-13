@@ -3,6 +3,7 @@
 import { readdirSync, existsSync, statSync, lstatSync, readFileSync } from 'node:fs';
 import { join, resolve, relative, sep } from 'node:path';
 import { readJson, validateBootstrap, validatePackMeta } from './manifest.js';
+import { describeAsset } from './description.js';
 
 export function assertNoLinks(root, file) {
   const base=resolve(root), target=resolve(file);
@@ -25,7 +26,7 @@ export function readBootstrap(root) {
 }
 
 // 扫描 packs/<type>/<name>/，约定：目录即身份，meta.json 即契约
-export function scanPacks(root) {
+export function scanPacks(root, options = {}) {
   const packsDir = join(root, 'packs');
   const found = [];
   const errors = [];
@@ -43,7 +44,7 @@ export function scanPacks(root) {
       for(const entry of ['SKILL.md','PROFILE.md']) assertNoLinks(root,join(dir,entry));
       if (!existsSync(join(dir, 'meta.json'))) continue;
       const meta = readJson(join(dir, 'meta.json'));
-      const res = validatePackMeta(meta, `${type}/${name}`);
+      const res = validatePackMeta(meta, `${type}/${name}`, options);
       if (!res.valid) {
         errors.push(`${type}/${name}: ${res.errors.join('; ')}`);
         continue;
@@ -59,6 +60,7 @@ export function scanPacks(root) {
         continue;
       }
       found.push({ type, name, displayName: meta.displayName || name,
+        ...describeAsset(meta, readFileSync(join(dir, entry), 'utf8')),
         ...(type === 'role' ? { nameZh: meta.nameZh, professionZh: meta.professionZh } : {}),
         version: meta.version, status: meta.status || 'unknown', rubric: meta.rubric, dir, entry });
     }

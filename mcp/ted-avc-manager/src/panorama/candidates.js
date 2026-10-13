@@ -1,4 +1,5 @@
 import { assertNoLinks } from '../core/scan.js';
+import { compactDescription } from '../core/description.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -50,6 +51,7 @@ export async function collectCandidates(repository, options = {}) {
       };
       const base = await getMeta(pr.base.sha), head = await getMeta(pr.head.sha);
       changes.push({ type: path.split('/')[0], name: path.split('/')[1], displayName: head?.displayName || base?.displayName || path.split('/')[1],
+        description: compactDescription((head || base)?.description),
         baseVersion: base?.version || null, proposedVersion: head?.version || null, operation: !head ? 'remove' : !base ? 'add' : 'update' });
     }
     entries.push({ number: pr.number, title: pr.title, url: `https://github.com/${repository}/pull/${pr.number}`, draft: !!pr.draft, state: 'open', updatedAt: pr.updated_at, headSha: pr.head.sha, baseSha: pr.base.sha, changes });
@@ -75,5 +77,5 @@ export function readCandidates(root, file = join(root, 'runtime', 'cache', 'pack
   return { schema: data.schema, repository: data.repository, repositoryPublic: true, status: 'available', fetchedAt: data.fetchedAt,
     entries: data.entries.filter(p => Number.isInteger(p.number) && /^[a-f0-9]{40}$/.test(p.headSha || '') && /^[a-f0-9]{40}$/.test(p.baseSha || '')).map(p => ({ number: p.number, title: String(p.title),
       url: `https://github.com/${data.repository}/pull/${p.number}`, draft: !!p.draft, state: 'open', updatedAt: p.updatedAt, headSha: p.headSha, baseSha: p.baseSha,
-      changes: p.changes.map(c => ({ type:c.type, name:String(c.name), displayName:String(c.displayName), baseVersion:c.baseVersion, proposedVersion:c.proposedVersion, operation:c.operation })) })) };
+      changes: p.changes.map(c => ({ type:c.type, name:String(c.name), displayName:String(c.displayName), description:compactDescription(c.description), baseVersion:c.baseVersion, proposedVersion:c.proposedVersion, operation:c.operation })) })) };
 }
