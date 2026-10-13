@@ -4,6 +4,7 @@ import { join, resolve, relative, basename, sep, isAbsolute, dirname } from 'nod
 import { homedir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import { discoverSkills, personalProject, nativeSkillRoots } from './local-assets.js';
+import { describeAsset, compactDescription } from './description.js';
 
 const hash = data => createHash('sha256').update(data).digest('hex');
 const types = ['skill', 'knowledge', 'framework', 'role'];
@@ -68,7 +69,7 @@ function bundle(dir, type, name, source, management) {
   const content = readFileSync(entry, 'utf8');
   if (!content.trim()) return null;
   return { id: `${source}:${type}:${resolve(dir)}`, type, name, displayName: meta.displayName || name,
-    description: String(meta.description || content.match(/^description:\s*(.+)$/m)?.[1] || '').slice(0, 600),
+    description: describeAsset(meta, content).description || '',
     version: meta.version || null, source, management, dir: resolve(dir), entry: resolve(entry),
     entrySha256: hash(content), sha256: hash(content + '\0' + (existsSync(metaFile) ? readFileSync(metaFile) : '')),
     discovery: 'metadata-only', nativeInstalled: 'unverified', loaded: false };
@@ -89,7 +90,7 @@ export function listAssets(root, filter = {}, options = {}) {
   const discovered = discoverSkills(root, { externalRoots });
   warnings.push(...discovered.warnings);
   for (const s of discovered.skills) assets.push({ ...s,
-    description: String(readFileSync(s.entry, 'utf8').match(/^description:\s*(.+)$/m)?.[1] || '').slice(0, 600),
+    description: s.description || '',
     discovery: 'metadata-only', placement: s.source === 'external-installed' ? 'native-skill-directory' : 'managed-project-directory', nativeInstalled: 'unverified', loaded: false });
   const knowledgeFile = safePath(root,join(root, 'packs/knowledge/catalog.json'));
   if (existsSync(knowledgeFile)) {
@@ -100,7 +101,7 @@ export function listAssets(root, filter = {}, options = {}) {
       const bundleType=match[1], bundleName=match[2], roleDir=safePath(root,join(root,'packs',bundleType,bundleName)), detail=safePath(roleDir,join(root,entry.detail));
       if (!existsSync(detail) || !lstatSync(detail).isFile()) continue;
       assets.push({ id: `general:knowledge-entry:${entry.id}`, type:'knowledge', name:entry.id, displayName:basename(detail), source:'general', management:'central-managed', dir:roleDir, entry:detail,
-        version:entry.updated, sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
+        description:compactDescription(entry.summary) || '', version:entry.updated, sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
         load:{source:'general',type:bundleType,name:bundleName,entry:relative(roleDir,detail)} });
     }
   }

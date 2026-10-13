@@ -104,3 +104,17 @@ test('native reads prefer exact document identity over another knowledge entry s
  const read=file=>recordObservedRead(root,{hook_event_name:'PostToolUse',tool_name:'Read',tool_input:{file_path:path.join(dir,file)},tool_response:{exit_code:0}},options).records[0];
  assert.equal(read('PROFILE.md').type,'role');assert.equal(read('PROFILE.md').name,'mentor');assert.equal(read('knowledge/guide.md').name,'guide');assert.equal(read('notes.md').type,'role');
 });
+
+test('knowledge search and recommendation tolerate missing summary and use declared purpose',t=>{
+ const {root,options}=fixture(t),dir=path.join(root,'packs/knowledge/recovery');pack(dir,'knowledge','recovery');
+ const metaFile=path.join(dir,'meta.json');fs.writeFileSync(metaFile,JSON.stringify({...JSON.parse(fs.readFileSync(metaFile)),description:'元数据优先用途'}));
+ fs.writeFileSync(path.join(root,'packs/knowledge/catalog.json'),JSON.stringify({entries:[
+  {id:'legacy',detail:'packs/knowledge/recovery/SKILL.md'},
+  {id:'declared',detail:'packs/knowledge/recovery/SKILL.md',summary:'端口诊断说明'}
+ ]}));
+ assert.equal(listAssets(root,{query:'不匹配'},options).assets.length,0);
+ assert.equal(recommendAssets(root,'不匹配',options).recommendations.length,0);
+ assert.equal(listAssets(root,{query:'端口诊断'},options).assets[0].name,'declared');
+ assert.equal(recommendAssets(root,'端口诊断',options).recommendations[0].name,'declared');
+ assert.equal(listAssets(root,{query:'元数据优先用途'},options).assets[0].name,'recovery');
+});
