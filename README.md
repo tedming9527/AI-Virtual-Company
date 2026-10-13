@@ -36,6 +36,8 @@ node mcp/ted-avc-manager/src/cli.js server
 
 执行适配见 [11](docs/11-执行介入架构.md)，资产感知见 [12](docs/12-资产发现与使用追踪.md)。客户端发现、正文交付和实际使用分别验收。
 
+Codex 客户端安装/升级脚本 `scripts/update-local-client.py`（Python 3.11+）会在注册 MCP 后为 `task_begin`、`load_asset`、`task_closeout` 补齐单工具 `approval_mode = "approve"`；保留已有工具策略，不改变全局审批或 Hook 信任。已有安装可按 [监控工具审批配置](docs/11-执行介入架构.md#监控工具审批配置) 单独补齐，无需重新升级或推送。
+
 ## 目录规约（约定大于配置）
 
 根级仅保留：
