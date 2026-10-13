@@ -31,8 +31,7 @@
 
 ## 架构图资产
 
-- [architecture-v3.svg](./assets/architecture-v3.svg)：**v3 全景架构图**（三类存储、统一升级路线、配置分层）
-- [architecture-v2.svg](./assets/architecture-v2.svg)：v2 历史版本
+- [architecture.svg](./assets/architecture.svg)：现行架构图，展示系统代码、大模型与人工的责任边界、目录契约、升级流程及本地/公开全景图的数据范围。历史版本以 Git 记录为准。
 
 ## 变更记录
 
