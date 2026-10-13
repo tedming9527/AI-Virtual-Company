@@ -102,6 +102,18 @@ test('invalid, inline and misleading multiline layouts cannot corrupt config', t
   }
 });
 
+test('re-registration preserves server allow/deny lists, defaults and disabled state', t => {
+  const f = fixture(t, base);
+  const policy = { enabled: false, enabled_tools: ['task_begin'], disabled_tools: ['upgrade'], default_tools_approval_mode: 'prompt' };
+  const result = f.run('--authorize-monitor-tools', '--preserve-server-policy-json', JSON.stringify(policy));
+  assert.equal(result.status, 0, result.stderr);
+  const server = f.parse().mcp_servers['ted-avc-manager'];
+  for (const [key, value] of Object.entries(policy)) assert.deepEqual(server[key], value);
+  const before = readFileSync(f.file, 'utf8');
+  assert.notEqual(f.run('--authorize-monitor-tools', '--preserve-server-policy-json', '{"command":"unrelated"}').status, 0);
+  assert.equal(readFileSync(f.file, 'utf8'), before);
+});
+
 test('plugin-scoped policy stays within the selected installed server', t => {
   const source = base + '[plugins."ted@test".mcp_servers.monitor]\nenabled = true\n';
   const f = fixture(t, source);

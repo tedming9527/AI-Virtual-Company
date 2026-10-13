@@ -34,7 +34,7 @@ def table_path(line):
     return None
 
 
-def prepare(source, server_id, plugin_id=None, prior_tools=None):
+def prepare(source, server_id, plugin_id=None, prior_tools=None, prior_policy=None):
     before = tomllib.loads(source)
     expected = copy.deepcopy(before)
     path = (["plugins", plugin_id] if plugin_id else []) + ["mcp_servers", server_id]
@@ -54,6 +54,28 @@ def prepare(source, server_id, plugin_id=None, prior_tools=None):
         raise ValueError("Invalid MCP tool settings; no settings changed")
     added, preserved = [], {}
     result = source
+    policy_lines = []
+    for key, value in (prior_policy or {}).items():
+        valid = (key == "enabled" and type(value) is bool) or (
+            key in ("enabled_tools", "disabled_tools") and isinstance(value, list)
+            and all(isinstance(item, str) for item in value)) or (
+            key == "default_tools_approval_mode" and value in ("auto", "prompt", "writes", "approve"))
+        if not valid:
+            raise ValueError("Invalid prior server policy")
+        if key in target:
+            if target[key] != value:
+                raise ValueError("Conflicting server policy; no settings changed")
+            continue
+        target[key] = value
+        policy_lines.append(f'{key} = {json.dumps(value)}\n')
+    if policy_lines:
+        lines = result.splitlines(keepends=True)
+        matches = [i for i, line in enumerate(lines) if table_path(line) == path]
+        if len(matches) != 1:
+            raise ValueError("Server policy requires one explicit TOML table")
+        index = matches[0]
+        lines[index] = lines[index].rstrip("\r\n") + "\n" + "".join(policy_lines)
+        result = "".join(lines)
     # codex mcp add replaces the server table. Restore previously reviewed tool
     # settings before adding defaults, including policies for non-monitor tools.
     for tool, settings in (prior_tools or {}).items():
@@ -103,14 +125,14 @@ def prepare(source, server_id, plugin_id=None, prior_tools=None):
     return result, added, preserved
 
 
-def install(home, server_id, plugin_id=None, check=False, prior_tools=None):
+def install(home, server_id, plugin_id=None, check=False, prior_tools=None, prior_policy=None):
     home = Path(home).resolve()
     config = home / "config.toml"
     if config.is_symlink() or not config.is_file():
         raise ValueError("Expected an existing regular config.toml, not a symlink")
     original = config.read_bytes()
     try:
-        updated, added, preserved = prepare(original.decode("utf-8"), server_id, plugin_id, prior_tools)
+        updated, added, preserved = prepare(original.decode("utf-8"), server_id, plugin_id, prior_tools, prior_policy)
     except tomllib.TOMLDecodeError:
         # Parser exceptions can contain configuration values: do not print them.
         raise ValueError("Invalid config.toml; no settings changed") from None
@@ -158,6 +180,7 @@ def main():
     parser.add_argument("--plugin-id", help="Only for an already configured plugin-scoped MCP server")
     parser.add_argument("--authorize-monitor-tools", action="store_true")
     parser.add_argument("--preserve-tools-json", type=json.loads, help="Tool policies captured before MCP re-registration")
+    parser.add_argument("--preserve-server-policy-json", type=json.loads, help="Server permission settings captured before re-registration")
     parser.add_argument("--check", action="store_true", help="Validate and preview without writing")
     args = parser.parse_args()
     if not args.check and not args.authorize_monitor_tools:
@@ -165,7 +188,9 @@ def main():
     try:
         if args.preserve_tools_json is not None and not isinstance(args.preserve_tools_json, dict):
             raise ValueError("Prior tool policies must be an object")
-        print(json.dumps(install(args.codex_home, args.server_id, args.plugin_id, args.check, args.preserve_tools_json)))
+        if args.preserve_server_policy_json is not None and not isinstance(args.preserve_server_policy_json, dict):
+            raise ValueError("Prior server policy must be an object")
+        print(json.dumps(install(args.codex_home, args.server_id, args.plugin_id, args.check, args.preserve_tools_json, args.preserve_server_policy_json)))
     except (ValueError, OSError) as error:
         parser.exit(1, f"Approval installation failed: {error}\n")
 
