@@ -83,6 +83,15 @@ test('source/content drift and symlinks suppress recommendations; failed collect
   fs.rmSync(path.join(f.personal,'staging/trial-candidates'),{recursive:true});fs.symlinkSync(f.root,path.join(f.personal,'staging/trial-candidates'));
   assert.equal(taskTrialContext(f.root,'other','portfolio').status,'unavailable');
 });
+test('a corrupt older revision does not hide a valid newer candidate, while a corrupt newest revision still blocks fallback',t=>{
+  const f=fixture(t);f.register({version:'1.10.0'});
+  const directory=path.join(f.personal,'staging/trial-candidates');
+  fs.writeFileSync(path.join(directory,'subject-led-design-1.0.0.json'),'broken old revision');
+  const listed=listTrialCandidates(f.root);assert.equal(listed.warnings.length,1);assert.equal(listed.candidates[0].candidate.version,'1.10.0');
+  assert.equal(matchCandidates(f.root,{taskKey:'newer',query:'portfolio'}).recommendations.length,1);
+  fs.writeFileSync(path.join(directory,'subject-led-design-1.11.0.json'),'broken newest revision');
+  assert.equal(listTrialCandidates(f.root).candidates.length,0);
+});
 test('tools requiring installation need a separate authorization; composite validation is recorded independently',t=>{
   const f=fixture(t);const r=f.register({id:'tool-checker',type:'skill',eligibility:'requires-authorization',target:{kind:'repository',paths:['mcp/checker']}});
   const key={taskKey:'tool-task',candidateId:'tool-checker',sha256:r.sha256};

@@ -34,7 +34,13 @@ function safePath(root, path, create = false) {
     cursor = join(cursor, part);
     if (existsSync(cursor)) {
       if (lstatSync(cursor).isSymbolicLink()) throw new Error('Refusing symlink');
-    } else if (create) mkdirSync(cursor);
+    } else if (create) {
+      try { mkdirSync(cursor); } catch (error) { if (error.code !== 'EEXIST') throw error; }
+      // A concurrent creator is fine only when it produced a real directory.
+      const created=lstatSync(cursor);
+      if (created.isSymbolicLink()) throw new Error('Refusing symlink');
+      if (!created.isDirectory()) throw new Error('Expected directory');
+    }
   }
   return target;
 }
@@ -73,7 +79,17 @@ function atomic(file, value) {
 }
 function locked(root, taskId, fn) {
   const paths = files(root, taskId);
-  try { mkdirSync(paths.lock); } catch (error) { if (error.code === 'EEXIST') throw new Error('Task locked by another operation; retry'); throw error; }
+  // Different real events in the same turn can run concurrently. Serialize their
+  // metadata writes briefly; never retry the business tool or steal an old lock.
+  const deadline = Date.now() + 1000;
+  while (true) {
+    try { mkdirSync(paths.lock); break; }
+    catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+      if (Date.now() >= deadline) throw new Error('Task locked by another operation; bounded verification wait expired');
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
+    }
+  }
   try { return fn(paths); } finally { rmSync(paths.lock, { recursive: true }); }
 }
 function record(paths, task, event, extra = {}) {

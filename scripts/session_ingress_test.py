@@ -1,5 +1,5 @@
 """Run the installed scripts and MCP across upgrades, not configuration-only probes."""
-import json, os, subprocess, unittest, io, tarfile, shutil
+import json, os, subprocess, unittest, io, tarfile, shutil, threading
 from pathlib import Path
 import client_environment_test as harness
 from client_environment_test import NODE
@@ -137,5 +137,29 @@ class SessionIngressTest(unittest.TestCase):
     result=json.loads(child.stdout.read());error=child.stderr.read();child.wait(timeout=10);child.stdout.close();child.stderr.close()
     self.assertEqual(child.returncode,0,error);self.assertNotIn('systemMessage',result,result)
   tasks=list((self.home/OWNER/'state/runtime/execution/tasks').glob('*.json'));self.assertEqual(len(read(tasks[0])['calls']),4)
+
+ def test_installed_distinct_events_wait_for_short_task_writer(self):
+  self.run_rebuild();p={'session_id':'parallel-distinct','turn_id':'t','hook_event_name':'UserPromptSubmit'};self.hook(p)
+  turn=self.turn(p['session_id'],'t');key={'sessionId':p['session_id'],'turnId':'t','receipt':turn['receipt']}
+  task=self.rpc('task_begin',{**key,'role':'test-expert','goal':'distinct concurrent events','allowedTools':['Bash'],'maxToolCalls':2})
+  directory=self.home/OWNER/'state/runtime/execution/tasks';lock=directory/(task['taskId']+'.lock')
+  for event_name in ['PreToolUse','PostToolUse']:
+   lock.mkdir();release=threading.Timer(0.5,lock.rmdir);release.start()
+   children=[]
+   try:
+    for call in ['a','b']:
+     event={**p,'hook_event_name':event_name,'tool_name':'Bash','tool_use_id':call,'tool_input':{'command':'read-only'},'tool_response':{'exit_code':0,'output':'fixture'}}
+     child=subprocess.Popen(['/bin/sh',str(self.home/'ted-avc-manager-hook.sh'),'native'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+     child.stdin.write(json.dumps(event));child.stdin.close();children.append(child)
+    for child in children:
+     value=json.loads(child.stdout.read());error=child.stderr.read();child.wait(timeout=10);child.stdout.close();child.stderr.close()
+     self.assertEqual(child.returncode,0,error);self.assertNotIn('systemMessage',value,value)
+   finally:
+    release.join()
+    for child in children:
+     if child.poll() is None:child.kill();child.wait()
+  stored=read(directory/(task['taskId']+'.json'));self.assertEqual(set(stored['calls']),{'a','b'})
+  self.assertTrue(all(c['status']=='observed' for c in stored['calls'].values()))
+  self.assertEqual(stored['violations'],[])
 
 if __name__=='__main__':unittest.main()

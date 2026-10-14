@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
@@ -42,6 +42,23 @@ test('stdio handshake serves management tools and malformed resource URI does no
  await call('candidate_trial',{input:{...input,action:'decide',choice:'declined',responseSource:'user',userResponse:'Skip this trial'}});
  assert.equal((await call('candidate_match',context)).recommendations.length,0);
  assert.equal((await call('candidate_trial_status',{taskKey})).trials[0].status,'declined');
+ // This response belongs to a synthetic user fixture, never a real user's
+ // consent or feedback. Exercise the full public protocol against real bytes.
+ const acceptedKey='stdio-accepted-fixture',accepted={...input,taskKey:acceptedKey};
+ const offered=await call('candidate_trial',{input:{...accepted,action:'offer',query:'frontend review',prompt:'Try an unverified browser-review checklist on this isolated fixture? Budget five minutes; record findings and costs.',reason:'Matches the fixture review'}});
+ assert.match(offered.prompt,/unverified/);
+ const premature=await rpc('tools/call',{name:'candidate_trial',arguments:{input:{...accepted,action:'start'}}});assert.match(premature.error.message,/explicit acceptance/);
+ await call('candidate_trial',{input:{...accepted,action:'decide',choice:'accepted',responseSource:'user',userResponse:'Synthetic user fixture: try this local checklist'}});
+ await call('candidate_trial',{input:{...accepted,action:'start'}});
+ const started=performance.now(),fixtureFile=join(root,'review.html');writeFileSync(fixtureFile,'<button>Save</button>');
+ const before=readFileSync(fixtureFile,'utf8').includes('<button>'),after=readFileSync(fixtureFile,'utf8').includes('<button>');
+ const artifact=join(root,'trial-result.json');writeFileSync(artifact,JSON.stringify({synthetic:true,baseline:before,checklist:after,changed:before!==after}));
+ const elapsed=(performance.now()-started)/60000;
+ const completed=await call('candidate_trial',{input:{...accepted,action:'result',effect:'no-change',comparison:'baseline',summary:'Synthetic fixture: both inspections found the same button; no improvement measured.',artifacts:[{path:artifact}],costs:{timeMinutes:{value:elapsed,basis:'observed'},tokens:{value:null,basis:'unknown'},money:{value:null,basis:'unknown'},reworkMinutes:{value:null,basis:'unknown'}}}});
+ assert.equal(completed.status,'completed');assert.equal(completed.result.effect,'no-change');assert.equal(completed.result.costs.timeMinutes.value,elapsed);assert.equal(completed.result.costs.tokens.value,null);assert.equal(completed.result.feedback.choice,'unknown');assert.equal(completed.result.review,'pending');assert.match(completed.result.artifacts[0].sha256,/^[a-f0-9]{64}$/);
+ const queried=(await call('candidate_trial_status',{taskKey:acceptedKey})).trials[0];assert.deepEqual(queried.result,completed.result);
+ assert.equal((await call('candidate_match',{taskKey:acceptedKey,query:'frontend review'})).recommendations.length,0);
+ assert.equal((await call('candidate_match',{taskKey:'unrelated',query:'payment frontend review'})).recommendations.length,0);
  assert.equal((await rpc('resources/read',{uri:'tedavc://asset/%INVALID'})).error.code,-32602);
  assert.ok((await rpc('resources/list')).result.resources);
 });

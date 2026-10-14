@@ -13,6 +13,11 @@ const read = file => JSON.parse(readFileSync(file, 'utf8'));
 const ID = /^[a-z0-9][a-z0-9-]{0,99}$/;
 const SHA = /^[a-f0-9]{64}$/;
 const COSTS = ['timeMinutes', 'tokens', 'money', 'reworkMinutes'];
+function compareVersion(a, b) {
+  const left=a.split('.').map(BigInt), right=b.split('.').map(BigInt);
+  for (let i=0;i<3;i++) if(left[i]!==right[i]) return left[i]>right[i]?1:-1;
+  return 0;
+}
 function text(value, field, max = 2000) {
   if (typeof value !== 'string' || !value.trim() || value.length > max || /\0/.test(value)) throw Error(`Invalid ${field}`);
   return value;
@@ -106,7 +111,7 @@ export function registerCandidate(root, input) {
   });
 }
 export function listTrialCandidates(root) {
-  const p = paths(root), candidates = [], warnings = [], invalidIds = new Set();
+  const p = paths(root), candidates = [], warnings = [], invalidVersions = new Map();
   if (!existsSync(p.candidates)) return { candidates, warnings };
   const names=readdirSync(p.candidates).sort();
   if(names.length > 1000) throw Error('Candidate inventory requires reviewed compaction');
@@ -119,16 +124,19 @@ export function listTrialCandidates(root) {
       if (name !== `${record.candidate.id}-${record.candidate.version}.json`) throw Error('Candidate filename/identity mismatch');
       if (record.schema !== 'avc.trial-candidate.v1' || digest(record.candidate) !== record.sha256) throw Error('Candidate content drift');
       sourceFiles(root, record.candidate); candidates.push(record);
-    } catch (error) { warnings.push(`${name}: ${error.message}`); const id=name.match(/^(.+)-\d+\.\d+\.\d+\.json$/)?.[1]; if(id) invalidIds.add(id); }
+    } catch (error) {
+      warnings.push(`${name}: ${error.message}`);
+      const match=name.match(/^(.+)-(\d+\.\d+\.\d+)\.json$/);
+      if(match && (!invalidVersions.has(match[1]) || compareVersion(match[2],invalidVersions.get(match[1]))>0)) invalidVersions.set(match[1],match[2]);
+    }
   }
   // Newest numeric version per ID; never fall back to an old version when the latest is stale.
   const latest = new Map();
-  for (const record of candidates.filter(r => !invalidIds.has(r.candidate.id))) {
+  for (const record of candidates) {
     const old = latest.get(record.candidate.id);
-    const compare = old && record.candidate.version.split('.').map(Number).map((n,i) => n - Number(old.candidate.version.split('.')[i])).find(n => n !== 0);
-    if (!old || compare > 0) latest.set(record.candidate.id, record);
+    if (!old || compareVersion(record.candidate.version,old.candidate.version)>0) latest.set(record.candidate.id, record);
   }
-  return { candidates: [...latest.values()], warnings };
+  return { candidates: [...latest.values()].filter(r => !invalidVersions.has(r.candidate.id) || compareVersion(r.candidate.version,invalidVersions.get(r.candidate.id))>0), warnings };
 }
 const trialId = (taskKey, candidateId) => digest([taskKey, candidateId]);
 export function trialStatus(root, taskKey) {
