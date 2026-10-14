@@ -28,4 +28,4 @@ node mcp/ted-avc-manager/src/cli.js <command>
 - 通用包与个人自定义资产使用同一套按资产身份、版本和内容摘要分组的周期统计与评分规则。加载、实际采用、任务结果和用户反馈分开计数；样本不足标记未评分/证据不足。统计可建议升级、降级或审计优化，不自动更改资产。汇总只保留窗口、样本量、分数、趋势和建议，不复制会话内容、个人路径或逐条工具日志；活动任务及未完成回执不参与瘦身，已核验的原始事件在汇总完整后按保留窗口清理。
 - 外部资产一律先入个人 `staging/`（自动打标 → 台账 → 人工复核 → 转正），不得直接拷入 `packs/`
 - 不写入密钥、凭据、个人路径与账号标识
-- 改动走 PR → 人审 → 打 tag → CI 校验（validate.yml）→ 全景图发布（panorama.yml）
+- 改动走特性分支 → PR → 人审合并 master → CI 校验（validate.yml）→ tag / Release（release.yml）→ 全景图发布（panorama.yml）；Pages 仅使用 master 上下文，tag 不单独触发部署。流程见 docs/14-master发布流程.md。

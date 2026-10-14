@@ -4,7 +4,7 @@
 <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 Z" fill="#64748b"/></marker></defs>
 <rect width="1280" height="1280" fill="#f8fafc"/>
 <text x="40" y="45" font-size="28" font-weight="800" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">AI-Virtual-Company · 现行架构</text>
-<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央目录 v1.4.1  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化</text>
+<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央目录 v1.4.3  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化</text>
 <text x="40" y="111" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">谁负责什么</text>
 <rect x="40" y="128" width="390" height="206" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.6"/>
 <text x="58" y="159" font-size="16" font-weight="700" fill="#075985" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">系统代码 · 可重复的确定性动作</text>
@@ -25,7 +25,7 @@
 <text x="868" y="189" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">确定课题、授权范围与长期保存选择</text>
 <text x="868" y="215" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">审查来源、脱敏、覆盖映射和候选差异</text>
 <text x="868" y="241" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">批准个人资料清理及通用包 PR</text>
-<text x="868" y="267" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">人审合并并批准 tag；发布由 CI 校验</text>
+<text x="868" y="267" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">人审合并 master；CI 通过后发布</text>
 <text x="868" y="293" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">岗位标签不等于具名员工实际参与</text>
 <text x="40" y="374" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">目录契约：文件身份由位置与元数据共同确定</text>
 <rect x="40" y="393" width="390" height="310" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="1.6"/>
@@ -86,7 +86,7 @@
 <rect x="848" y="768" width="190" height="178" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="1.6"/>
 <text x="866" y="799" font-size="15" font-weight="700" fill="#5b21b6" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">⑤ 发布门禁 · 人工/CI</text>
 <text x="866" y="829" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">通用 PR → 人审合并</text>
-<text x="866" y="858" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">tag → CI → 公开全景图</text>
+<text x="866" y="858" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">master → CI → tag/Release → Pages</text>
 <text x="866" y="887" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">个人资料不自动上传</text>
 <line x1="1038" y1="858" x2="1049" y2="858" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="1050" y="768" width="190" height="178" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="1.6"/>

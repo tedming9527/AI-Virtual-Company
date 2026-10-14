@@ -21,7 +21,7 @@
 | `personal-discard-cleanup [--apply]` | 到期清理 | 默认只读预览；`--apply` 删除到期且摘要未变的废弃文件 |
 | `panorama-mcp-check <名称>` | 网上 MCP 按需检查 | 对已启用的远程 HTTPS MCP 发起只读握手，结果仅存本地缓存 |
 | `panorama-mcp-quality <名称> --github owner/repo [--npm 包名] [--deep]` | 网上 MCP 网络指标 | 默认读取 stars、维护时间、npm 近一周下载；`--deep` 再读 OpenSSF 与公开安全公告 |
-| `panorama-source-snapshot [--check\|--deep]` | 发布来源快照 | 发版准备时采集第三方包公开指标，tag 构建时校验来源与版本 |
+| `panorama-source-snapshot [--check\|--deep]` | 发布来源快照 | 发版准备时采集第三方包公开指标，发布构建时校验来源与版本 |
 | `governance-weekly-status\|prepare\|complete <input.json>` | 周度资料治理 | 会话到期提示后台子代理；准备冻结摘要与窗口，完成只保存来源匹配的待人工复核建议 |
 | `experience-recovery-stage <input.json> [--apply]` | 已提炼原文回收 | 校验完整覆盖复核声明与摘要，默认预览；应用后进入至少 90 天可恢复区 |
 | `experience-recovery-reconcile [--apply]` | 中断移动协调 | 默认预览，核对来源与目标摘要后修复准备态 |
@@ -51,7 +51,7 @@
 
 网上 MCP 只纳入客户端配置的远程 HTTPS 服务；本地 stdio 和回环地址不算网上 MCP。配置、授权、协议握手及互联网质量证据分别展示。质量查询需要显式指定对应的 GitHub 仓库，npm 包为可选关联；查询结果仅是带来源与时间的参考信号，不构成安全认证。
 
-从网络升级的通用 skill、knowledge、framework 或 role 在 `meta.json` 中声明 `origin`，至少包含不带密钥和查询串的 HTTPS `url` 及固定 `revision`；可选 `repository`（GitHub `owner/repo`）与 `npm` 包名。发版准备阶段运行 `panorama-source-snapshot`，审核生成的 `panorama/source-quality.json` 后将其纳入待发布版本；tag 构建运行 `--check`，拒绝与当前包版本、URL 或 revision 不符的旧快照。默认只查 stars、最近维护、npm 当前版本及近一周下载；`--deep` 才查 OpenSSF 和公开安全公告。公开和本地页面都从该快照读取网络证据，并用 🔗 图标链接到原始 URL。网络接口不可用时保留来源与采集时间，网络质量显示未核验，不推算分数。页面的 ? 按钮说明 stars 和下载量的参考阶梯；该阶梯不是官方质量评级，也不混入内部质量分。
+从网络升级的通用 skill、knowledge、framework 或 role 在 `meta.json` 中声明 `origin`，至少包含不带密钥和查询串的 HTTPS `url` 及固定 `revision`；可选 `repository`（GitHub `owner/repo`）与 `npm` 包名。发版准备阶段运行 `panorama-source-snapshot`，审核生成的 `panorama/source-quality.json` 后将其纳入待发布版本；发布构建运行 `--check`，拒绝与当前包版本、URL 或 revision 不符的旧快照。默认只查 stars、最近维护、npm 当前版本及近一周下载；`--deep` 才查 OpenSSF 和公开安全公告。公开和本地页面都从该快照读取网络证据，并用 🔗 图标链接到原始 URL。网络接口不可用时保留来源与采集时间，网络质量显示未核验，不推算分数。页面的 ? 按钮说明 stars 和下载量的参考阶梯；该阶梯不是官方质量评级，也不混入内部质量分。
 
 ## 运行
 

@@ -1,10 +1,12 @@
 name: validate
 on:
   pull_request:
+    branches: [master]
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -26,6 +30,15 @@ jobs:
           node mcp/ted-avc-manager/src/cli.js validate-packs
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
+      - name: 检查发布候选版本与账本
+        run: node scripts/release-master.mjs --check
+      - name: PR 发布版本必须递增
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/release-master.mjs --check --base "$BASE_SHA"
+      - name: 校验发布来源快照
+        run: node mcp/ted-avc-manager/src/cli.js panorama-source-snapshot --check
       - name: 通用层回归
         run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
       - name: 校验现有日志 schema
