@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {registerCandidate, listTrialCandidates, matchCandidates, recordTrial, trialStatus, taskTrialContext, candidateTrialSummary, CANDIDATE_TYPES} from './candidate-trials.js';
 import {prepareWeekly} from './weekly.js';
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -92,6 +93,19 @@ test('a corrupt older revision does not hide a valid newer candidate, while a co
   assert.equal(matchCandidates(f.root,{taskKey:'newer',query:'portfolio'}).recommendations.length,1);
   fs.writeFileSync(path.join(directory,'subject-led-design-1.11.0.json'),'broken newest revision');
   assert.equal(listTrialCandidates(f.root).candidates.length,0);
+});
+test('result automatically collects linked host usage while preserving declared exclusive costs; sync is idempotent',t=>{
+ const f=fixture(t);f.accept();const home=path.join(f.root,'client'),sid='11111111-1111-7111-8111-111111111111',turn='22222222-2222-7222-8222-222222222222';
+ const tasks=path.join(f.root,'runtime/execution/tasks'),sessions=path.join(home,'sessions/2026/10/15');fs.mkdirSync(tasks,{recursive:true});fs.mkdirSync(sessions,{recursive:true});
+ fs.writeFileSync(path.join(tasks,'a'.repeat(64)+'.json'),JSON.stringify({schema:'avc.execution-task.v1',taskId:'a'.repeat(64),sessionId:sid,turnId:turn,contract:{candidateTaskKey:f.key.taskKey}}));
+ const started=trialStatus(f.root,f.key.taskKey).trials[0].startedAt,at=new Date().toISOString();
+ fs.writeFileSync(path.join(sessions,'rollout-'+sid+'.jsonl'),[
+  {type:'session_meta',payload:{id:sid}},{type:'turn_context',payload:{turn_id:turn,model:'fixture-model'}},
+  {type:'event_msg',timestamp:at,payload:{type:'token_count',info:{total_token_usage:{input_tokens:100,output_tokens:10,total_tokens:110},last_token_usage:{input_tokens:100,output_tokens:10,total_tokens:110}}}}
+ ].map(x=>JSON.stringify(x)).join('\n')+'\n');
+ const module=new URL('./candidate-trials.js',import.meta.url).href;
+ const child=spawnSync(process.execPath,['--input-type=module','-e',`const m=await import(${JSON.stringify(module)});const root=process.argv[1],input=JSON.parse(process.argv[2]);const trial=m.recordTrial(root,input);const sync=m.syncTrialUsage(root,input.taskKey);console.log(JSON.stringify({trial,sync}));`,f.root,JSON.stringify({...f.key,...f.result,feedback:undefined})],{env:{...process.env,CODEX_HOME:home},encoding:'utf8'});
+ assert.equal(child.status,0,child.stderr);const r=JSON.parse(child.stdout);assert.equal(r.trial.result.observedUsage.status,'observed');assert.equal(r.trial.result.observedUsage.totals.total_tokens,110);assert.equal(r.trial.result.observedUsage.attributedTokens,null);assert.equal(r.trial.result.costs.tokens.value,null);assert.equal(r.trial.result.costs.money.value,null);assert.equal(r.sync.results[0].status,'unchanged');assert.equal(r.trial.result.observedUsage.start,started);
 });
 test('tools requiring installation need a separate authorization; composite validation is recorded independently',t=>{
   const f=fixture(t);const r=f.register({id:'tool-checker',type:'skill',eligibility:'requires-authorization',target:{kind:'repository',paths:['mcp/checker']}});

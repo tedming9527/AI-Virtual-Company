@@ -60,6 +60,8 @@ switch (cmd) {
       ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : deploymentFileFor(ROOT)), null, 2));
     } catch (e) { fail(e); }
     break;
+  case 'candidate-usage-sync':
+    try {const {syncTrialUsage}=await import('./governance/candidate-trials.js');ok(JSON.stringify(syncTrialUsage(ROOT,args[1]),null,2));}catch(error){fail(error);}break;
   case 'candidate-register': case 'candidate-match': case 'candidate-trial': case 'candidate-trial-status':
     try {
       const {registerCandidate,matchCandidates,recordTrial,trialStatus}=await import('./governance/candidate-trials.js');
@@ -288,6 +290,7 @@ switch (cmd) {
   ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status] [--offline] （聊天 Ted 技能与 MCP 的同一后端）
   ted-avc-manager candidate-register | candidate-match | candidate-trial <input.json>
   ted-avc-manager candidate-trial-status [taskKey]
+  ted-avc-manager candidate-usage-sync [taskKey] （补录可核验宿主用量，不改独占成本或实际金额）
   ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
   ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
   ted-avc-manager config                       （合并 preset/custom，逐项标注来源）
