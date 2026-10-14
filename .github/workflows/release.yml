@@ -1,0 +1,48 @@
+name: master-release
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: master-release-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/validate.yml
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      tag: ${{ steps.publish.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: publish
+        name: 核验 PR 合并并创建不可变 tag 与 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-master.mjs
+  panorama:
+    needs: release
+    permissions:
+      contents: read
+      pull-requests: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/panorama.yml
+    with:
+      catalog_ref: ${{ needs.release.outputs.tag }}

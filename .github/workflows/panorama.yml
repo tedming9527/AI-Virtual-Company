@@ -1,10 +1,15 @@
 name: panorama
 on:
-  push:
-    tags: ['v*']
   pull_request_target:
+    branches: [master]
     types: [opened, reopened, synchronize, closed, edited, ready_for_review, converted_to_draft]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      catalog_ref:
+        type: string
+        required: false
+        default: ""
 permissions:
   contents: read
   pull-requests: read
@@ -15,6 +20,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
+    if: github.ref == 'refs/heads/master'
+    outputs:
+      catalog_ref: ${{ steps.catalog.outputs.ref }}
     runs-on: ubuntu-latest
     steps:
       - name: 解析已发布目录版本（不运行 PR 分支代码）
@@ -22,15 +30,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_TAG: ${{ github.ref_name }}
+          REQUESTED_CATALOG: ${{ inputs.catalog_ref }}
         run: |
-          if [ "$EVENT_NAME" = push ]; then
-            catalog_ref="$EVENT_TAG"
+          if [ -n "$REQUESTED_CATALOG" ]; then
+            catalog_ref="$REQUESTED_CATALOG"
           else
             catalog_ref="$(gh release view --json tagName --jq .tagName)"
           fi
           [[ "$catalog_ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          gh release view "$catalog_ref" --json isDraft,isPrerelease --jq 'if .isDraft or .isPrerelease then error("Published stable release required") else true end'
           printf 'ref=%s\n' "$catalog_ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
@@ -68,5 +76,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - id: current
+        name: 仅部署仍为最新的发布版本
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CATALOG_REF: ${{ needs.build.outputs.catalog_ref }}
+        run: |
+          latest="$(gh release view --json tagName --jq .tagName)"
+          if [ "$latest" = "$CATALOG_REF" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "A newer release supersedes this Pages artifact."
+          fi
       - id: deployment
+        if: steps.current.outputs.deploy == 'true'
         uses: actions/deploy-pages@v4
