@@ -25,8 +25,8 @@ const TOOLS = [
   {name:'list_skill_candidates', description:'查看本地技能候选及验证是否仍有效', inputSchema:{type:'object',properties:{}}},
   ...['workflow_create', 'workflow_status', 'workflow_cancel', 'workflow_templates'].map(name => ({name, description: ({workflow_create:'固定任务级多技能组合与流程节点；不启动执行',workflow_status:'查询任务依赖、节点状态与实际证据',workflow_cancel:'请求停止后续节点；活动执行需真实停止后才能记取消',workflow_templates:'列出公共流程模板，模板不是授权或运行事实'})[name], inputSchema: {type:'object', properties:{spec:{type:'object'},workflowId:{type:'string'}}}})),
   { name: 'list_packs', description: '列出全部技能包（目录规约扫描，约定大于配置）', inputSchema: { type: 'object', properties: {} } },
-  { name: 'check_update', description: '检查当前版本与中央最新版本差异', inputSchema: { type: 'object', properties: {} } },
-  { name: 'upgrade', description: '升级到中央最新版本（major 需 force 人审）', inputSchema: { type: 'object', properties: { force: { type: 'boolean' } } } },
+  { name: 'check_update', description: '比较已安装客户端与本地中央仓库声明版本，区分 MCP 运行版本；不查询远端发布', inputSchema: { type: 'object', properties: {} } },
+  { name: 'upgrade', description: '仅更新仓库版本账本（major 需 force）；不安装或升级客户端', inputSchema: { type: 'object', properties: { force: { type: 'boolean' } } } },
   { name: 'generate_panorama', description: '生成本地全景图（默认 runtime/panorama）或通用公开目录（public）', inputSchema: { type: 'object', properties: { view: { type: 'string', enum: ['local', 'public'] }, catalogRef: { type: 'string' }, offline: { type: 'boolean' } } } },
   { name: 'find_skill', description: '发现中央、本地自定义及本机技能，区分发现与管理状态', inputSchema: { type: 'object', properties: { query: { type: 'string' } } } },
   { name: 'register_skill', description: '登记 personal/custom 内原创技能，绑定版本与正文/元数据哈希；外部先导入复核', inputSchema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
@@ -102,7 +102,7 @@ export function start() {
         text = JSON.stringify({ packs: packs.map((p) => ({ type: p.type, name: p.name, displayName: p.displayName, description:p.description, aliases:p.aliases, keywords:p.keywords,
           ...(p.type === 'role' ? { nameZh: p.nameZh, professionZh: p.professionZh } : {}), version: p.version, status: p.status })), errors });
       } else if (name === 'check_update') {
-        text = flowCheck(ROOT).summary;
+        text = flowCheck(ROOT, { runningVersion: VERSION }).summary;
       } else if (name === 'upgrade') {
         text = flowUpgrade(ROOT, { force: !!args.force }).summary;
       } else if (name === 'generate_panorama') {

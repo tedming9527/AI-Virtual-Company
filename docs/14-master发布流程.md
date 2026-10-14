@@ -33,7 +33,7 @@ Release 和 Pages 发布后，本机仍按明确获准的精确 tag 执行：
 python3 scripts/update-local-client.py vX.Y.Z --node '<本机 Node 22 绝对路径>'
 ```
 
-中央合并发布不自动操作私人设备。安装包、CLI、独立 MCP、当前聊天与原生 Hook 分别验收；本机 `runtime/lockfile.json` 是生效版本，工作树中的候选版本不等于已安装版本。
+中央合并发布不自动操作私人设备。安装包、CLI、独立 MCP、当前聊天与原生 Hook 分别验收；客户端安装版本以 CODEX_HOME 下 `ted-avc-manager/manifest.json` 为准，并核对程序版本与项目绑定；`runtime/lockfile.json` 仅描述仓库账本，工作树中的候选版本不等于已安装版本。
 
 ## 实现边界
 
