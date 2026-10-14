@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync, appendFileSync, existsSync, lstatSync, rea
 import { resolve, join, sep, relative } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 
+import { stateRootFor, clientStateRoot } from './client-state.js';
+
 const sha = value => createHash('sha256').update(value).digest('hex');
 const read = file => JSON.parse(readFileSync(file, 'utf8'));
 const purposes = ['initialization-read', 'connection-diagnosis', 'adapter-edit', 'test'];
@@ -37,8 +39,9 @@ function safe(root, path, create = false) {
 function paths(root, input, deploymentFile, create = false) {
   identifier(input.sessionId, 'sessionId'); identifier(input.turnId, 'turnId');
   const id = digest([root, resolve(deploymentFile), input.sessionId, input.turnId]);
-  const base = safe(root, join(root, 'runtime/execution/maintenance'), create);
-  return { id, state: safe(root, join(base, `${id}.json`)), lock: safe(root, join(base, `${id}.lock`)), audit: safe(root, join(base, 'events.jsonl')) };
+  const stateRoot = stateRootFor(root, deploymentFile);
+  const base = safe(stateRoot, join(stateRoot, 'runtime/execution/maintenance'), create);
+  return { id, state: safe(stateRoot, join(base, `${id}.json`)), lock: safe(stateRoot, join(base, `${id}.lock`)), audit: safe(stateRoot, join(base, 'events.jsonl')) };
 }
 function atomic(file, value) {
   const temporary = `${file}.${randomBytes(6).toString('hex')}.new`;
@@ -84,10 +87,11 @@ export function openMaintenance(root, input, deploymentFile) {
   return locked(p, () => {
     if (existsSync(p.state)) throw new Error('Maintenance contract already pinned; use a new native turn for new authorization');
     // Do not use recovery to escape an existing task contract or its budget.
-    const tasks = safe(root, join(root, 'runtime/execution/tasks'));
-    const receiptFile = safe(root, join(root, 'runtime/hooks/sessions', sha(input.sessionId) + '.json'));
+    const stateRoot = clientStateRoot(project);
+    const tasks = safe(stateRoot, join(stateRoot, 'runtime/execution/tasks'));
+    const receiptFile = safe(stateRoot, join(stateRoot, 'runtime/hooks/sessions', sha(input.sessionId) + '.json'));
     const receipt = existsSync(receiptFile) && read(receiptFile).turns?.[input.turnId]?.receipt;
-    if (receipt && existsSync(safe(root, join(tasks, sha(JSON.stringify([root, input.sessionId, input.turnId, receipt])) + '.json')))) throw new Error('Task already bound; maintenance requires a new unbound native turn');
+    if (receipt && existsSync(safe(stateRoot, join(tasks, sha(JSON.stringify([root, input.sessionId, input.turnId, receipt])) + '.json')))) throw new Error('Task already bound; maintenance requires a new unbound native turn');
     const state = { schema: 'avc.unbound-maintenance.v1', id: p.id, projectRoot: root, sessionId: input.sessionId, turnId: input.turnId, status: 'active', executionStatus: 'unbound_maintenance', actualExecutor: 'platform agent', authorizationSource: 'explicit local operator declaration; not authenticated user identity', authorizationRef: input.authorizationRef, unavailableEvidence: input.unavailableEvidence, reason: input.reason, createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + input.ttlSeconds * 1000).toISOString(), operations, calls: {} };
     atomic(p.state, state); record(p, state, 'maintenance_opened', { authorizationRef: state.authorizationRef, expiresAt: state.expiresAt, operations });
     return state;
@@ -137,9 +141,10 @@ export function runMaintenanceHook(input, deploymentFile) {
       return {};
     }
     if (state.status === 'revoked' || state.status === 'rebound') return null;
-    const receiptFile = safe(project.root, join(project.root, 'runtime/hooks/sessions', sha(key.sessionId) + '.json'));
+    const stateRoot = clientStateRoot(project);
+    const receiptFile = safe(stateRoot, join(stateRoot, 'runtime/hooks/sessions', sha(key.sessionId) + '.json'));
     const receipt = existsSync(receiptFile) && read(receiptFile).turns?.[key.turnId]?.receipt;
-    if (receipt && existsSync(safe(project.root, join(project.root, 'runtime/execution/tasks', sha(JSON.stringify([project.root, key.sessionId, key.turnId, receipt])) + '.json')))) return null;
+    if (receipt && existsSync(safe(stateRoot, join(stateRoot, 'runtime/execution/tasks', sha(JSON.stringify([project.root, key.sessionId, key.turnId, receipt])) + '.json')))) return null;
     if (!Number.isFinite(Date.parse(state.expiresAt))) throw new Error('Invalid maintenance expiry');
     if (Date.parse(state.expiresAt) <= Date.now() && state.status === 'active') {
       state.status = 'expired'; atomic(p.state, state); record(p, state, 'maintenance_expired');

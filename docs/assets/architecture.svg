@@ -4,7 +4,7 @@
 <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 Z" fill="#64748b"/></marker></defs>
 <rect width="1280" height="1280" fill="#f8fafc"/>
 <text x="40" y="45" font-size="28" font-weight="800" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">AI-Virtual-Company · 现行架构</text>
-<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央目录 v1.4.1  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化</text>
+<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央目录 v1.5.0  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化</text>
 <text x="40" y="111" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">谁负责什么</text>
 <rect x="40" y="128" width="390" height="206" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.6"/>
 <text x="58" y="159" font-size="16" font-weight="700" fill="#075985" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">系统代码 · 可重复的确定性动作</text>

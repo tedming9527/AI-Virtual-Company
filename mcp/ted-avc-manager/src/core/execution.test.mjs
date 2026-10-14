@@ -87,7 +87,7 @@ test('role drift, forbidden tool, ID mutation deny before side effects', t => {
   assert.equal(existsSync(sentinel), false); assert.match(decision.hookSpecificOutput.permissionDecisionReason, /drift/);
 });
 test('monitor records violations but does not claim enforcement; actual foreign root gets no context', t => {
-  const f = fixture(t, 'monitor'); assert.deepEqual(f.event('PreToolUse'), {});
+  const f = fixture(t, 'monitor'); assert.match(f.event('PreToolUse').systemMessage, /task_begin required/);
   f.begin(); assert.deepEqual(f.event('PreToolUse', 'wrong', { tool_name: 'functions.other' }), {});
   const context = runExecutionHook(f.native, f.deployment).hookSpecificOutput.additionalContext;
   assert.match(context, /mode=monitor/); assert.match(context, /session-a/);
@@ -119,12 +119,12 @@ test('loaded general document digest drift is detected before execution', t => {
   const result = closeTask(f.root, { ...f.key, artifacts: [{ path: artifact }] }, f.deployment);
   assert.equal(result.integrity.status, 'invalidated');
 });
-test('runtime symlinks and lock collision fail without changing protected target', t => {
+test('collection lock and symlink failures warn without changing protected targets, even in enforce mode', t => {
   const f = fixture(t), task = f.begin();
   const directory = join(f.root, 'runtime/execution/tasks'); mkdirSync(join(directory, `${task.taskId}.lock`));
-  assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /locked/); rmSync(join(directory, `${task.taskId}.lock`), { recursive: true });
+  assertWarningOnly(f.event('PreToolUse'), /locked/); rmSync(join(directory, `${task.taskId}.lock`), { recursive: true });
   const audit = join(f.root, 'runtime/execution/events.jsonl'), target = join(f.root, 'protected'); writeFileSync(target, 'untouched'); rmSync(audit); symlinkSync(target, audit);
-  assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason, /symlink/); assert.equal(readFileSync(target, 'utf8'), 'untouched');
+  assertWarningOnly(f.event('PreToolUse'), /symlink/); assert.equal(readFileSync(target, 'utf8'), 'untouched');
 });
 test('installer preserves unrelated/attribution hooks and does not grant trust', t => {
   const f = fixture(t), home = join(f.root, 'client'); mkdirSync(home);
@@ -132,10 +132,68 @@ test('installer preserves unrelated/attribution hooks and does not grant trust',
   installExecutionHooks(f.deployment, home); const result = installExecutionHooks(f.deployment, home), config = JSON.parse(readFileSync(result.file));
   assert.equal(config.custom, true); assert.equal(config.hooks.PreToolUse.length, 2); assert.equal(config.hooks.UserPromptSubmit[0].hooks[0].command, 'footer-first'); assert.equal(existsSync(join(home, 'config.toml')), false);
 });
+
 test('CLI stdout contains only valid native hook JSON', t => {
   const f = fixture(t);
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('../execution-hook.js', import.meta.url)), '--deployment', f.deployment], { input: JSON.stringify(f.native), encoding: 'utf8' });
   assert.equal(result.status, 0); assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext, /execution adapter/); assert.equal(result.stderr, '');
+});
+
+function assertWarningOnly(result, reason) {
+  assert.deepEqual(Object.keys(result), ['systemMessage']);
+  assert.match(result.systemMessage, reason);
+  assert.match(result.systemMessage, /请修复钩子/);
+}
+test('missing or corrupt deployment warns for every event, including unrelated projects', t => {
+  const f = fixture(t);
+  for (const corrupt of [false, true]) {
+    if (corrupt) writeFileSync(f.deployment, '{broken'); else rmSync(f.deployment);
+    for (const cwd of [f.root, process.cwd()]) for (const event of ['UserPromptSubmit', 'PreToolUse', 'PostToolUse']) {
+      assertWarningOnly(f.event(event, 'missing-config', { cwd }), /scope\/policy|ENOENT|JSON/);
+    }
+  }
+});
+test('reinstall after deployment move replaces the old owned commands and preserves other hooks', t => {
+  const f = fixture(t), home = join(f.root, 'moved-client');
+  installExecutionHooks(f.deployment, home);
+  const relocated = join(f.root, 'moved-deployment.json');
+  writeFileSync(relocated, readFileSync(f.deployment));
+  installExecutionHooks(relocated, home);
+  const hooks = JSON.parse(readFileSync(join(home, 'hooks.json'))).hooks;
+  for (const event of ['UserPromptSubmit', 'PreToolUse', 'PostToolUse']) {
+    assert.equal(hooks[event].length, 1);
+    assert.ok(hooks[event][0].hooks[0].command.includes(relocated));
+    assert.ok(!hooks[event][0].hooks[0].command.includes(f.deployment));
+  }
+});
+test('monitor collection failures never prevent the handler or invent successful observations', t => {
+  for (const failure of ['receipt', 'lock', 'audit', 'inventory']) {
+    const f = fixture(t, 'monitor'), task = f.begin();
+    if (failure === 'receipt') rmSync(join(f.root, 'runtime/hooks'), { recursive: true });
+    if (failure === 'lock') mkdirSync(join(f.root, 'runtime/execution/tasks', `${task.taskId}.lock`));
+    if (failure === 'audit') {
+      rmSync(join(f.root, 'runtime/execution/events.jsonl'));
+      mkdirSync(join(f.root, 'runtime/execution/events.jsonl'));
+    }
+    if (failure === 'inventory') writeFileSync(join(f.root, 'runtime/storage.json'), '{broken');
+    const output = f.event('PreToolUse');
+    assertWarningOnly(output, /missing|locked|EISDIR|JSON/);
+    const sentinel = join(f.root, 'authorized-handler');
+    if (!output.hookSpecificOutput?.permissionDecision && !output.decision) writeFileSync(sentinel, 'completed');
+    assert.equal(readFileSync(sentinel, 'utf8'), 'completed');
+    assertWarningOnly(f.event('PostToolUse', 'call-a', { tool_response: {} }), /missing|locked|EISDIR|JSON/);
+  }
+});
+test('both CLI adapters degrade malformed input and missing deployment to valid warning JSON', t => {
+  const f = fixture(t);
+  for (const entry of ['execution-hook.js', 'codex-hook.js']) {
+    for (const input of ['{broken', JSON.stringify({ ...f.native, hook_event_name: 'PreToolUse' })]) {
+      const result = spawnSync(process.execPath, [fileURLToPath(new URL(`../${entry}`, import.meta.url)), '--deployment', join(f.root, 'missing.json')], { input, encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+      assertWarningOnly(JSON.parse(result.stdout), /JSON|ENOENT/);
+      assert.equal(result.stderr, '');
+    }
+  }
 });
 
 test('required entry body gates execution and controls remain callable after budget', t => {

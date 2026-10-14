@@ -1,3 +1,4 @@
+import { stateRootFor } from '../core/client-state.js';
 import { existsSync, lstatSync, readFileSync, readdirSync, mkdirSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -12,7 +13,7 @@ const localWriterId = () => process.env.AVC_WEEKLY_WRITER_ID || `host_${sha(host
 const read = file => JSON.parse(readFileSync(file, 'utf8'));
 function paths(root) {
   const project = personalProject(root).directory;
-  return { project, dir: join(project, 'experience', '.avc'), tasks: join(root, 'runtime', 'execution', 'tasks') };
+  return { project, dir: join(project, 'experience', '.avc'), tasks: join(stateRootFor(root), 'runtime', 'execution', 'tasks') };
 }
 function atomic(file, data) {
   const temp = `${file}.${randomUUID()}.tmp`;

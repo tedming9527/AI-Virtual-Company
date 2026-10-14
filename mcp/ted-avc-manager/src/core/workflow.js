@@ -1,3 +1,4 @@
+import { catalogRootFor } from './client-state.js';
 // Shared orchestration above packs. Native agents and local processes remain distinct adapters.
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, rmSync, lstatSync, realpathSync, readdirSync } from 'node:fs';
 import { join, resolve, isAbsolute } from 'node:path';
@@ -83,6 +84,7 @@ function assetSnapshot(root, id) {
     const skill = managedSkill(root, id);
     return {id, version:skill.version, sha256:skill.entrySha256, metaSha256:skill.metaSha256, bundleSha256:skill.bundleSha256};
   }
+  root = catalogRootFor(root);
   const dir = assertNoLinks(root, join(root, 'packs', type, name)), metaFile = assertNoLinks(root, join(dir, 'meta.json'));
   const file = assertNoLinks(root, join(dir, type === 'role' ? 'PROFILE.md' : 'SKILL.md'));
   const meta = read(metaFile); check(meta.type === type && meta.name === name && typeof meta.version === 'string', 'Asset identity mismatch');
@@ -248,6 +250,7 @@ export async function runWorkflow(root, id, { authorized = false } = {}) {
   } finally { await Promise.allSettled(running.values()); rmSync(runnerLock, { recursive: true }); }
 }
 export function workflowTemplates(root) {
+  root = catalogRootFor(root);
   const dir = assertNoLinks(root, join(root, 'packs/framework/company/workflows'));
   if (!existsSync(dir)) return [];
   return readdirSync(dir).filter(f => f.endsWith('.json')).sort().map(file => validateWorkflow(read(assertNoLinks(root, join(dir, file)))));

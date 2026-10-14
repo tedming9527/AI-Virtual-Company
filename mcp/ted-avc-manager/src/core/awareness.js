@@ -1,3 +1,5 @@
+import { acquireClientLease } from './client-lease.js';
+import { catalogRootFor, stateRootFor } from './client-state.js';
 // Inventory visibility, content delivery and observed reads are separate evidence.
 import { existsSync, readdirSync, lstatSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, renameSync, watch } from 'node:fs';
 import { join, resolve, relative, basename, sep, isAbsolute, dirname } from 'node:path';
@@ -22,7 +24,7 @@ function safePath(base, file) {
   }
   return file;
 }
-function runtimeFile(root, name) { return safePath(root, join(root, 'runtime', name)); }
+function runtimeFile(root, name) { const state = stateRootFor(root); return safePath(state, join(state, 'runtime', name)); }
 function atomic(file, value) {
   mkdirSync(dirname(file), { recursive: true });
   const tmp = file + '.' + randomUUID() + '.tmp';
@@ -77,8 +79,8 @@ function bundle(dir, type, name, source, management) {
     discovery: 'metadata-only', nativeInstalled: 'unverified', loaded: false };
 }
 export function listAssets(root, filter = {}, options = {}) {
-  const personal = personalProject(root), assets = [], warnings = [];
-  safePath(root, join(root, 'packs', 'skill'));
+  const personal = personalProject(root), assets = [], warnings = [], catalog = catalogRootFor(root);
+  safePath(catalog, join(catalog, 'packs', 'skill'));
   safePath(personal.directory, join(personal.directory, 'custom', 'packs', 'skill'));
   safePath(personal.directory, join(personal.directory, 'custom', 'skills'));
   const externalRoots = skillRoots(root, options).filter(path => {
@@ -94,13 +96,13 @@ export function listAssets(root, filter = {}, options = {}) {
   for (const s of discovered.skills) assets.push({ ...s,
     description: s.description || '',
     discovery: 'metadata-only', placement: s.source === 'external-installed' ? 'native-skill-directory' : 'managed-project-directory', nativeInstalled: 'unverified', loaded: false });
-  const knowledgeFile = safePath(root,join(root, 'packs/knowledge/catalog.json'));
+  const knowledgeFile = safePath(catalog,join(catalog, 'packs/knowledge/catalog.json'));
   if (existsSync(knowledgeFile)) {
     const knowledge = JSON.parse(readFileSync(knowledgeFile, 'utf8'));
     for (const entry of knowledge.entries || []) {
       const match=/^packs\/(knowledge|role)\/([a-z0-9][a-z0-9-]*)\/(.+\.md)$/.exec(entry.detail || '');
       if(!match){warnings.push('Invalid knowledge detail identity: '+entry.id);continue;}
-      const bundleType=match[1], bundleName=match[2], roleDir=safePath(root,join(root,'packs',bundleType,bundleName)), detail=safePath(roleDir,join(root,entry.detail));
+      const bundleType=match[1], bundleName=match[2], roleDir=safePath(catalog,join(catalog,'packs',bundleType,bundleName)), detail=safePath(roleDir,join(catalog,entry.detail));
       if (!existsSync(detail) || !lstatSync(detail).isFile()) continue;
       assets.push({ id: `general:knowledge-entry:${entry.id}`, type:'knowledge', name:entry.id, displayName:basename(detail), source:'general', management:'central-managed', dir:roleDir, entry:detail,
         description:compactDescription(entry.summary) || '', version:entry.updated, sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
@@ -113,7 +115,7 @@ export function listAssets(root, filter = {}, options = {}) {
     const listed=new Set(native.entries?.map(e=>resolve(e.path)) || []);
     for (const asset of assets) if (listed.has(resolve(asset.entry))) { asset.nativeClientListed=true;asset.nativeListedAt=native.fetchedAt;asset.nativeInstalled=true; }
   }
-  for (const source of [{ path: root, source: 'general', management: 'central-managed' }, { path: join(personal.directory, 'custom'), source: 'local-custom', management: 'discovered-unregistered' }]) {
+  for (const source of [{ path: catalog, source: 'general', management: 'central-managed' }, { path: join(personal.directory, 'custom'), source: 'local-custom', management: 'discovered-unregistered' }]) {
     for (const type of types.filter(t => t !== 'skill')) {
       const base = join(source.path, 'packs', type);
       if (!existsSync(base)) continue;
@@ -134,6 +136,8 @@ export function listAssets(root, filter = {}, options = {}) {
   return { assets: searchAssets(assets.filter(a => (!filter.type || a.type === filter.type) && (!filter.source || a.source === filter.source)), filter.query), warnings };
 }
 export function refreshInventory(root, options = {}) {
+  const release = acquireClientLease();
+  try {
   const current = listAssets(root, {}, options), file = runtimeFile(root, 'asset-inventory.json');
   const previous = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { assets: [] };
   const old = new Map(previous.assets.map(a => [a.id, a])), now = new Map(current.assets.map(a => [a.id, a]));
@@ -146,6 +150,7 @@ export function refreshInventory(root, options = {}) {
   for (const change of changes) event(root, { kind: 'inventory-detected', ...change });
   atomic(file, { schema: 'avc.asset-inventory.v1', scannedAt: new Date().toISOString(), assets: current.assets, warnings: current.warnings });
   return { ...current, changes, evidence: 'discovery-and-hash-only; no content delivery or semantic execution' };
+  } finally { release(); }
 }
 export function watchAssets(root, options = {}) {
   let disposed = false, debounce, poll;
@@ -154,7 +159,7 @@ export function watchAssets(root, options = {}) {
   const changed = () => { clearTimeout(debounce); debounce = setTimeout(refresh, options.debounceMs || 150); debounce.unref?.(); };
   refresh();
   // Poll catches creation of currently absent roots; watchers accelerate existing-root events.
-  for (const dir of [...skillRoots(root, options), join(root, 'packs'), join(personalProject(root).directory, 'custom')]) {
+  for (const dir of [...skillRoots(root, options), join(catalogRootFor(root), 'packs'), join(personalProject(root).directory, 'custom')]) {
     if (!existsSync(dir)) continue;
     try { safePath(dir, dir); const w = watch(dir, { recursive: true }, changed); w.on('error', e => { errors.push(e.message); }); watchers.push(w); } catch (e) { errors.push(e.message); }
   }

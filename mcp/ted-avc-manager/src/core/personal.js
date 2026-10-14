@@ -275,52 +275,7 @@ export function doctorPersonal(personalRoot, slug) {
 
 // —— preset 同步（FR-12：中央 presets/<name>/ → 个人 preset/<name>/ 只读 + manifest + sha256）——
 // 用户改过（哈希与旧 manifest 不符）→ 保留 .local 副本并提示，不静默覆盖；custom/ 永不触碰
-export function syncPresets(root, personalRoot, slug, bootstrap) {
-  const names = Array.isArray(bootstrap.presets) ? bootstrap.presets : [];
-  const presetsDir = join(root, 'presets');
-  const dstRoot = join(projectDirOf(personalRoot, slug), 'preset');
-  const synced = [];
-  const conflicts = [];
-  const skipped = [];
-  for (const name of names) {
-    const src = join(presetsDir, name);
-    if (!existsSync(src)) { skipped.push(`${name}（中央 presets/ 缺失）`); continue; }
-    const dst = join(dstRoot, name);
-    const oldManifestFile = join(dst, '.preset-manifest.json');
-    const oldManifest = existsSync(oldManifestFile) ? readJson(oldManifestFile) : null;
-    const oldHash = new Map((oldManifest?.files || []).map((f) => [f.path, f.sha256]));
-    const files = walkFiles(src);
-    const manifest = {
-      schema: 'avc.preset-manifest.v1',
-      name,
-      source: `presets/${name}`,
-      version: bootstrap.version,
-      files: [],
-    };
-    for (const rel of files) {
-      const dstFile = join(dst, rel);
-      mkdirSync(dirname(dstFile), { recursive: true });
-      const newHash = sha256(join(src, rel));
-      if (existsSync(dstFile)) {
-        const curHash = sha256(dstFile);
-        if (curHash !== newHash) {
-          if (oldHash.get(rel) && curHash !== oldHash.get(rel)) {
-            // 本地被用户改过且中央也更新：保留用户版本为 .local，再写入新版
-            copyFileSync(dstFile, `${dstFile}.local`);
-            conflicts.push(`preset/${name}/${rel}（用户改动保留为 .local）`);
-          }
-          copyFileSync(join(src, rel), dstFile);
-        }
-      } else {
-        copyFileSync(join(src, rel), dstFile);
-      }
-      manifest.files.push({ path: rel, sha256: newHash });
-    }
-    writeJson(join(dst, '.preset-manifest.json'), manifest);
-    synced.push(name);
-  }
-  return { synced, conflicts, skipped };
-}
+export { rebuildPresets as syncPresets } from './preset-rebuild.js';
 
 // —— config 合并（FR-12：preset 打底 → custom 同名覆盖，逐项标注来源）——
 function flatten(obj, prefix, out) {

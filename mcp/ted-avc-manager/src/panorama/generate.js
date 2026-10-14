@@ -1,3 +1,4 @@
+import { stateRootFor } from '../core/client-state.js';
 // Shared renderer with explicit public/local collectors and output boundaries.
 import { writeFileSync, mkdirSync, existsSync, readFileSync, lstatSync, readdirSync } from 'node:fs';
 import { join, resolve, sep, relative } from 'node:path';
@@ -85,9 +86,9 @@ export function buildPanoramaModel(root, opts = {}) {
   const scoresFile = opts.scoresFile || join(root, 'runtime', 'scores.json');
   model.localScores = existsSync(scoresFile) ? JSON.parse(readFileSync(scoresFile, 'utf8')) : {};
   model.remoteMcps = remoteMcpOverview(root, opts);
-  const events=join(root,'runtime/asset-events.jsonl');
+  const events=join(stateRootFor(root),'runtime/asset-events.jsonl');
   model.assetEvents=existsSync(events)?readFileSync(events,'utf8').trim().split('\n').filter(Boolean).slice(-100).flatMap(line=>{try{const e=JSON.parse(line);return [{kind:e.kind,name:e.name,type:e.type,source:e.source,at:e.at,evidence:e.evidence}]}catch{return []}}):[];
-  const tasks=join(root,'runtime/execution/tasks');
+  const tasks=join(stateRootFor(root),'runtime/execution/tasks');
   model.tasks=existsSync(tasks)?readdirSync(tasks).filter(f=>f.endsWith('.json')&&!lstatSync(join(tasks,f)).isSymbolicLink()).flatMap(file=>{
     try{const t=JSON.parse(readFileSync(join(tasks,file),'utf8'));return [{taskId:t.taskId,status:t.status,role:t.role?.displayName,engineVersion:t.engineVersion,catalogVersion:t.catalogVersion,mode:t.mode,calls:Object.keys(t.calls||{}).length,observed:Object.values(t.calls||{}).filter(c=>c.status==='observed').length,unknown:Object.values(t.calls||{}).filter(c=>c.status==='unknown').length,violations:t.violations?.length||0,integrity:t.integrity?.status||'pending',modelTokens:t.observation?.modelTokens||'unknown'}]}catch{return []}
   }):[];
