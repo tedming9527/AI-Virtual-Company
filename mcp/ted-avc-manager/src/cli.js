@@ -14,7 +14,7 @@ import { mergeScore, detectAnomaly } from './governance/score.js';
 import { cleanupRuntime } from './governance/cleanup.js';
 
 const VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
-const ROOT = process.cwd();
+const ROOT = process.env.AVC_PROJECT_ROOT || process.cwd();
 const args = process.argv.slice(2);
 const cmd = args[0];
 
@@ -22,6 +22,14 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'setup':
+    process.argv.splice(2,1);
+    await import('./setup.js');
+    break;
+  case 'client-status': {
+    try { const {clientStatus}=await import('./core/client-status.js');ok(JSON.stringify(clientStatus(),null,2)); } catch(e) {fail(e);}
+    break;
+  }
   case 'discover-capabilities':
     try { const {discoverCapabilities} = await import('./core/discovery.js'); const input = JSON.parse(readFileSync(args[1], 'utf8')); const result = await discoverCapabilities(input); ok(JSON.stringify(result,null,2)); if (result.coverage !== 'both-languages') process.exitCode = 1; } catch(e) { fail(e); }
     break;
@@ -94,6 +102,10 @@ switch (cmd) {
     break;
   }
   case 'init': {
+    console.log('客户端初始化请执行 yarn setup 或 npm run setup；由安装器保全并重建受管环境。该命令不将配置写入当作原生接入成功。');
+    break;
+  }
+  case 'init-personal': {
     try {
       const c = parseCommand(args.slice(1).join(' ') || '根据 github://local/repo 开始执行初始化，安装 mcp');
       ok(`[命令协议] ${c.uri.uri} → ${c.intent}`);
@@ -259,7 +271,10 @@ switch (cmd) {
   default: {
     console.log(`ted-avc-manager v${VERSION} —— 技能包管理器
 用法：
-  ted-avc-manager init "根据 github://owner/repo 开始执行初始化，安装 mcp"
+  ted-avc-manager setup [install|status|recover] （确定性安装向导；也可 yarn setup / npm run setup）
+  ted-avc-manager init （引导安装器，不写配置）
+  ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
+  ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
   ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
   ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
   ted-avc-manager config                       （合并 preset/custom，逐项标注来源）

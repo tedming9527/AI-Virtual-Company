@@ -155,8 +155,8 @@ function statusReport(){
    if(fs.existsSync(file)){
     if(fs.lstatSync(file).isSymbolicLink())throw Error('unsafe outcome file');
     const r=JSON.parse(fs.readFileSync(file,'utf8'));
-    if(r.invocationKey===invocationKey()&&r.at>=started-1500&&r.at<=Date.now()){
-     if(r.status==='delivered')return;
+    if(r.invocationKey===invocationKey()&&r.at>=started-60000&&r.at<=Date.now()){
+     if(['delivered','captured','not-applicable'].includes(r.status))return;
      message=r.message||message;break;
     }
    }
@@ -168,16 +168,17 @@ function statusReport(){
  process.exitCode=1;
 }
 const emit=value=>{
+ if(value.systemMessage&&value._tedCollection?.captured)value.systemMessage='事件已采集；中介关联/署名仍需核验。'+value.systemMessage;
  if(value.systemMessage)value.systemMessage+=' [采集关联 '+invocationKey().slice(0,12)+']';
  try{
   const dest=outcomePath(),tmp=dest+'.'+process.pid+'.tmp';
-  try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':'delivered',message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
+  try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':value._tedCollection?.captured?'captured':'not-applicable',collection:value._tedCollection??null,message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
  }catch{}
 
  if(value.systemMessage){
   process.stderr.write(value.systemMessage+'\n');
   const event=input?.hook_event_name;
-  if(['PreToolUse','PostToolUse'].includes(event))value.hookSpecificOutput={hookEventName:event,additionalContext:value.systemMessage};
+  if(['PreToolUse','PostToolUse'].includes(event))value.hookSpecificOutput={hookEventName:event,additionalContext:[value.hookSpecificOutput?.additionalContext,value.systemMessage].filter(Boolean).join('\n\n')};
   // Keep a machine-written diagnostic even if a host hides its warning entry.
   // Diagnostic storage is best effort too; no fallback success receipt.
   try{
@@ -193,7 +194,8 @@ const emit=value=>{
    try{fs.writeFileSync(tmp,JSON.stringify({schema:'avc.collection-warning.v1',at:new Date().toISOString(),sessionId:input?.session_id??null,turnId:input?.turn_id??null,event:event??null,status:'unverified',taskContinues:true,message:value.systemMessage},null,2)+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
   }catch{}
  }
- process.stdout.write(JSON.stringify(value)+'\n');
+ const nativeOutput={...value};delete nativeOutput._tedCollection;
+ process.stdout.write(JSON.stringify(nativeOutput)+'\n');
 };
 try {
  const raw=fs.readFileSync(0);input=JSON.parse(raw);
@@ -202,17 +204,19 @@ try {
  const activity=path.join(home,'.ted-avc-manager-activity');fs.mkdirSync(activity,{recursive:true});
  lease=path.join(activity,process.pid+'-'+require('node:crypto').randomUUID());fs.writeFileSync(lease,'',{flag:'wx'});
  if(fs.existsSync(lock)) throw Error('客户端重建中');
- const d=JSON.parse(fs.readFileSync(path.join(base,'deployment.json'),'utf8'));
- if(!['footer','execution'].includes(kind))throw Error('未知钩子');
- const file=path.join(base,'package/src',kind==='footer'?'codex-hook.js':'execution-hook.js');
+ let d;try{d=JSON.parse(fs.readFileSync(path.join(base,'deployment.json'),'utf8'));}catch{d={environment:{CODEX_HOME:home}};}
+ if(!['native','footer','execution'].includes(kind))throw Error('未知钩子');
+ const unified=path.join(base,'package/src/native-hook.js');
+ const file=fs.existsSync(unified)?unified:path.join(base,'package/src',kind==='footer'?'codex-hook.js':'execution-hook.js');
  const r=cp.spawnSync(process.execPath,[file,'--deployment',path.join(base,'deployment.json')],{input:raw,encoding:'utf8',timeout:5000,maxBuffer:1024*1024,env:{...process.env,...d.environment}});
  if(r.error||r.status!==0)throw Error(r.error?.code||'采集进程失败');
  const value=JSON.parse(r.stdout);if(!value||Array.isArray(value)||typeof value!=='object')throw Error('无效采集结果');
  // Installed adapter is collection-only. Never forward a veto even if a stale child emits one.
  if(value.decision!==undefined||value.continue!==undefined||value.hookSpecificOutput?.permissionDecision!==undefined)throw Error('采集器返回了不允许的流程控制结果');
  const output={};
+ if(value._tedCollection!==undefined)output._tedCollection=value._tedCollection;
  if(value.systemMessage!==undefined){if(typeof value.systemMessage!=='string')throw Error('无效告警');output.systemMessage=value.systemMessage;}
- if(value.hookSpecificOutput!==undefined){const h=value.hookSpecificOutput;if(!h||!['SessionStart','UserPromptSubmit'].includes(h.hookEventName)||typeof h.additionalContext!=='string')throw Error('无效上下文结果');output.hookSpecificOutput={hookEventName:h.hookEventName,additionalContext:h.additionalContext};}
+ if(value.hookSpecificOutput!==undefined){const h=value.hookSpecificOutput;if(!h||!['SessionStart','UserPromptSubmit','PreToolUse','PostToolUse','SubagentStart'].includes(h.hookEventName)||typeof h.additionalContext!=='string')throw Error('无效上下文结果');output.hookSpecificOutput={hookEventName:h.hookEventName,additionalContext:h.additionalContext};}
  emit(output);
 } catch(e){if(statusOnly){process.stderr.write(warning(e.message).systemMessage+'\n');process.exitCode=1;}else emit(warning(e.message));}
 finally{if(lease)try{fs.unlinkSync(lease)}catch{}}
@@ -221,17 +225,19 @@ finally{if(lease)try{fs.unlinkSync(lease)}catch{}}
 def shared_files(home, root, personal, node, generation):
     base=home/OWNER; deployment=base/'deployment.json'
     env={'CODEX_HOME':str(home),'AVC_DEPLOYMENT_FILE':str(deployment),'AVC_PERSONAL_DIR':str(personal),'AVC_PROJECT_ROOT':str(root),'AVC_CATALOG_ROOT':str(personal/'preset/avc-client-baseline'),'AVC_GENERATION':generation}
-    launch='#!/bin/sh\nset -eu\n'+''.join('export '+k+'='+shlex.quote(v)+'\n' for k,v in env.items())+'cd '+shlex.quote(str(root))+'\nexec '+shlex.quote(str(node))+' '+shlex.quote(str(base/'package/src/cli.js'))+' "$@"\n'
+    launch='#!/bin/sh\nset -eu\n'+''.join('export '+k+'='+shlex.quote(v)+'\n' for k,v in env.items())+'cd '+shlex.quote(str(base/'package'))+'\nexec '+shlex.quote(str(node))+' '+shlex.quote(str(base/'package/src/cli.js'))+' "$@"\n'
     shell='#!/bin/sh\n'+shlex.quote(str(node))+' '+shlex.quote(str(home/'ted-avc-manager-hook.cjs'))+' "$@"\nstatus=$?\nif [ \"${2-}\" = status ]; then if [ \"$status\" -eq 0 ]; then exit 0; else exit 1; fi; fi\nif [ "$status" -eq 0 ]; then exit 0; fi\nprintf \'%s\\n\' \'{"systemMessage":"⚠️ Ted 采集失败：采集器无法正常运行。本次证据未验证；当前任务照常推进，请检查 Node、采集程序及访问权限。"}\'\n# Never propagate exit 2 (native blocking/continuation semantics).\nexit 0\n'
     block='[mcp_servers."ted-avc-manager"]\ncommand = '+json.dumps(str(base/'bin/ted-avc-manager'))+'\nargs = ["server"]\n'
     config=replace_mcp((home/'config.toml').read_text() if (home/'config.toml').exists() else '',block)
     hooks=owned_hooks(read(home/'hooks.json') if (home/'hooks.json').exists() else {},home)
-    for event,kind in [('SessionStart','footer'),('UserPromptSubmit','footer'),('UserPromptSubmit','execution'),('Stop','footer'),('PreToolUse','execution'),('PostToolUse','execution')]:
+    if str(hooks.get('description','')).startswith('ted-avc-manager '): hooks['description']='ted-avc-manager: client-wide session ingress; collection and attribution are separate'
+    for event in ['SessionStart','UserPromptSubmit','PreToolUse','PostToolUse','Stop','SubagentStart','SubagentStop','SessionEnd','Interrupt']:
+        kind='native'
         command='/bin/sh '+shlex.quote(str(home/'ted-avc-manager-hook.sh'))+' '+kind
         # Keep the existing collector definition/trust identity. A separate, read-only
         # status handler supplies native color without discarding its detail output.
-        hooks['hooks'].setdefault(event,[]).append({'hooks':[{'type':'command','command':command,'timeout':10,'statusMessage':'Ted 采集（失败只告警）'}]})
-        hooks['hooks'][event].append({'hooks':[{'type':'command','command':command+' status','timeout':9,'statusMessage':'Ted 采集状态（错误说明见同事件采集记录）'}]})
+        hooks['hooks'].setdefault(event,[]).append({'hooks':[{'type':'command','command':command,'timeout':3 if event=='Interrupt' else 10,'statusMessage':'Ted 会话接入与事件采集（失败只告警）',**({'additionalContextLimit':5000} if event in ['SessionStart','UserPromptSubmit','PreToolUse','SubagentStart'] else {})}]})
+        hooks['hooks'][event].append({'hooks':[{'type':'command','command':command+' status','timeout':3 if event=='Interrupt' else 9,'statusMessage':'Ted 采集状态（错误说明见同事件采集记录）'}]})
     rulebody=(personal/'preset/avc-client-baseline/client-rules.md').read_text()
     rules=replace_rules((home/'AGENTS.md').read_text() if (home/'AGENTS.md').exists() else '',BEGIN+'\n'+rulebody+'\n'+END)
     return env, launch, {'config.toml':config.encode(),'hooks.json':(json.dumps(hooks,ensure_ascii=False,indent=2)+'\n').encode(),'AGENTS.md':rules.encode(),'ted-avc-manager-hook.cjs':HOOK_RUNNER.encode(),'ted-avc-manager-hook.sh':shell.encode()}
@@ -448,7 +454,7 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             save(stage/'state/workspace/index.json',{'schema':'avc.client-workspace.v1','ownership':'client','status':'unpromoted','files':recovered,'autoActivate':False})
             env,launcher,shared=shared_files(home,root,personal,node,generation)
             roles=sorted(p.parent.name for p in (distribution/'packs/role').glob('*/meta.json'))
-            save(stage/'deployment.json',{'organization':'Ted','environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','load_asset','task_begin']]}}]})
+            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','load_asset','task_begin']]}}]})
             atomic(stage/'bin/ted-avc-manager',launcher.encode());(stage/'bin/ted-avc-manager').chmod(0o700)
             copy_verified(distribution/'packs/skill/ted-avc-manager',tx/'bridge')
             # Referenced documents remain discoverable through the catalog, not broken relative skill links.

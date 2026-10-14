@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: 安装固定版本 Yarn（安装向导双入口回归）
+        run: npm install --global yarn@1.22.22
       - name: 校验仓库布局、包与知识索引
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout

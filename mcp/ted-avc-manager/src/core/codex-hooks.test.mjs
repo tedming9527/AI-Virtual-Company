@@ -60,7 +60,7 @@ test('wrong nonce, misplaced footer and version drift warn without controlling t
   assert.match(runCodexHook({ ...stop, last_assistant_message: footer + '\nOther text' }, f.deployment).systemMessage, /footer missing or invalid/);
   assert.deepEqual(Object.keys(runCodexHook({ ...stop, stop_hook_active: true, last_assistant_message: footer.replace(/.$/, 'Z') }, f.deployment)), ['systemMessage']);
   writeFileSync(join(f.root, 'bootstrap.json'), JSON.stringify({ version: '0.0.0' }));
-  assert.match(runCodexHook(f.input, f.deployment).systemMessage, /differs/);
+  assert.ok(runCodexHook(f.input, f.deployment).hookSpecificOutput.additionalContext.includes('Hook 回执：')); // central drift cannot stop event attribution
 });
 test('unbound cwd receives no claims; receipt symlink is rejected', t => {
   const f = fixture(t);

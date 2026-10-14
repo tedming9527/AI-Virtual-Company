@@ -98,14 +98,14 @@ export function openMaintenance(root, input, deploymentFile) {
   });
 }
 export function maintenanceStatus(root, input, deploymentFile) {
-  const p = paths(realpathSync(root), input, deploymentFile);
+  const p = paths(resolve(root), input, deploymentFile);
   if (!existsSync(p.state)) return { status: 'absent', bindingActive: 'unknown' };
   const state = read(p.state);
   // A historical rebind link is not a fresh check of the task's current state.
   return { ...state, status: state.status === 'active' && Date.parse(state.expiresAt) <= Date.now() ? 'expired' : state.status, bindingActive: 'unknown' };
 }
 export function endMaintenance(root, input, deploymentFile, taskId) {
-  const p = paths(realpathSync(root), input, deploymentFile);
+  const p = paths(resolve(root), input, deploymentFile);
   if (!existsSync(p.state)) return { status: 'absent' };
   return locked(p, () => {
     const state = read(p.state);

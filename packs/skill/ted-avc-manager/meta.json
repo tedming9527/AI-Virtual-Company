@@ -2,9 +2,9 @@
   "type": "skill",
   "name": "ted-avc-manager",
   "displayName": "Ted AVC 资产与执行桥接",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "active",
-  "description": "在已接入公司的项目中，发现和加载资产、绑定执行证据，并登记本地资产与升级候选。",
+  "description": "在已启用适配器的客户端所有会话中，发现和加载资产、绑定执行证据，并登记本地资产与升级候选。",
   "rubric": [
     "按需上下文交付",
     "资产来源隔离",

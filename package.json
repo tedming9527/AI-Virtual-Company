@@ -1,0 +1,10 @@
+{
+  "name": "ai-virtual-company",
+  "version": "1.6.0",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "setup": "node mcp/ted-avc-manager/src/setup.js",
+    "client:status": "node mcp/ted-avc-manager/src/setup.js status"
+  }
+}

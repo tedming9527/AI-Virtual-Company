@@ -1,7 +1,7 @@
 // flows.js —— 预定义流程执行（FR-2~FR-5）：所有流程结束汇报必带当前版本号
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { resolveMemoryStorage } from './storage.js';
 import { readBootstrap, scanPacks, countByType } from './scan.js';
@@ -95,7 +95,8 @@ export function flowInit(root, opts = {}) {
 
 // Repository lockfiles describe catalog state, never a client installation.
 export function flowCheck(root, opts = {}) {
-  const latest = readBootstrap(root).version;
+  let latest = null;
+  try { latest = readBootstrap(root).version; } catch {}
   const home = opts.codexHome || process.env.CODEX_HOME || join(homedir(), '.codex');
   const runningVersion = opts.runningVersion || null;
   const generation = opts.generation ?? process.env.AVC_GENERATION;
@@ -106,7 +107,7 @@ export function flowCheck(root, opts = {}) {
         typeof installation.version !== 'string' || !parse(installation.version) || !installation.generation) {
       throw new Error('安装清单格式无效');
     }
-    if (realpathSync(installation.downstream?.central || '') !== realpathSync(root)) {
+    if (resolve(installation.downstream?.central || '') !== resolve(root)) {
       throw new Error('安装清单未绑定当前项目');
     }
     const pkg = JSON.parse(readFileSync(join(home, 'ted-avc-manager/package/package.json'), 'utf8'));
@@ -118,11 +119,11 @@ export function flowCheck(root, opts = {}) {
       summary: `⚠️ 无法确认客户端安装版本：${reason}。中央仓库声明 v${latest}；不能据此判断客户端已是最新。请检查客户端部署；当前任务照常推进。` };
   }
   const current = installation.version;
-  const cmp = compare(latest, current);
+  const cmp = latest ? compare(latest, current) : 0;
   const upgrade = cmp > 0 ? { kind: diffKind(latest, current), latest, current } : null;
   const reloadRequired = Boolean((generation && generation !== installation.generation) ||
     (runningVersion && runningVersion !== current));
-  const status = reloadRequired ? 'reload-required' : cmp > 0 ? 'update-available' : cmp < 0 ? 'client-ahead' : 'current';
+  const status = reloadRequired ? 'reload-required' : !latest ? 'source-unavailable' : cmp > 0 ? 'update-available' : cmp < 0 ? 'client-ahead' : 'current';
   const comparison = upgrade ? `可升级（${upgrade.kind}）` : cmp < 0 ? '客户端版本高于仓库声明，不自动降级' : '客户端安装版本与仓库声明一致';
   return { ok: true, status, version: current, latest, runningVersion, generation: installation.generation, upgrade, reloadRequired,
     summary: `检查完成：已安装客户端 v${current}，中央仓库声明 v${latest}，${comparison}。${runningVersion ? `当前 MCP 进程 v${runningVersion}。` : ''}${reloadRequired ? '⚠️ 运行进程与安装版本或代次不一致，请重载 MCP；当前任务照常推进。' : ''}本次未联网检查远端发布；安装版本一致不代表新会话加载验收完成。` };

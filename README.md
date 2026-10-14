@@ -7,8 +7,9 @@
 ## 快速开始
 
 ```bash
-# 1. 初始化本机状态与包索引（客户端 MCP 安装另行验收）
-node mcp/ted-avc-manager/src/cli.js init "根据 github://<owner>/<repo> 开始执行初始化，安装 mcp"
+# 1. 保全并安装客户端受管环境（原生接入另行验收）
+yarn setup
+# 或 npm run setup；用户资料初始化单独使用 init-personal，不隐式创建个人目录
 
 # 2. 版本管理（版本可见：汇报必带当前版本号）
 node mcp/ted-avc-manager/src/cli.js check
@@ -46,6 +47,7 @@ Codex 客户端安装/升级脚本 `scripts/update-local-client.py`（Python 3.1
 |---|---|
 | `README.md` | 仓库说明（可发布为 Pages 首页） |
 | `bootstrap.json` | 极简初始化清单（name/version/update/storage） |
+| `package.json` | yarn/npm 安装向导与客户端状态命令，无第三方依赖 |
 | `CHANGELOG.md` | 版本账本（与 tag 对应） |
 | `AGENTS.md` | 根级 Agent 指引（治理/策略文档例外留根） |
 | `rules/` | 全局框架 / 规则（跨包约束） |
@@ -85,3 +87,19 @@ Codex 客户端安装/升级脚本 `scripts/update-local-client.py`（Python 3.1
 - 信任锚：人审发布；安装/升级前验哈希/签名。
 
 详细文档见 [docs/](docs/)。
+
+## 客户端安装与升级
+
+从完整中央源码运行 `yarn setup` 或 `npm run setup`。向导明确选择客户端、客户端目录和已有用户资料项目；目前仅实现 Codex，其他客户端不写入配置。对话要求初始化也必须引导调用这个入口。
+
+非交互示例：
+
+```sh
+npm run setup -- install --client codex --codex-home <客户端目录> --personal-project <已有用户项目目录> --yes
+yarn client:status
+# 中断事务恢复：npm run setup -- recover --client codex --codex-home <客户端目录>
+```
+
+安装器先保全，再全量重建受管客户端环境；不合并 Git、不发布、不清空用户数据、不改变其他插件或原生审批。安装后须由宿主信任/重载，真实事件到达后分阶段显示捕获、接入、上下文交付和任务合同；不会仅因写配置就报告成功。原生会话为主线，一个任务可涉及多个项目；目录缺失不阻断采集，经验按实际改动的项目来源整理。
+
+中央源码暂不可用时，可从已安装的 `ted-avc-manager client-status` 独立诊断；安装器需完整源码，事件采集不要求中央源码在线。

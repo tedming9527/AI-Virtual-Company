@@ -1,6 +1,7 @@
 // server.js —— 对外薄 MCP 适配器（FR-9/FR-3）：把 ted-avc-manager 能力暴露为标准 MCP 工具
 // 内部核心链路仍为直连（无协议层）；本层仅服务「对接新模式 / 第三方 MCP 客户端」。
 
+import { clientStatus } from './core/client-status.js';
 import { acquireClientLease } from './core/client-lease.js';
 import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import { createInterface } from 'node:readline';
@@ -20,6 +21,7 @@ import { listAssets, recommendAssets, proposeAsset, recordAssetUse, watchAssets,
 const VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 const TOOLS = [
+  { name: 'client_status', description: '只读核对当前安装、真实事件、会话接入和任务路由；旧 MCP 进程也可诊断，不宣称模型语义遵从', annotations: {readOnlyHint:true}, inputSchema:{type:'object',properties:{sessionId:{type:'string'},turnId:{type:'string'}}} },
   {name:'discover_capabilities', description:'向 GitHub 发送明确的中英文公开能力查询，合并仓库候选；不读取私有文件、不下载或安装', inputSchema:{type:'object',properties:{zhQuery:{type:'string'},enQuery:{type:'string'},owners:{type:'array',items:{type:'string'}}},required:['zhQuery','enQuery']}},
   {name:'validate_local_skill', description:'验证已登记本地技能结构并保存绑定完整包哈希的证据；不代替行为验收', inputSchema:{type:'object',properties:{assetId:{type:'string'}},required:['assetId']}},
   {name:'list_skill_candidates', description:'查看本地技能候选及验证是否仍有效', inputSchema:{type:'object',properties:{}}},
@@ -31,14 +33,14 @@ const TOOLS = [
   { name: 'find_skill', description: '发现中央、本地自定义及本机技能，区分发现与管理状态', inputSchema: { type: 'object', properties: { query: { type: 'string' } } } },
   { name: 'register_skill', description: '登记 personal/custom 内原创技能，绑定版本与正文/元数据哈希；外部先导入复核', inputSchema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
   ...['list_assets','recommend_assets','report_asset_use','propose_asset'].map(name=>({name,description:({list_assets:'列出通用/本地/native技能与知识元数据；不等于正文加载',recommend_assets:'根据任务关键词推荐可发现资产，不自动激活',report_asset_use:'记录模型使用声明，与真实读取/正文交付分开统计',propose_asset:'将技能/插件建议写入个人待复核候选；不自动安装或发布'})[name],inputSchema:{type:'object',properties:{query:{type:'string'},type:{type:'string'},source:{type:'string'},assetId:{type:'string'},name:{type:'string'},origin:{type:'string'},purpose:{type:'string'},validationId:{type:'string'},sources:{type:'array',items:{type:'object'}},sessionId:{type:'string'},turnId:{type:'string'}}}})),
-  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, description: ({task_begin:'在本地登记当前回合任务、角色和工具范围并写入审计记录；不执行目标中描述的操作，不授予后续工具权限，不联网',load_asset:'读取明确选定的本地资产正文，写入加载记录及摘要；不安装、不执行资产内容，不联网',task_closeout:'读取本地产物计算 SHA，写入任务关闭与审计记录；不执行或发布产物，不联网'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},workflowId:{type:'string'},nodeId:{type:'string'},role:{type:'string'},goal:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
+  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, description: ({task_begin:'在本地登记当前回合任务、角色和工具范围并写入审计记录；不执行目标中描述的操作，不授予后续工具权限，不联网',load_asset:'读取明确选定的本地资产正文，写入加载记录及摘要；不安装、不执行资产内容，不联网',task_closeout:'读取本地产物计算 SHA，写入任务关闭与审计记录；不执行或发布产物，不联网'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},agentId:{type:'string'},workflowId:{type:'string'},nodeId:{type:'string'},role:{type:'string'},goal:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
   { name: 'submit_log', description: '校验并暂存使用日志（免审合并前提：过 schema 校验门）', inputSchema: { type: 'object', properties: { log: { type: 'object' } } } },
 ];
 
 export function start() {
   const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: false });
   let ready=false, changedBeforeReady=false;
-  const watcher = watchAssets(process.cwd(), { onChange: result => {
+  const watcher = watchAssets((process.env.AVC_PROJECT_ROOT || process.cwd()), { onChange: result => {
     if (result.changes.length && ready) process.stdout.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/resources/list_changed'})+'\n');
     else if(result.changes.length)changedBeforeReady=true;
   }});
@@ -55,12 +57,12 @@ export function start() {
     if (msg.method === 'notifications/cancelled') return;
     if (msg.method === 'tools/list') { respond(msg.id, { tools: TOOLS }); return; }
     if (msg.method === 'resources/list') {
-      respond(msg.id,{resources:listAssets(process.cwd()).assets.filter(a=>a.source==='general'||a.management==='local-managed').map(a=>({uri:'tedavc://asset/'+encodeURIComponent(a.id),name:a.displayName||a.name,description:`${a.type} · ${a.source} · ${a.version||'unversioned'}; body via bound load_asset`,mimeType:'application/json'}))});return;
+      respond(msg.id,{resources:listAssets((process.env.AVC_PROJECT_ROOT || process.cwd())).assets.filter(a=>a.source==='general'||a.management==='local-managed').map(a=>({uri:'tedavc://asset/'+encodeURIComponent(a.id),name:a.displayName||a.name,description:`${a.type} · ${a.source} · ${a.version||'unversioned'}; body via bound load_asset`,mimeType:'application/json'}))});return;
     }
     if (msg.method === 'resources/read') {
       let id;
       try { if (!String(msg.params?.uri||'').startsWith('tedavc://asset/')) throw new Error(); id=decodeURIComponent(msg.params.uri.slice('tedavc://asset/'.length)); } catch {respondError(msg.id,-32602,'Invalid asset resource URI');return;}
-      const asset=listAssets(process.cwd()).assets.find(a=>a.id===id);
+      const asset=listAssets((process.env.AVC_PROJECT_ROOT || process.cwd())).assets.find(a=>a.id===id);
       if(!asset){respondError(msg.id,-32602,'Unknown asset resource');return;}
       respond(msg.id,{contents:[{uri:msg.params.uri,mimeType:'application/json',text:JSON.stringify({...asset,bodyAccess:'Metadata only; use bound load_asset before use'})}]});return;
     }
@@ -76,14 +78,15 @@ export function start() {
   }
 
   async function handleCall(id, params) {
-    const ROOT = process.cwd();
+    const ROOT = (process.env.AVC_PROJECT_ROOT || process.cwd());
     const name = params.name;
     const args = (params.arguments) || {};
     let release;
     try {
-      release = acquireClientLease();
+      // Diagnostics must work even in a cached process after installation changes.
+      release = name === 'check_update' || name === 'client_status' ? () => {} : acquireClientLease();
       let text;
-      if (name === 'discover_capabilities') {
+      if (name === 'client_status') { text = JSON.stringify(clientStatus(args)); } else if (name === 'discover_capabilities') {
         text = JSON.stringify(await discoverCapabilities(args));
       } else if (name === 'validate_local_skill') {
         text = JSON.stringify(validateLocalSkill(ROOT,args));

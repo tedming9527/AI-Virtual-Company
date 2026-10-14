@@ -11,7 +11,7 @@ import { resolvePersonal, projectDirOf, PROJECT_DIRS } from './personal.js';
 const sha = file => createHash('sha256').update(readFileSync(file)).digest('hex');
 const read = file => JSON.parse(readFileSync(file, 'utf8'));
 export function personalProject(root) {
-  const storage = resolvePersonal(root, readBootstrap(root));
+  const storage = resolvePersonal(root, readBootstrap(catalogRootFor(root)));
   return { ...storage, directory: projectDirOf(storage.root, storage.slug) };
 }
 export function fileInventory(dir, warnings = []) {
