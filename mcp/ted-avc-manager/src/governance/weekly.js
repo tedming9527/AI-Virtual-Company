@@ -1,3 +1,4 @@
+import { candidateTrialSummary } from './candidate-trials.js';
 import { stateRootFor } from '../core/client-state.js';
 import { existsSync, lstatSync, readFileSync, readdirSync, mkdirSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -97,7 +98,9 @@ export function prepareWeekly(root, { now = Date.now(), writerId = localWriterId
       windows.push({ ...rollup, suggestions: proposeGovernance(rollup) });
     }
     const inventory = experienceInventory(project), runId = randomUUID();
-    const manifest = { schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), status: 'awaiting-ai-proposal' };
+    let candidateTrials;
+    try {candidateTrials=candidateTrialSummary(root);} catch(error) {candidateTrials={status:'unavailable',warning:error.message};}
+    const manifest = { candidateTrials, schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), status: 'awaiting-ai-proposal' };
     const file = join(dir, `preparation-${runId}.json`);
     atomic(file, manifest);
     const pending = { runId, file: relative(project, file), through: manifest.through, sha256: sha(readFileSync(file)) };

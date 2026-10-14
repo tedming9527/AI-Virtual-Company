@@ -60,6 +60,13 @@ switch (cmd) {
       ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : deploymentFileFor(ROOT)), null, 2));
     } catch (e) { fail(e); }
     break;
+  case 'candidate-register': case 'candidate-match': case 'candidate-trial': case 'candidate-trial-status':
+    try {
+      const {registerCandidate,matchCandidates,recordTrial,trialStatus}=await import('./governance/candidate-trials.js');
+      const input=cmd==='candidate-trial-status'?null:JSON.parse(readFileSync(args[1],'utf8'));
+      const result=cmd==='candidate-register'?registerCandidate(ROOT,input):cmd==='candidate-match'?matchCandidates(ROOT,input):cmd==='candidate-trial'?recordTrial(ROOT,input):trialStatus(ROOT,args[1]);
+      ok(JSON.stringify(result,null,2));
+    } catch(e) {fail(e);}break;
   case 'governance-weekly-status': case 'governance-weekly-prepare': case 'governance-weekly-complete':
     try {
       const { weeklyStatus, prepareWeekly, completeWeekly } = await import('./governance/weekly.js');
@@ -279,6 +286,8 @@ switch (cmd) {
   ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
   ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
   ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status] [--offline] （聊天 Ted 技能与 MCP 的同一后端）
+  ted-avc-manager candidate-register | candidate-match | candidate-trial <input.json>
+  ted-avc-manager candidate-trial-status [taskKey]
   ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
   ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
   ted-avc-manager config                       （合并 preset/custom，逐项标注来源）
