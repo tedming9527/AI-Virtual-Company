@@ -5,6 +5,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { personalProject } from '../core/local-assets.js';
 import { assertNoLinks, PACK_TYPES } from '../core/scan.js';
 import { normalizeQuery } from '../core/asset-search.js';
+import { collectTrialUsage } from '../core/usage-evidence.js';
 
 export const CANDIDATE_TYPES = [...PACK_TYPES, 'material'];
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -143,6 +144,22 @@ export function trialStatus(root, taskKey) {
   const ledger = ledgerOf(paths(root));
   return { trials: Object.values(ledger.trials).filter(t => taskKey === undefined || t.taskKey === taskKey), evidence: 'user-choice and result declarations; not authenticated human review or causal proof' };
 }
+// Backfill only absent/unknown host observations. Original declared costs,
+// effects, feedback and artifact receipts are never rewritten by telemetry.
+export function syncTrialUsage(root, taskKey) {
+  if(taskKey!==undefined)text(taskKey,'taskKey',512);
+  const p=paths(root);
+  return locked(p,()=>{
+    const ledger=ledgerOf(p),results=[];
+    for(const trial of Object.values(ledger.trials)){
+      if(trial.status!=='completed'||(taskKey!==undefined&&trial.taskKey!==taskKey))continue;
+      if(trial.result.observedUsage?.status==='observed'&&trial.result.observedUsage.schema==='avc.host-usage-window.v1'){results.push({id:trial.id,status:'unchanged'});continue;}
+      trial.result.observedUsage=collectTrialUsage(root,trial);
+      results.push({id:trial.id,status:trial.result.observedUsage.status,reason:trial.result.observedUsage.reason});
+    }
+    atomic(p.ledger,ledger);return {results,scope:'host-observed windows only; declared/exclusive costs and billing unchanged'};
+  });
+}
 export function matchCandidates(root, input) {
   text(input.taskKey, 'taskKey', 512); text(input.query, 'query', 4000);
   const found = listTrialCandidates(root), ledger = ledgerOf(paths(root)), query = normalizeQuery(input.query);
@@ -239,6 +256,7 @@ export function recordTrial(root, input) {
         trial.result = { effect:input.effect, summary:input.summary, comparison:input.comparison, costs:costsOf(input.costs), feedback, artifacts,
           candidateIntegrity:current ? 'matched' : 'invalidated', review:'pending', evidence:'model-reported effect; artifact hashes verified; feedback user-reported; no automatic quality score or promotion' };
         trial.status = 'completed'; trial.completedAt = at;
+        trial.result.observedUsage = collectTrialUsage(root,trial);
       } else {
         if (!['offered','accepted','running'].includes(trial.status)) throw Error('Trial already terminal');
         text(input.reason,'cancellation reason'); trial.status = 'cancelled'; trial.cancelReason = input.reason;
