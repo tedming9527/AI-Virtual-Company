@@ -125,4 +125,17 @@ class SessionIngressTest(unittest.TestCase):
   self.assertIn('systemMessage',self.hook({**p,'turn_id':'offline'}))
   self.assertTrue(list((self.home/OWNER/'state/runtime/mediation/events').glob('*.json')))
 
+ def test_cached_legacy_aliases_share_one_handler_under_real_concurrency(self):
+  self.run_rebuild();p={'session_id':'parallel-legacy','turn_id':'t','hook_event_name':'UserPromptSubmit'};self.hook(p)
+  t=self.turn(p['session_id'],'t');key={'sessionId':p['session_id'],'turnId':'t','receipt':t['receipt']}
+  self.rpc('task_begin',{**key,'role':'test-expert','goal':'concurrent alias capture','allowedTools':['Bash'],'maxToolCalls':10})
+  for n in range(4):
+   event={**p,'hook_event_name':'PreToolUse','tool_name':'Bash','tool_use_id':str(n),'tool_input':{'command':'read-only'}}
+   children=[subprocess.Popen(['/bin/sh',str(self.home/'ted-avc-manager-hook.sh'),kind],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True) for kind in ['footer','execution','native']]
+   for child in children:child.stdin.write(json.dumps(event));child.stdin.close()
+   for child in children:
+    result=json.loads(child.stdout.read());error=child.stderr.read();child.wait(timeout=10);child.stdout.close();child.stderr.close()
+    self.assertEqual(child.returncode,0,error);self.assertNotIn('systemMessage',result,result)
+  tasks=list((self.home/OWNER/'state/runtime/execution/tasks').glob('*.json'));self.assertEqual(len(read(tasks[0])['calls']),4)
+
 if __name__=='__main__':unittest.main()

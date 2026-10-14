@@ -1,5 +1,5 @@
 // Native event capture and client-wide attachment are independent of attribution.
-import { readFileSync, existsSync, lstatSync, mkdirSync, writeFileSync, linkSync, unlinkSync, realpathSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, lstatSync, mkdirSync, rmdirSync, writeFileSync, linkSync, unlinkSync, realpathSync, readdirSync } from 'node:fs';
 import { resolve, join, relative, sep, dirname, basename } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { clientStateRoot } from './client-state.js';
@@ -138,4 +138,38 @@ export function nativeTaskStatus(input, deploymentFile, turn) {
   const taskId=hash(JSON.stringify([resolve(project.root),input.session_id,input.turn_id,input.agent_id??'',turn.receipt]));
   const file=safe(stateRoot,join(stateRoot,'runtime/execution/tasks',taskId+'.json'));
   return existsSync(file)?JSON.parse(readFileSync(file,'utf8')).status:null;
+}
+
+// Cached legacy commands may invoke the same event concurrently. Capture first,
+// then share one actual handler result; duplicate callbacks must not race task locks.
+export function handleCapturedOnce(input, deploymentFile, collection, handler) {
+  if (!collection.captured) return handler();
+  const config=JSON.parse(readFileSync(deploymentFile,'utf8'));
+  const project=hookProject(config,input);if(!project)return handler();
+  const root=clientStateRoot(project), directory=safe(root,join(root,'runtime/mediation/handling'),true);
+  const file=safe(root,join(directory,collection.captureId+'.json')), lock=safe(root,join(directory,collection.captureId+'.lock'));
+  const cached=()=>{
+    if(!existsSync(file))return null;
+    const value=JSON.parse(readFileSync(file,'utf8'));
+    if(value.schema!=='avc.native-handling.v1'||value.captureId!==collection.captureId||!value.result||typeof value.result!=='object'||Array.isArray(value.result))throw Error('Invalid native handling record');
+    return value.result;
+  };
+  const deadline=Date.now()+2000;
+  while(true) {
+    const result=cached();if(result)return result;
+    try {mkdirSync(lock,{mode:0o700});break;}
+    catch(error) {
+      if(error.code!=='EEXIST')throw error;
+      if(Date.now()>=deadline)throw Error('Concurrent native handler unavailable; raw event retained');
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,20);
+    }
+  }
+  try {
+    const result=cached();if(result)return result;
+    const value=handler();publish(file,{schema:'avc.native-handling.v1',captureId:collection.captureId,result:value});return value;
+  } finally { unlinkSafeLock(lock); }
+}
+function unlinkSafeLock(lock) {
+  // The lock is an empty directory created by this process, never an arbitrary tree.
+  try { rmdirSync(lock); } catch {}
 }

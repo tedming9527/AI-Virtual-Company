@@ -35,6 +35,20 @@ class ClientTest(unittest.TestCase):
   self.assertIn('User instructions', (self.home/'AGENTS.md').read_text());self.assertNotIn('stale',(self.home/'config.toml').read_text())
   hooks=read(self.home/'hooks.json')['hooks'];self.assertEqual(len(hooks['PreToolUse']),3)
   self.assertFalse((self.home/'.ted-avc-manager-transaction').exists())
+ def test_command_skill_is_owned_preserved_and_rolled_back_with_environment(self):
+  self.run_rebuild();command=self.home/'skills/ted'
+  self.assertTrue((command/'SKILL.md').is_file())
+  before=inventory(command)
+  with self.assertRaises(RuntimeError):self.run_rebuild(fail_at='switched')
+  recover(self.home,user_home=self.base/'user');self.assertEqual(inventory(command),before)
+  (command/'local-notes.md').write_text('client unique command note')
+  self.run_rebuild();self.assertFalse((command/'local-notes.md').exists())
+  self.assertTrue((self.home/OWNER/'state/workspace/recovered/command-skill/local-notes.md').exists())
+ def test_unowned_command_skill_conflict_never_replaces_user_data(self):
+  target=self.home/'skills/ted';target.mkdir(parents=True);(target/'SKILL.md').write_text('user independent skill')
+  before=inventory(self.home)
+  with self.assertRaises(ValueError):self.run_rebuild()
+  self.assertEqual(inventory(self.home),before)
  def test_user_import_modify_reset_and_explicit_promotion(self):
   self.run_rebuild();src=self.personal/'custom/skills/demo';src.mkdir(parents=True)
   save(src/'meta.json',{'type':'skill','name':'demo','version':'1.0.0'});(src/'SKILL.md').write_text('user source')
@@ -95,6 +109,18 @@ class ClientTest(unittest.TestCase):
   server=subprocess.run([str(launcher),'server'],input=request,text=True,capture_output=True,timeout=10,env={**os.environ,'HOME':str(self.base)})
   self.assertEqual(server.returncode,0,server.stderr);responses={x['id']:x for x in map(json.loads,server.stdout.splitlines()) if 'id' in x}
   self.assertIn('tools',responses[2]['result']);self.assertNotIn('error',responses[3])
+ def test_chat_ted_diagnostics_and_panorama_survive_source_moving(self):
+  self.run_rebuild();launcher=self.home/OWNER/'bin/ted-avc-manager'
+  self.root.rename(self.base/'moved-source')
+  requests=[{'jsonrpc':'2.0','id':i,'method':'tools/call','params':{'name':name,'arguments':{}}} for i,name in enumerate(['ted_doctor','ted_scores','ted_panorama'],1)]
+  server=subprocess.run([str(launcher),'server'],input='\n'.join(map(json.dumps,requests))+'\n',text=True,capture_output=True,timeout=15)
+  self.assertEqual(server.returncode,0,server.stderr)
+  responses={r['id']:r for r in map(json.loads,server.stdout.splitlines()) if 'id' in r}
+  for response in responses.values():self.assertNotIn('error',response,response)
+  doctor=json.loads(responses[1]['result']['content'][0]['text']);self.assertNotEqual(doctor['personal'].get('available'),False)
+  result=json.loads(responses[3]['result']['content'][0]['text'])['result']
+  self.assertTrue(Path(result['path']).is_file());self.assertTrue(Path(result['path']).is_relative_to(self.home/OWNER/'state'))
+  self.assertFalse(self.root.exists())
  def test_hooks_missing_config_timeout_and_deny_are_warning_only(self):
   self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh'
   payload={'cwd':str(self.root),'session_id':'diagnostic','turn_id':'turn','hook_event_name':'PreToolUse','tool_name':'exec','tool_use_id':'tool'}

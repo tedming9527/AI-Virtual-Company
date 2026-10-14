@@ -26,6 +26,20 @@ node mcp/ted-avc-manager/src/cli.js panorama            # 本地生成 runtime/p
 node mcp/ted-avc-manager/src/cli.js server
 ```
 
+## 聊天输入框中的 Ted
+
+安装包含 Ted 技能的版本并让宿主重新加载后，在输入框键入 `/`，从技能列表选择 **Ted**；也可明确输入 `$ted doctor`。这是交给模型执行的聊天入口。菜单项来自原生技能及其界面元数据，MCP 提供固定动作工具；仅有 MCP 工具列表不能证明输入框菜单已可见。
+
+| 补充给 Ted 的要求 | 对应操作 |
+|---|---|
+| 检查更新 / `update` | 检查安装、本地声明与公开最新 Release，不自动安装 |
+| 创建本地全景图 / `panorama` | 生成本地 HTML，展示最近发布的资料变化 |
+| 汇总评分 / `scores` | 展示有效评分、优秀项、样本量及证据不足项 |
+| 检查 / `doctor`、`status` | 只读检查资料目录、事件和会话接入 |
+| 修复 / `repair` | 返回修复方案与确定性安装入口，执行另按用户授权 |
+
+支持 MCP prompts 的宿主另有 `ted` prompt。`/ted` 保留为文本触发约定；不把它或 `@Ted` 字符串当作已验证的原生菜单注册。具体安装与验收范围见 [聊天入口与验收](docs/15-Ted聊天入口与验收.md)。
+
 ## v1.2.0 管理入口
 
 服务名、目录及主命令统一为 `ted-avc-manager`（旧 `pack-manager` 命令保留兼容别名）。本地配置和安装需显式迁移；更名不证明插件市场安装。

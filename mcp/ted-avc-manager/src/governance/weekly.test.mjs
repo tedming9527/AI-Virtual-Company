@@ -15,7 +15,7 @@ test('weekly preparation catches up, freezes source hashes, and requires matchin
   fs.writeFileSync(path.join(root, 'runtime/storage.json'), JSON.stringify({ personal }));
   fs.writeFileSync(path.join(personal, 'experience/one.md'), 'one experience');
   const at = Date.parse('2026-10-13T00:00:00Z');
-  fs.writeFileSync(path.join(root, 'runtime/execution/tasks/one.json'), JSON.stringify({ taskId: 'task-one', assets: [{ source: 'general', type: 'knowledge', name: 'example', version: '1.0.0', bundleSha256: 'a'.repeat(64), loadedAt: '2026-10-12T00:00:00Z' }] }));
+  fs.writeFileSync(path.join(root, 'runtime/execution/tasks/one.json'), JSON.stringify({ taskId: 'task-one', status:'closed', assets: [{ source: 'general', type: 'knowledge', name: 'example', version: '2026-10-12', bundleSha256: 'a'.repeat(64), loadedAt: '2026-10-12T00:00:00Z' }] }));
   assert.equal(weeklyStatus(root, { now: at }).due, true);
   const pending = prepareWeekly(root, { now: at, writerId: 'writer_one' });
   assert.equal(pending.status, 'pending-ai');
@@ -23,6 +23,9 @@ test('weekly preparation catches up, freezes source hashes, and requires matchin
   assert.equal(prepareWeekly(root, { now: at, writerId: 'writer_one' }).runId, pending.runId);
   assert.throws(() => completeWeekly(root, { runId: pending.runId, proposals: [] }, { now: at, writerId: 'other_writer' }), /不匹配/);
   const prepared = JSON.parse(fs.readFileSync(path.join(personal, pending.file)));
+  const usage=Object.values(prepared.windows[0].assets)[0];
+  assert.equal(usage.delivered,1);assert.equal(usage.sampleSize,0);assert.equal(usage.successRate,null);assert.equal(usage.feedbackCount,0);
+  assert.equal(prepared.windows[0].suggestions[0].action,'audit');
   const proposal = { title: '整理经验', action: 'extract', sources: prepared.experience, reason: '复核可复用步骤' };
   assert.equal(completeWeekly(root, { runId: pending.runId, proposals: [proposal] }, { now: at, writerId: 'writer_one' }).status, 'awaiting-human-review');
   assert.equal(weeklyStatus(root, { now: at + 6 * 86400000 }).due, false);

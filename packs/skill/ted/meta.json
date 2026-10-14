@@ -1,0 +1,5 @@
+{
+  "type": "skill", "name": "ted", "displayName": "Ted 便捷命令", "version": "1.0.0", "status": "active",
+  "description": "以确定性命令处理 Ted 更新检查、本地全景、评分、doctor 和修复方案。",
+  "rubric": ["确定性分派", "阶段证据准确", "原生权限保留"], "keywords": ["ted", "更新", "全景", "评分", "doctor", "repair"], "aliases": ["/ted", "$ted"]
+}

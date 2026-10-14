@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ted"
+  short_description: "检查更新、生成本地全景图、查看资料评分与升级、诊断会话接入并生成修复方案"
+  default_prompt: "使用 $ted 展示可用操作，并根据我的请求调用对应工具。"
+policy:
+  allow_implicit_invocation: true

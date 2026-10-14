@@ -7,10 +7,9 @@ const W_EMP = 0.6;
 const MIN_SAMPLE = 20;
 
 export function mergeScore({ llm, empirical }) {
-  if (typeof llm !== 'number' || llm < 0 || llm > 5) throw new Error('llm 分必须为 0~5 数字');
-  const sample = Math.max(0, empirical?.sampleSize || 0);
-  const successRate = Math.min(1, Math.max(0, empirical?.successRate || 0));
-  const avgScore = Math.min(5, Math.max(0, empirical?.avgScore || 0));
+  if (!Number.isFinite(llm) || llm < 0 || llm > 5) throw new Error('llm 分必须为 0~5 有限数字');
+  const sample = empirical?.sampleSize ?? 0, successRate = empirical?.successRate ?? 0, avgScore = empirical?.avgScore ?? 0;
+  if (!Number.isInteger(sample) || sample < 0 || !Number.isFinite(successRate) || successRate < 0 || successRate > 1 || !Number.isFinite(avgScore) || avgScore < 0 || avgScore > 5) throw Error('实证样本与分值无效');
   const emp = 0.6 * (successRate * 5) + 0.4 * avgScore;
 
   let wE = W_EMP;

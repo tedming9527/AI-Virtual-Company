@@ -2,6 +2,7 @@
 // 内部核心链路仍为直连（无协议层）；本层仅服务「对接新模式 / 第三方 MCP 客户端」。
 
 import { clientStatus } from './core/client-status.js';
+import { runTedCommand, tedAction, TED_COMMANDS } from './core/ted-commands.js';
 import { acquireClientLease } from './core/client-lease.js';
 import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import { createInterface } from 'node:readline';
@@ -21,6 +22,8 @@ import { listAssets, recommendAssets, proposeAsset, recordAssetUse, watchAssets,
 const VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 const TOOLS = [
+  ...TED_COMMANDS.map(c=>({name:'ted_'+c.action,description:c.description,annotations:{readOnlyHint:c.action!=='panorama',destructiveHint:false,openWorldHint:c.action==='update'},inputSchema:{type:'object',additionalProperties:false,properties:c.action==='update'?{offline:{type:'boolean'}}:c.action==='status'?{sessionId:{type:'string'},turnId:{type:'string'}}:{}}})),
+  {name:'ted_command',description:'Ted 便捷命令：help/update/panorama/scores/doctor/repair/status；支持 /ted 文本别名，确定性分派，repair 只提供修复方案',annotations:{readOnlyHint:false,destructiveHint:false},inputSchema:{type:'object',additionalProperties:false,properties:{command:{type:'string'},action:{type:'string',enum:TED_COMMANDS.map(c=>c.action)},offline:{type:'boolean'}}}},
   { name: 'client_status', description: '只读核对当前安装、真实事件、会话接入和任务路由；旧 MCP 进程也可诊断，不宣称模型语义遵从', annotations: {readOnlyHint:true}, inputSchema:{type:'object',properties:{sessionId:{type:'string'},turnId:{type:'string'}}} },
   {name:'discover_capabilities', description:'向 GitHub 发送明确的中英文公开能力查询，合并仓库候选；不读取私有文件、不下载或安装', inputSchema:{type:'object',properties:{zhQuery:{type:'string'},enQuery:{type:'string'},owners:{type:'array',items:{type:'string'}}},required:['zhQuery','enQuery']}},
   {name:'validate_local_skill', description:'验证已登记本地技能结构并保存绑定完整包哈希的证据；不代替行为验收', inputSchema:{type:'object',properties:{assetId:{type:'string'}},required:['assetId']}},
@@ -50,12 +53,19 @@ export function start() {
     let msg;
     try { msg = JSON.parse(line); } catch { return; }
     if (msg.method === 'initialize') {
-      respond(msg.id, { protocolVersion: '2024-11-05', capabilities: { tools: {}, resources: {listChanged:true} }, serverInfo: { name: 'ted-avc-manager', version: VERSION } });
+      respond(msg.id, { protocolVersion: '2024-11-05', capabilities: { tools: {}, prompts:{}, resources: {listChanged:true} }, serverInfo: { name: 'ted-avc-manager', version: VERSION } });
       return;
     }
     if (msg.method === 'notifications/initialized') {ready=true;if(changedBeforeReady)process.stdout.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/resources/list_changed'})+'\n');return;}
     if (msg.method === 'notifications/cancelled') return;
     if (msg.method === 'tools/list') { respond(msg.id, { tools: TOOLS }); return; }
+    if(msg.method==='prompts/list'){respond(msg.id,{prompts:[{name:'ted',description:'Ted 便捷命令入口：检查更新、生成本地全景、评分、doctor 与修复方案',arguments:[{name:'action',description:TED_COMMANDS.map(c=>c.action).join('/'),required:false}]}]});return;}
+    if(msg.method==='prompts/get'){
+      try {
+        if(msg.params?.name!=='ted')throw Error('Unknown prompt');const action=tedAction({action:msg.params.arguments?.action||'help'});
+        respond(msg.id,{description:'Ted 确定性便捷命令',messages:[{role:'user',content:{type:'text',text:`调用 ted_${action}，如实展示返回证据；repair 只生成方案，不冒充已执行。`}}]});
+      }catch(error){respondError(msg.id,-32602,error.message);}return;
+    }
     if (msg.method === 'resources/list') {
       respond(msg.id,{resources:listAssets((process.env.AVC_PROJECT_ROOT || process.cwd())).assets.filter(a=>a.source==='general'||a.management==='local-managed').map(a=>({uri:'tedavc://asset/'+encodeURIComponent(a.id),name:a.displayName||a.name,description:`${a.type} · ${a.source} · ${a.version||'unversioned'}; body via bound load_asset`,mimeType:'application/json'}))});return;
     }
@@ -84,9 +94,12 @@ export function start() {
     let release;
     try {
       // Diagnostics must work even in a cached process after installation changes.
-      release = name === 'check_update' || name === 'client_status' ? () => {} : acquireClientLease();
+      const shortcut=TED_COMMANDS.find(c=>'ted_'+c.action===name);
+      release = name === 'check_update' || name === 'client_status' || shortcut&&shortcut.action!=='panorama' || name==='ted_command'&&tedAction(args)!=='panorama' ? () => {} : acquireClientLease();
       let text;
-      if (name === 'client_status') { text = JSON.stringify(clientStatus(args)); } else if (name === 'discover_capabilities') {
+      if(shortcut){text=JSON.stringify(await runTedCommand(ROOT,{action:shortcut.action,...(shortcut.action==='update'?{offline:args.offline}:{})},{runningVersion:VERSION,...(shortcut.action==='status'?{sessionId:args.sessionId,turnId:args.turnId}:{})}));}
+      else if(name==='ted_command'){text=JSON.stringify(await runTedCommand(ROOT,args,{runningVersion:VERSION}));}
+      else if (name === 'client_status') { text = JSON.stringify(clientStatus(args)); } else if (name === 'discover_capabilities') {
         text = JSON.stringify(await discoverCapabilities(args));
       } else if (name === 'validate_local_skill') {
         text = JSON.stringify(validateLocalSkill(ROOT,args));

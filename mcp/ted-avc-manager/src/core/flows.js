@@ -3,6 +3,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
+import { catalogRootFor, stateRootFor } from './client-state.js';
 import { resolveMemoryStorage } from './storage.js';
 import { readBootstrap, scanPacks, countByType } from './scan.js';
 import { readLock, writeLock } from './lockfile.js';
@@ -171,8 +172,8 @@ export function flowSync(root) {
 }
 
 export function flowPanorama(root, opts = {}) {
-  const rt = runtimeDirOf(root);
-  const bootstrap = readBootstrap(root);
+  const rt = join(stateRootFor(root),'runtime');
+  const bootstrap = readBootstrap(catalogRootFor(root));
   const lock = readLock(rt);
   const view = opts.view || 'local';
   const version = view === 'public' ? bootstrap.version : lock.current || bootstrap.version;
@@ -184,9 +185,9 @@ export function flowPanorama(root, opts = {}) {
 
 // 体检：doctor 校验个人目录（缺失/多余/命名/哈希/state），只报告不修复
 export function flowDoctor(root) {
-  const rt = runtimeDirOf(root);
-  const bootstrap = readBootstrap(root);
-  const { version } = effectiveVersion(root, rt);
+  const rt = join(stateRootFor(root),'runtime');
+  const bootstrap = readBootstrap(catalogRootFor(root));
+  const version = readLock(rt).current || bootstrap.version;
   const personal = resolvePersonal(root, bootstrap);
   const { ok, issues } = doctorPersonal(personal.root, personal.slug);
   const lines = ok
