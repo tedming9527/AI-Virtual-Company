@@ -34,6 +34,7 @@ test('all existing pack types and repository artifacts are source-bound candidat
   assert.equal(listTrialCandidates(f.root).candidates.length,CANDIDATE_TYPES.length+1);
   assert.equal(f.register().unchanged,true);
   assert.throws(()=>f.register({hypothesis:'Changed without version'}),/never overwrite/);
+  for(const version of ['01.0.0','1.00.0','1.0.00'])assert.throws(()=>f.register({version}),/Invalid candidate identity/);
   assert.throws(()=>f.register({id:'escape',target:{kind:'repository',paths:['../secret']}}),/escapes/);
 });
 test('matching is contextual, capped at one, and only actual prompting starts deduplication',t=>{

@@ -73,7 +73,7 @@ function sourceFiles(root, candidate) {
 }
 function validate(candidate) {
   exact(candidate, ['id','type','version','title','hypothesis','triggers','exclude','scope','validation','expectedCost','sources','components','target','eligibility','status'], 'candidate');
-  if (!ID.test(candidate.id || '') || !CANDIDATE_TYPES.includes(candidate.type) || !/^\d+\.\d+\.\d+$/.test(candidate.version || '')) throw Error('Invalid candidate identity/type/version');
+  if (!ID.test(candidate.id || '') || !CANDIDATE_TYPES.includes(candidate.type) || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(candidate.version || '')) throw Error('Invalid candidate identity/type/version');
   for (const key of ['title','hypothesis','scope','validation','expectedCost']) text(candidate[key], key);
   words(candidate.triggers, 'triggers'); words(candidate.exclude, 'exclude', false);
   if (candidate.triggers.some(v => normalizeQuery(v).length < 2)) throw Error('Candidate triggers must be specific');

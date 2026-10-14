@@ -1,5 +1,5 @@
 """Run the installed scripts and MCP across upgrades, not configuration-only probes."""
-import json, os, subprocess, unittest, io, tarfile, shutil, threading
+import json, os, subprocess, unittest, io, tarfile, shutil, threading, hashlib
 from pathlib import Path
 import client_environment_test as harness
 from client_environment_test import NODE
@@ -148,7 +148,7 @@ class SessionIngressTest(unittest.TestCase):
    children=[]
    try:
     for call in ['a','b']:
-     event={**p,'hook_event_name':event_name,'tool_name':'Bash','tool_use_id':call,'tool_input':{'command':'read-only'},'tool_response':{'exit_code':0,'output':'fixture'}}
+     event={**p,'hook_event_name':event_name,'tool_name':'Bash','tool_use_id':call,'tool_input':{'command':'read-only'},'tool_response':{'exit_code':0,'output':'fixture-'+call}}
      child=subprocess.Popen(['/bin/sh',str(self.home/'ted-avc-manager-hook.sh'),'native'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
      child.stdin.write(json.dumps(event));child.stdin.close();children.append(child)
     for child in children:
@@ -160,6 +160,9 @@ class SessionIngressTest(unittest.TestCase):
      if child.poll() is None:child.kill();child.wait()
   stored=read(directory/(task['taskId']+'.json'));self.assertEqual(set(stored['calls']),{'a','b'})
   self.assertTrue(all(c['status']=='observed' for c in stored['calls'].values()))
+  for call in ['a','b']:
+   response=json.dumps({'exit_code':0,'output':'fixture-'+call},separators=(',',':')).encode()
+   self.assertEqual(stored['calls'][call]['responseSha256'],hashlib.sha256(response).hexdigest())
   self.assertEqual(stored['violations'],[])
 
 if __name__=='__main__':unittest.main()
