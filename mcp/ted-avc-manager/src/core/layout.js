@@ -10,7 +10,7 @@ export const REQUIRED_ROOT = [
   'docs', 'mcp', 'packs', 'panorama', 'presets', 'rules', 'runtime',
 ];
 // 仓库运营允许项（必备之外白名单；其余根级条目 = unexpected）
-export const ALLOWED_ROOT = ['.git', '.github', '.gitignore', 'scripts', 'templates', 'platforms'];
+export const ALLOWED_ROOT = ['.git', '.github', '.gitignore', 'scripts', 'templates', 'platforms', 'package.json'];
 // packs/<type>/ 根部允许的非包文件（花名册/语音档案等包基础设施，审计判定保留）
 export const ALLOWED_PACK_FILES = new Set([
   'SKILL_ASSET_POLICY.md', // packs/skill 策略

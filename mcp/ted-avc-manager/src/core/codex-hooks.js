@@ -4,7 +4,8 @@ import { resolve, dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
 import { weeklyStatus } from '../governance/weekly.js';
-import { clientStateRoot, catalogRootFor } from './client-state.js';
+import { clientStateRoot, catalogRootFor, catalogVersionFor } from './client-state.js';
+import { hookProject, captureNative } from './session-ingress.js';
 import { hookWarning } from './hook-warning.js';
 
 const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
@@ -20,9 +21,10 @@ function text(value, label) {
 export function readHookDeployment(file) {
   const c = json(file);
   text(c.organization, 'organization');
+  if (c.scope === 'client' && c.protocolVersion !== undefined && c.protocolVersion !== 1) throw Error('Unsupported client protocol; raw events remain captured');
   if (!Array.isArray(c.projects) || !c.projects.length) throw new Error('projects required');
   for (const p of c.projects) {
-    p.root = realpathSync(resolve(p.root));
+    p.root = c.scope === 'client' ? resolve(p.root) : realpathSync(resolve(p.root));
     if (!Array.isArray(p.roles) || !p.roles.length) throw new Error('allowed role IDs required');
     p.owners = {};
     for (const role of p.roles) {
@@ -52,7 +54,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
     const groups = document.hooks[event] ?? [];
     // Replace all owned definitions, including stale deployment paths; preserve other adapters.
     document.hooks[event] = groups.map(g => ({ ...g, hooks: g.hooks.filter(h => !(h.command?.includes('/src/codex-hook.js') && h.command.includes('--ted-avc-manager-footer'))) })).filter(g => g.hooks.length);
-    document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact' } : {}), hooks: [{
+    document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact|fork' } : {}), hooks: [{
       type: 'command', command, timeout: 10,
       statusMessage: `ted-avc-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
       ...(event !== 'Stop' ? { additionalContextLimit: 1500 } : {}),
@@ -81,13 +83,13 @@ export function runCodexHook(input, deploymentFile) {
 
 function collectCodexHook(input, deploymentFile) {
   const c = readHookDeployment(deploymentFile);
-  const cwd = realpathSync(resolve(input.cwd));
-  const project = c.projects.find(p => cwd === p.root || cwd.startsWith(p.root + sep));
+  const project = hookProject(c, input);
   if (!project) return {}; // No claims about unbound projects.
   if (!['SessionStart', 'UserPromptSubmit', 'Stop'].includes(input.hook_event_name)) return {};
   text(input.session_id, 'session_id');
-  const release = json(join(project.root, 'bootstrap.json')).version;
-  if (release !== version) throw new Error(`Hook/package v${version} differs from project v${release}`);
+  // Attribution pins the installed catalog, not a mutable central checkout.
+  catalogVersionFor(project.root);
+  const attachment = c.scope === 'client' ? captureNative(input, deploymentFile) : null;
   const stateRoot = clientStateRoot(project);
   const base = join(stateRoot, 'runtime', 'hooks');
   const stateDir = join(base, 'sessions');
@@ -112,34 +114,48 @@ function collectCodexHook(input, deploymentFile) {
       } catch { weekly = ' Weekly governance status unavailable; do not claim a completed run.'; }
     }
     return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext:
-      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Allowed logical owners: ${Object.entries(project.owners).map(([role, display]) => `${role}: ${display}`).join('; ')}. Actual executor is the platform agent. SessionStart supplies project context only and does not issue a delivery receipt. For the final footer and execution binding use the exact current-turn UserPromptSubmit context; preserve it across resume/compact. Never use a session-scoped or another turn's receipt. The footer alone does not prove supervision.${weekly}` } };
+      `ted-avc-manager native delivery adapter v${version} is attached to this client session; workspace changes do not reset the task. Allowed logical owners: ${Object.entries(project.owners).map(([role, display]) => `${role}: ${display}`).join('; ')}. Actual executor is the platform agent. SessionStart supplies project context only and does not issue a delivery receipt. For the final footer and execution binding use the exact current-turn UserPromptSubmit context; preserve it across resume/compact. Never use a session-scoped or another turn's receipt. The footer alone does not prove supervision.${weekly}` } };
   }
   text(input.turn_id, 'turn_id');
   const turn = input.turn_id;
+  // Rebuild archives runtime receipts as data, never as executable rules. An
+  // in-flight parent turn may still present its original footer after reload.
+  const historicalState = join(stateRoot, 'workspace', 'history', 'hooks', 'sessions', hash(input.session_id) + '.json');
+  if (!state.turns[turn] && !input.agent_id && existsSync(historicalState)) {
+    safeDirectory(stateRoot, dirname(historicalState));
+    if (lstatSync(historicalState).isSymbolicLink()) throw Error('Refusing historical receipt symlink');
+    const pending = json(historicalState).turns?.[turn];
+    if (pending) state.turns[turn] = pending;
+  }
   // Older adapters stored a nonce without the issuing release. Recover only
   // the matching native prompt audit; do not substitute the current release.
   const issuedVersion = pending => {
     if (pending?.deliveryVersion) return pending.deliveryVersion;
-    if (pending && existsSync(auditFile)) {
-      for (const line of readFileSync(auditFile, 'utf8').trim().split('\n').reverse()) {
+    const historicalAudit = join(stateRoot, 'workspace', 'history', 'hooks-events.jsonl');
+    for (const file of [auditFile, historicalAudit]) {
+      if (!pending || !existsSync(file)) continue;
+      safeDirectory(stateRoot, dirname(file));
+      if (lstatSync(file).isSymbolicLink()) throw Error('Refusing historical audit symlink');
+      for (const line of readFileSync(file, 'utf8').trim().split('\n').reverse()) {
         if (!line) continue;
         const event = JSON.parse(line);
         if (event.event === 'UserPromptSubmit' && event.status === 'context_injected' && event.sessionId === input.session_id && event.turnId === turn && event.receipt === pending.receipt) return event.deliveryVersion ?? event.version;
       }
     }
+    if (pending) throw new Error('Legacy receipt issuing version unknown; historical attribution remains unverified');
     return version;
   };
   const footer = (owner, receipt, deliveryVersion) => `以上内容由 ${c.organization} 提供；发布版本：v${deliveryVersion}；任务主责：${owner}；实际执行者：platform agent；Hook 回执：${receipt}`;
   if (input.hook_event_name === 'UserPromptSubmit') {
     // Reuse both the nonce and issuing version during a Stop continuation.
-    state.turns[turn] ??= { receipt: randomBytes(6).toString('hex'), deliveryVersion: version };
+    state.turns[turn] ??= { receipt: attachment?.turn?.receipt ?? randomBytes(6).toString('hex'), deliveryVersion: version };
     const pending = state.turns[turn];
     pending.deliveryVersion = issuedVersion(pending);
     writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 });
     const options = Object.entries(project.owners).map(([role, display]) => `${role}: ${footer(display, pending.receipt, pending.deliveryVersion)}`).join('\n');
     record('context_injected', { receipt: pending.receipt, deliveryVersion: pending.deliveryVersion, receiptScope: 'turn' });
     return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext:
-      `ted-avc-manager native delivery adapter v${version} is scoped to this configured project. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. The following footer belongs exclusively to sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(turn)}; SessionStart does not replace it. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Do not use the footer for unrelated projects.\n${options}` } };
+      `ted-avc-manager native delivery adapter v${version} is attached to this client session; workspace changes do not reset the task. Route the current task to one allowed role before execution. Use canonical Chinese name + profession from the professional package for public role display; keep role IDs for internal routing. The following footer belongs exclusively to sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(turn)}; SessionStart does not replace it. In the final response choose the corresponding exact footer below and put it at the end (before a required memory citation block). Display names denote logical role ownership, never authenticated employee execution. Actual executor is the platform agent. The footer/receipt alone does not prove supervision or protected mediation. Use this receipt only for its exact native session and turn.\n${options}` } };
   }
   const pending = state.turns[turn];
   const deliveryVersion = issuedVersion(pending);

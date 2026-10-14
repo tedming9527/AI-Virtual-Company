@@ -1,6 +1,6 @@
 ---
 name: ted-avc-manager
-description: 在明确绑定 AI Virtual Company 且已启用 ted-avc-manager 的项目中，发现并按需加载公司技能与知识，关联原生执行回执，登记本地新资产和候选升级。适用于公司管理项目的执行与资产核验；其他项目不激活。
+description: 在已启用 ted-avc-manager 适配器的客户端所有会话中，发现并按需加载公司技能与知识，关联原生执行回执，登记本地资产和候选升级；会话可涉及多个项目，项目目录不作为接入条件。
 ---
 
 # Ted AVC 资产与执行桥接
@@ -9,7 +9,7 @@ description: 在明确绑定 AI Virtual Company 且已启用 ted-avc-manager 的
 
 ## 按需加载与执行
 
-先确认当前项目绑定及原生 Hook 提供的 session、turn、receipt；缺少绑定或回执时，说明只能观察库存，不能声称执行介入已生效。
+先确认客户端接入状态及原生 Hook 提供的 session、turn、agent（有则使用）与 receipt。会话和任务是主线，项目只关联资料来源；无项目、多项目及目录搬迁不退出接入。缺少回执或正文交付时，如实报告对应阶段未验证，继续已授权任务。
 
 - 用 `list_assets` 或 `recommend_assets` 获取相关 skill / knowledge / framework / role 的元数据。列表可见不表示正文已加载；名称重复时指定 source 和 type。
 - 用 `task_begin` 建立当前回合契约，选择一个允许岗位、实际任务目标、明确工具集合及调用预算。岗位完整 PROFILE 返回后，才报告岗位正文交付；契约不能扩大用户授权。
@@ -34,3 +34,9 @@ description: 在明确绑定 AI Virtual Company 且已启用 ted-avc-manager 的
 自动加载技能若宿主没有可观测事件，状态为 unknown；读取了 SKILL.md 也不保证模型采用其语义。对于宿主自身提供的技能目录，保留其原生授权和使用规范。
 
 能力缺口使用 [能力发现与组装](../capability-discovery-assembly/SKILL.md)；`find_skill` 支持中英文描述与声明别名的本地检索，网络双语查询用 `discover_capabilities`。本地候选可用 `validate_local_skill` 获取结构验证 ID，再用 `propose_asset` 关联完整包快照；`list_skill_candidates` 检查验证是否失效。
+
+## 初始化入口
+
+用户通过对话要求安装或初始化时，使用中央源码中的 `yarn setup` 或 `npm run setup` 安装向导；获授权的非交互执行须明确客户端、客户端目录、已有用户资料项目及 `--yes`。仅 Codex 有已实现适配器，其他客户端显示不可用；不按模型名字猜测客户端，不手工逐文件改配置，不自动放宽审批或 Hook 信任。
+
+用 `client_status` 分别核对事件捕获、会话/回合关联、上下文返回和任务合同；安装成功不是原生介入成功。旧会话下一次真实事件走同一入口，未知历史不补造。项目专属经验按实际改动及产物归属，跨项目经验保留多个来源，通用升级另走评审。

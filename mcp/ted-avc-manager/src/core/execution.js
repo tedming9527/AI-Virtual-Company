@@ -4,7 +4,8 @@ import { resolve, join, sep, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
 import { readHookDeployment } from './codex-hooks.js';
-import { clientStateRoot, catalogRootFor, verifyDistributedFile } from './client-state.js';
+import { clientStateRoot, catalogRootFor, verifyDistributedFile, catalogVersionFor } from './client-state.js';
+import { hookProject, captureNative, readNativeTurn, sessionWorkspaces } from './session-ingress.js';
 import { hookWarning } from './hook-warning.js';
 import { resolvePersonalStorage } from './storage.js';
 import { refreshInventory, recordObservedRead, listAssets } from './awareness.js';
@@ -37,7 +38,7 @@ function safePath(root, path, create = false) {
   return target;
 }
 function deployment(root, file) {
-  const canonical = realpathSync(root), config = readHookDeployment(file);
+  const canonical = resolve(root), config = readHookDeployment(file);
   const project = config.projects.find(item => item.root === canonical);
   if (!project?.execution?.enabled) throw new Error('Execution adapter disabled or project unbound');
   const settings = project.execution;
@@ -46,10 +47,14 @@ function deployment(root, file) {
   if (!Number.isInteger(settings.maxToolCalls) || settings.maxToolCalls < 1 || settings.maxToolCalls > 10000) throw new Error('execution.maxToolCalls must be 1..10000');
   if (settings.allowedTools !== undefined && (!Array.isArray(settings.allowedTools) || settings.allowedTools.some(tool => typeof tool !== 'string' || !/^[a-zA-Z0-9_.:-]+$/.test(tool)))) throw new Error('execution.allowedTools must list exact native tool names');
   if (settings.requiredAssets !== undefined && (!Array.isArray(settings.requiredAssets) || settings.requiredAssets.some(id => typeof id !== 'string' || !/^(general:(skill|knowledge|framework|role)|local-custom:skill):[a-z0-9][a-z0-9-]*$/.test(id)))) throw new Error('execution.requiredAssets must list canonical asset identities');
-  return { project, settings, stateRoot: clientStateRoot(project), root: canonical, catalogVersion: read(join(canonical, 'bootstrap.json')).version };
+  return { project, settings, stateRoot: clientStateRoot(project), root: canonical, clientScope: config.scope === 'client', catalogVersion: catalogVersionFor(canonical) };
 }
-function binding(root, input, stateRoot = root) {
+function binding(root, input, stateRoot = root, clientScope = false) {
   identifier(input.sessionId, 'sessionId'); identifier(input.turnId, 'turnId'); identifier(input.receipt, 'receipt');
+  if (clientScope) {
+    const turn = readNativeTurn(stateRoot, input);
+    return { sessionId: input.sessionId, turnId: input.turnId, receipt: input.receipt, sessionChainId: turn.sessionChainId || input.sessionId, agentId: input.agentId ?? null, workspace: turn.workspace, taskId: sha(JSON.stringify([root, input.sessionId, input.turnId, input.agentId ?? '', input.receipt])) };
+  }
   const file = safePath(stateRoot, join(stateRoot, 'runtime/hooks/sessions', sha(input.sessionId) + '.json'));
   const receipt = existsSync(file) && read(file).turns?.[input.turnId]?.receipt;
   if (!receipt || receipt !== input.receipt) throw new Error('Native session/turn receipt mismatch');
@@ -112,7 +117,7 @@ function integrity(root, task, catalogVersion) {
     try {
       let base = catalogRootFor(root);
       if (asset.source === 'local-custom') {
-        const personal = resolvePersonalStorage(root, read(join(root, 'bootstrap.json')));
+        const personal = resolvePersonalStorage(root, read(join(catalogRootFor(root), 'bootstrap.json')));
         base = safePath(personal.root, join(personal.root, 'projects', personal.slug, 'custom'));
         const registry = read(safePath(root, join(root, 'runtime/skill-registry.json'))).entries;
         const matching = registry.filter(item => item.source === 'local-custom' && item.name === asset.name && item.dir === resolve(asset.file, '..'));
@@ -124,7 +129,7 @@ function integrity(root, task, catalogVersion) {
   return { status: issues.length ? 'invalidated' : 'matched', issues };
 }
 export function beginTask(root, input, deploymentFile) {
-  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot);
+  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   if (!d.project.roles.includes(input.role)) throw new Error('Role not allowed by deployment');
   identifier(input.goal, 'goal');
   if (!Array.isArray(input.allowedTools) || !input.allowedTools.length || input.allowedTools.length > 128 || input.allowedTools.some(tool => typeof tool !== 'string' || !/^[a-zA-Z0-9_.:-]+$/.test(tool))) throw new Error('allowedTools must be exact native tool names, without wildcards');
@@ -165,7 +170,7 @@ export function beginTask(root, input, deploymentFile) {
   });
 }
 export function loadAsset(root, input, deploymentFile) {
-  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot);
+  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   if (!['general', 'local-custom'].includes(input.source)) throw new Error('Asset source must be general or registered local-custom');
   if (!['skill', 'knowledge', 'framework', 'role'].includes(input.type) || !/^[a-z0-9][a-z0-9-]*$/.test(input.name || '')) throw new Error('Invalid asset identity');
   const entry = input.entry || (input.type === 'role' ? 'PROFILE.md' : 'SKILL.md');
@@ -174,7 +179,7 @@ export function loadAsset(root, input, deploymentFile) {
   if (input.source === 'general') directory = safePath(catalogRootFor(d.root), join(catalogRootFor(d.root), 'packs', input.type, input.name));
   else {
     if (input.type !== 'skill') throw new Error('Only explicitly registered personal skills can be loaded');
-    const personal = resolvePersonalStorage(d.root, read(join(d.root, 'bootstrap.json')));
+    const personal = resolvePersonalStorage(d.root, read(join(catalogRootFor(d.root), 'bootstrap.json')));
     const custom = safePath(personal.root, join(personal.root, 'projects', personal.slug, 'custom'));
     const registryFile = safePath(d.root, join(d.root, 'runtime/skill-registry.json'));
     const entries = existsSync(registryFile) ? read(registryFile).entries : [];
@@ -200,7 +205,7 @@ export function loadAsset(root, input, deploymentFile) {
   return { ...asset, content, contextDelivery: 'MCP returned selected document; registration and context delivery do not prove native skill activation' };
 }
 export function closeTask(root, input, deploymentFile) {
-  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot);
+  const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   return locked(d.stateRoot, key.taskId, paths => {
     const task = active(paths, key);
     for (const item of input.unknownCalls || []) {
@@ -210,17 +215,21 @@ export function closeTask(root, input, deploymentFile) {
     }
     if (Object.values(task.calls).some(call => call.status === 'reserved')) throw new Error('Unobserved reservations require explicit unknownCalls classification');
     if (!Array.isArray(input.artifacts) || !input.artifacts.length) throw new Error('At least one actual output artifact required');
-    const bootstrap = read(join(d.root, 'bootstrap.json')), personal = resolvePersonalStorage(d.root, bootstrap);
+    const bootstrap = read(join(catalogRootFor(d.root), 'bootstrap.json')), personal = resolvePersonalStorage(d.root, bootstrap);
     const deliverables = join(personal.root, 'projects', personal.slug, 'deliverables');
+    const workspaces = d.clientScope ? sessionWorkspaces(d.stateRoot, input.sessionId).map(w => w.workspaceRoot) : [d.root];
     const artifacts = input.artifacts.map(item => {
-      const requested = resolve(d.root, item.path);
-      const base = requested.startsWith(d.root + sep) ? d.root : deliverables;
+      const requested = resolve(key.workspace?.root || d.root, item.path);
+      const base = [...workspaces, deliverables].filter(root => requested === root || requested.startsWith(root + sep)).sort((a,b) => b.length-a.length)[0];
+      if (!base) throw Error('Output evidence outside observed session workspaces/deliverables');
       const file = safePath(base, requested);
       if (!lstatSync(file).isFile()) throw new Error('Output evidence must be a real file');
       const digest = sha(readFileSync(file));
       if (item.sha256 && item.sha256 !== digest) throw new Error('Output artifact SHA mismatch');
       return { path: file, sha256: digest, bytes: lstatSync(file).size };
     });
+    task.projects = sessionWorkspaces(d.stateRoot, input.sessionId).filter(w => w.projectRoot && artifacts.some(a=>a.path===w.projectRoot || a.path.startsWith(w.projectRoot+sep))).map(w => w.projectRoot).filter((p,i,a) => a.indexOf(p)===i);
+    task.projectEvidence = 'artifact-location within observed session workspaces; change semantics require separate evidence';
     task.status = 'closed'; task.closedAt = now(); task.artifacts = artifacts;
     task.integrity = integrity(d.root, task, d.catalogVersion);
     task.observation = { reservedCalls: Object.keys(task.calls).length, observedCalls: Object.values(task.calls).filter(call => call.status === 'observed').length, unknownCalls: Object.values(task.calls).filter(call => call.status === 'unknown').length, violations: task.violations.length, modelTokens: 'unknown', modelCost: 'unknown', scope: 'Native hooks observed only; user can disable adapter; no hosted gateway or full supervision claim' };
@@ -232,29 +241,31 @@ export function closeTask(root, input, deploymentFile) {
 function denial(mode, reason) {
   return mode === 'enforce' ? { hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: `ted-avc-manager: ${reason}` } } : hookWarning('monitor', reason);
 }
-function executeHook(input, deploymentFile) {
-  const config = readHookDeployment(deploymentFile), cwd = realpathSync(resolve(input.cwd));
-  const p = config.projects.filter(item => cwd === item.root || cwd.startsWith(item.root + sep)).sort((a, b) => b.root.length - a.root.length)[0];
-  if (!p?.execution?.enabled || !['UserPromptSubmit', 'PreToolUse', 'PostToolUse'].includes(input.hook_event_name)) return {};
+function executeHook(input, deploymentFile, options = {}) {
+  const config = readHookDeployment(deploymentFile), cwd = input.cwd || '';
+  const p = hookProject(config, input);
+  if (!p?.execution?.enabled || (!options.contextOnly && !['UserPromptSubmit', 'PreToolUse', 'PostToolUse'].includes(input.hook_event_name))) return {};
   const d = deployment(p.root, deploymentFile);
-  refreshInventory(d.root);
-  if (['PreToolUse','PostToolUse'].includes(input.hook_event_name)) recordObservedRead(d.root,input);
+  const attachment = d.clientScope ? captureNative(input, deploymentFile) : null;
+  // Inventory discovery is auxiliary and cannot erase a captured native event.
+  try { refreshInventory(d.root); } catch {}
+  if (!options.contextOnly && ['PreToolUse','PostToolUse'].includes(input.hook_event_name)) recordObservedRead(d.root,input);
   identifier(input.session_id, 'native session_id'); identifier(input.turn_id, 'native turn_id');
   const receiptFile = safePath(d.stateRoot, join(d.stateRoot, 'runtime/hooks/sessions', sha(input.session_id) + '.json'));
-  const receipt = existsSync(receiptFile) && read(receiptFile).turns?.[input.turn_id]?.receipt;
+  const receipt = attachment?.turn?.receipt ?? (existsSync(receiptFile) && read(receiptFile).turns?.[input.turn_id]?.receipt);
   if (!receipt) {
     if (input.hook_event_name === 'PreToolUse') return denial(d.settings.mode, 'Native footer receipt missing; no task binding established');
     throw new Error('Native footer receipt missing; run footer adapter first');
   }
-  const key = binding(d.root, { sessionId: input.session_id, turnId: input.turn_id, receipt }, d.stateRoot);
-  if (input.hook_event_name === 'UserPromptSubmit') {
+  const key = binding(d.root, { sessionId: input.session_id, turnId: input.turn_id, agentId: input.agent_id, receipt }, d.stateRoot, d.clientScope);
+  if (input.hook_event_name === 'UserPromptSubmit' || options.contextOnly) {
     const assets=listAssets(d.root).assets.filter(a=>a.source==='general'||a.management==='local-managed');
     const index=assets.slice(0,36).map(a=>({type:a.type,name:a.name,source:a.source,version:a.version}));
     const bindingInstruction = d.settings.mode === 'monitor'
       ? 'Collection is best effort and is not a prerequisite for ordinary task execution. When task_begin is available, call it'
       : 'Before ordinary task execution call task_begin';
     return { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext:
-      `ted-avc-manager execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, receipt=${JSON.stringify(receipt)}. ${bindingInstruction} with these exact fields, one allowed role ID, the goal, exact allowed native tool names and maxToolCalls <= ${d.settings.maxToolCalls}. In monitor mode, if binding or collection is unavailable, warn, request hook repair and continue the authorized task without claiming verified receipts. In enforce mode, the fixed read-only self-check is permitted without binding: ${JSON.stringify(diagnosticCall(cwd, deploymentFile))}. Broader recovery needs explicit user authorization and a bounded maintenance-open grant via the independent local operator entry; remain unbound until a real task_begin succeeds. Never infer maintenance authorization from prompt keywords. task_begin returns the actual role PROFILE; read it and apply it. bootstrapTools before task_begin: ${JSON.stringify(d.settings.bootstrapTools)}. Asset metadata (not loaded bodies): ${JSON.stringify(index)}. Full inventory ${assets.length} via list_assets/recommend_assets. Use bound load_asset for needed skill/knowledge/framework documents before use. New native skill files are tracked separately from actual reads; report_asset_use is declaration only. Include task_closeout in allowedTools; it is a recorded control call outside execution budget. Close with real file artifacts and explicitly classify any unobserved calls unknown. This adapter covers only hooks exposed by this native client; do not claim hidden model/token/cost or full supervision control.` } };
+      `ted-avc-manager execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, agentId=${JSON.stringify(input.agent_id ?? '')}, receipt=${JSON.stringify(receipt)}. This session may involve multiple projects; route one task across observed workspaces without granting additional filesystem permissions. ${bindingInstruction} with these exact fields, one allowed role ID, the goal, exact allowed native tool names and maxToolCalls <= ${d.settings.maxToolCalls}. In monitor mode, if binding or collection is unavailable, warn, request hook repair and continue the authorized task without claiming verified receipts. In enforce mode, the fixed read-only self-check is permitted without binding: ${JSON.stringify(cwd && existsSync(cwd) ? diagnosticCall(cwd, deploymentFile) : {available:false,reason:'workspace missing; use installer status from an operator terminal'})}. Broader recovery needs explicit user authorization and a bounded maintenance-open grant via the independent local operator entry; remain unbound until a real task_begin succeeds. Never infer maintenance authorization from prompt keywords. task_begin returns the actual role PROFILE; read it and apply it. bootstrapTools before task_begin: ${JSON.stringify(d.settings.bootstrapTools)}. Asset metadata (not loaded bodies): ${JSON.stringify(index)}. Full inventory ${assets.length} via list_assets/recommend_assets. Use bound load_asset for needed skill/knowledge/framework documents before use. New native skill files are tracked separately from actual reads; report_asset_use is declaration only. Include task_closeout in allowedTools; it is a recorded control call outside execution budget. Close with real file artifacts and explicitly classify any unobserved calls unknown. This adapter covers only hooks exposed by this native client; do not claim hidden model/token/cost or full supervision control.` } };
   }
   identifier(input.tool_name, 'tool_name'); identifier(input.tool_use_id, 'tool_use_id');
   return locked(d.stateRoot, key.taskId, paths => {
@@ -304,10 +315,13 @@ function executeHook(input, deploymentFile) {
     return {}; // No permissionDecision=allow: preserve native approval/sandbox policy.
   });
 }
-export function runExecutionHook(input, deploymentFile) {
+export function runExecutionHook(input, deploymentFile, options = {}) {
   try {
     if (isDiagnosticCall(input, deploymentFile)) return input.hook_event_name === 'PostToolUse' ? {} : { systemMessage: 'Read-only maintenance self-check; no task binding claimed. Native permissions still apply.' };
-    return runMaintenanceHook(input, deploymentFile) ?? executeHook(input, deploymentFile);
+    let maintenance;
+    try { maintenance = runMaintenanceHook(input, deploymentFile); }
+    catch (error) { if (error.maintenance || read(deploymentFile).scope !== 'client') throw error; }
+    return maintenance ?? executeHook(input, deploymentFile, options);
   }
   catch (error) {
     if (input?.hook_event_name !== 'PreToolUse') return hookWarning('execution', error.message);

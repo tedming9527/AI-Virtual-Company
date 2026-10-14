@@ -104,7 +104,7 @@ class ClientTest(unittest.TestCase):
    self.assertIn('⚠️ Ted 采集失败',r.stderr);self.assertIn('当前任务照常推进',r.stderr);self.assertIn('修复',r.stderr)
    self.assertIn(v['systemMessage'],r.stderr);self.assertNotIn('decision',v);self.assertNotIn('continue',v)
   (self.home/OWNER/'deployment.json').unlink();invoke()
-  self.run_rebuild();entry=self.home/OWNER/'package/src/execution-hook.js';entry.write_text('console.log(JSON.stringify({hookSpecificOutput:{permissionDecision:"deny"}}))');invoke()
+  self.run_rebuild();entry=self.home/OWNER/'package/src/native-hook.js';entry.write_text('console.log(JSON.stringify({hookSpecificOutput:{permissionDecision:"deny"}}))');invoke()
   entry.write_text('console.log(JSON.stringify({hookSpecificOutput:{permissionDecision:"allow"}}))');invoke()
   entry.write_text('setTimeout(()=>{},20000)');invoke()
   (self.home/OWNER/'package').rename(self.home/OWNER/'missing-package');invoke()
@@ -144,7 +144,7 @@ class ClientTest(unittest.TestCase):
 
  def test_paired_native_status_and_detail_do_not_run_collection_twice(self):
   self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh'
-  counter=self.base/'calls';entry=self.home/OWNER/'package/src/execution-hook.js'
+  counter=self.base/'calls';entry=self.home/OWNER/'package/src/native-hook.js'
   entry.write_text('import fs from "node:fs";fs.appendFileSync('+json.dumps(str(counter))+',"call\\n");console.log(JSON.stringify({systemMessage:"锁冲突：Task locked by another operation；当前任务照常推进"}));')
   payload=json.dumps({'session_id':'pair','turn_id':'t','hook_event_name':'PreToolUse','tool_use_id':'unique'})
   status=subprocess.Popen(['/bin/sh',str(shim),'execution','status'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
