@@ -145,6 +145,8 @@ def register_central_artifact_release(personal,proposal,central_root,targets,tag
         commit=git('rev-parse',tag+'^{commit}').decode().strip()
         subprocess.run(['git','-C',str(central_root),'merge-base','--is-ancestor',commit,'HEAD'],check=True)
         for source,target in targets.items():
+            entry=git('ls-tree','-z',commit,'--',target).split(b'\t',1)[0].split()
+            if len(entry)!=3 or entry[0] not in [b'100644',b'100755'] or entry[1]!=b'blob':raise ValueError('Released artifact must be a regular tracked file')
             if digest(git('show',commit+':'+target))!=files[source]:raise ValueError('Released artifact differs from reviewed candidate')
         doc=ledger(personal);asset=doc['assets'].get(info['from']['assetId'])
         if not asset or asset['revision']!=info['from']['revision'] or inventory(safe(asset['path']))!=asset.get('files'):raise ValueError('User source revision changed')

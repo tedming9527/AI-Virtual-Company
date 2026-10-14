@@ -116,6 +116,7 @@ export function listTrialCandidates(root) {
       const file = safe(p.project, join(p.candidates, name));
       if (!lstatSync(file).isFile() || lstatSync(file).size > 256 * 1024) throw Error('Candidate file exceeds limits');
       const record = read(file); validate(record.candidate);
+      if (name !== `${record.candidate.id}-${record.candidate.version}.json`) throw Error('Candidate filename/identity mismatch');
       if (record.schema !== 'avc.trial-candidate.v1' || digest(record.candidate) !== record.sha256) throw Error('Candidate content drift');
       sourceFiles(root, record.candidate); candidates.push(record);
     } catch (error) { warnings.push(`${name}: ${error.message}`); const id=name.match(/^(.+)-\d+\.\d+\.\d+\.json$/)?.[1]; if(id) invalidIds.add(id); }
