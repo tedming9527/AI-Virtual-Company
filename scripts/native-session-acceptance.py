@@ -9,6 +9,38 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts'))
 from client_environment import rebuild, OWNER
 
+ISOLATED_TASK_RULES='仅由当前主代理执行；禁止启动子代理、委派、发送跨会话消息或创建额外任务。只使用当前任务实际需要的工具；如需登记任务，精确声明工具白名单并关闭本回合契约。'
+
+def tool_failed(item):
+ result=item.get('result') or {}
+ structured=result.get('structured_content') or {}
+ return bool(item.get('error') or item.get('status')!='completed' or result.get('isError') or structured.get('isError'))
+
+def expected_tool_failure(item,missing_deployment=None):
+ if missing_deployment is None or missing_deployment.exists():return False
+ if item.get('type')!='mcp_tool_call' or item.get('server')!='ted-avc-manager' or item.get('tool') not in ['task_begin','task_closeout']:return False
+ message=(item.get('error') or {}).get('message','')
+ return "ENOENT: no such file or directory, open '"+str(missing_deployment)+"'" in message
+
+def task_audit(directory):
+ tasks=[]
+ for path in sorted(directory.glob('*.json')):
+  task=json.loads(path.read_text());calls=list(task.get('calls',{}).values())
+  tasks.append({'taskId':task['taskId'],'sessionId':task.get('sessionId'),'status':task.get('status'),
+   'violations':len(task.get('violations',[])),'unknownCalls':sum(c.get('status')=='unknown' for c in calls),
+   'pendingCalls':sum(c.get('status')=='reserved' for c in calls),'tools':[c.get('tool','') for c in calls]})
+ return tasks
+
+def integrity_checks(cases,tasks):
+ return {
+  'allNativeCasesCompleted':bool(cases) and all(c.get('exitCode')==0 and not c.get('timedOut') and c.get('turnCompleted') for c in cases),
+  'noUnexpectedNativeToolErrors':all(not c.get('errors') and not any((t.get('failed') or t.get('status')!='completed') and not t.get('expectedFailure') for t in c.get('toolCalls',[])) for c in cases),
+  'allIsolatedTasksClosed':all(t.get('status')=='closed' for t in tasks),
+  'noTaskViolations':all(t.get('violations')==0 for t in tasks),
+  'noUnknownOrPendingCalls':all(t.get('unknownCalls')==0 and t.get('pendingCalls')==0 for t in tasks),
+  'noDelegation':not any(t.get('type')=='collab_tool_call' for c in cases for t in c.get('toolCalls',[])) and not any('spawn_agent' in tool or 'send_message' in tool for t in tasks for tool in t.get('tools',[])),
+ }
+
 class NativeRPC:
  def __init__(self,env):
   self.process=subprocess.Popen(['codex','app-server','--stdio'],env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True)
@@ -55,11 +87,11 @@ def main():
   state=home/OWNER/'state/runtime';events=[e for e in records(state/'mediation/events') if e.get('sessionId')==thread]
   tasks=[t for t in records(state/'execution/tasks') if t.get('sessionId')==thread]
   return {'events':len(events),'eventTypes':sorted({e.get('event') for e in events}),'tasks':[{'taskId':t['taskId'],'status':t['status'],'assets':len(t.get('assets',[])),'observed':sum(c.get('status')=='observed' for c in t.get('calls',{}).values())} for t in tasks]}
- def model_case(name,prompt,resume=None):
+ def model_case(name,prompt,resume=None,missing_deployment=None):
   print(json.dumps({'phase':'running','case':name}),flush=True)
   cmd=['codex','exec','--json','-C',str(work),'--sandbox','workspace-write','--skip-git-repo-check','-o',str(base/(name+'.answer.txt'))]
   if resume:cmd+=['resume',resume]
-  cmd.append(prompt)
+  cmd.append(prompt+'\n'+ISOLATED_TASK_RULES)
   started=time.monotonic();timed_out=False
   with open(base/(name+'.jsonl'),'w') as output,open(base/(name+'.stderr'),'w') as errors:
    p=subprocess.Popen(cmd,env=env,stdin=subprocess.DEVNULL,stdout=output,stderr=errors,start_new_session=True)
@@ -84,8 +116,8 @@ def main():
      if r.get('type')=='turn_context' and r.get('payload',{}).get('model'):native_models.add(r['payload']['model'])
     except ValueError:pass
   answer=(base/(name+'.answer.txt')).read_text() if (base/(name+'.answer.txt')).exists() else ''
-  tools=[r.get('item',{}) for r in rows if r.get('type')=='item.completed' and r.get('item',{}).get('type') in ['mcp_tool_call','command_execution']]
-  case={'name':name,'threadId':thread,'exitCode':code,'timedOut':timed_out,'durationSeconds':round(time.monotonic()-started,2),'turnCompleted':any(r.get('type')=='turn.completed' for r in rows),'toolCalls':[{'type':t.get('type'),'tool':t.get('tool'),'server':t.get('server'),'status':t.get('status')} for t in tools],'answerBytes':len(answer.encode()),'native':snapshot(thread) if thread else {},'errors':[r.get('message') or r.get('item',{}).get('message') for r in rows if r.get('type')=='error' or r.get('item',{}).get('type')=='error']}
+  tools=[r.get('item',{}) for r in rows if r.get('type')=='item.completed' and r.get('item',{}).get('type') in ['mcp_tool_call','command_execution','collab_tool_call']]
+  case={'name':name,'threadId':thread,'exitCode':code,'timedOut':timed_out,'durationSeconds':round(time.monotonic()-started,2),'turnCompleted':any(r.get('type')=='turn.completed' for r in rows),'toolCalls':[{'type':t.get('type'),'tool':t.get('tool'),'server':t.get('server'),'status':t.get('status'),'failed':tool_failed(t) if t.get('type')=='mcp_tool_call' else t.get('status')!='completed' or t.get('exit_code',0)!=0,'expectedFailure':expected_tool_failure(t,missing_deployment)} for t in tools],'faultInjection':'missing-deployment' if missing_deployment else None,'answerBytes':len(answer.encode()),'native':snapshot(thread) if thread else {},'errors':[r.get('message') or r.get('item',{}).get('message') for r in rows if r.get('type')=='error' or r.get('item',{}).get('type')=='error']}
   case['nativeModels']=sorted(native_models);report['cases'].append(case);(base/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps({'phase':'completed','case':case},ensure_ascii=False),flush=True)
   return thread
  try:
@@ -114,7 +146,7 @@ def main():
   model_case('fresh-ted-doctor','$ted doctor')
   if args.case=='all':
    deployment=home/OWNER/'deployment.json';saved=deployment.read_bytes();deployment.unlink()
-   try:model_case('degraded-business','隔离故障验收：仅在当前目录创建 degraded-result.txt，内容为 CONTINUED。辅助采集故障时继续这个已授权文件任务，不修复环境，不伪造成功证据。')
+   try:model_case('degraded-business','隔离故障验收：仅在当前目录创建 degraded-result.txt，内容为 CONTINUED。辅助采集故障时继续这个已授权文件任务，不修复环境，不伪造成功证据。',missing_deployment=deployment)
    finally:deployment.write_bytes(saved)
   report['artifacts']={name:(work/name).is_file() and (work/name).read_text().strip()==content for name,content in {'escaped-before.txt':'BEFORE','escaped-after.txt':'AFTER','fresh-result.txt':'FRESH','degraded-result.txt':'CONTINUED'}.items()} if args.case=='all' else {}
   doctor=next(c for c in report['cases'] if c['name']=='fresh-ted-doctor')
@@ -122,6 +154,8 @@ def main():
   if args.case=='all':
    before,resumed,fresh,_,degraded=report['cases']
    report['checks'].update({'sameEscapedThreadResumed':before['threadId']==resumed['threadId'],'noBaselineEventsFabricated':before['native'].get('events')==0,'resumedTaskClosed':any(t['status']=='closed' for t in resumed['native']['tasks']),'freshTaskClosed':any(t['status']=='closed' for t in fresh['native']['tasks']),'degradedTaskContinued':degraded['turnCompleted'] and bool(degraded['native'].get('events')) and not degraded['native'].get('tasks'),'artifactContentsMatch':all(report['artifacts'].values())})
+  report['taskAudit']=task_audit(home/OWNER/'state/runtime/execution/tasks')
+  report['checks'].update(integrity_checks(report['cases'],report['taskAudit']))
   report['passed']=all(report['checks'].values())
   report['endedAt']=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime());(base/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps({'phase':'final','report':str(base/'summary.json'),'artifacts':report['artifacts'],'checks':report['checks'],'passed':report['passed']},ensure_ascii=False),flush=True)
   if not report['passed']:raise RuntimeError('Native acceptance checks failed; inspect the local summary')
