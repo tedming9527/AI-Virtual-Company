@@ -1,11 +1,12 @@
 // flows.js —— 预定义流程执行（FR-2~FR-5）：所有流程结束汇报必带当前版本号
 
-import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { resolveMemoryStorage } from './storage.js';
 import { readBootstrap, scanPacks, countByType } from './scan.js';
 import { readLock, writeLock } from './lockfile.js';
-import { compare, diffKind } from './semver.js';
+import { compare, diffKind, parse } from './semver.js';
 import { generatePanorama } from '../panorama/generate.js';
 import { resolvePersonal, initPersonal, doctorPersonal, syncPresets, mergeConfig, importScan } from './personal.js';
 import { parseGithubUri } from './protocol.js';
@@ -92,20 +93,39 @@ export function flowInit(root, opts = {}) {
   };
 }
 
-export function flowCheck(root) {
-  const rt = runtimeDirOf(root);
-  const bootstrap = readBootstrap(root);
-  const lock = readLock(rt);
-  const current = lock.current || bootstrap.version;
-  const latest = bootstrap.version;
+// Repository lockfiles describe catalog state, never a client installation.
+export function flowCheck(root, opts = {}) {
+  const latest = readBootstrap(root).version;
+  const home = opts.codexHome || process.env.CODEX_HOME || join(homedir(), '.codex');
+  const runningVersion = opts.runningVersion || null;
+  const generation = opts.generation ?? process.env.AVC_GENERATION;
+  let installation;
+  try {
+    installation = JSON.parse(readFileSync(join(home, 'ted-avc-manager/manifest.json'), 'utf8'));
+    if (installation.schema !== 'avc.client-installation.v1' || installation.owner !== 'ted-avc-manager' ||
+        typeof installation.version !== 'string' || !parse(installation.version) || !installation.generation) {
+      throw new Error('安装清单格式无效');
+    }
+    if (realpathSync(installation.downstream?.central || '') !== realpathSync(root)) {
+      throw new Error('安装清单未绑定当前项目');
+    }
+    const pkg = JSON.parse(readFileSync(join(home, 'ted-avc-manager/package/package.json'), 'utf8'));
+    if (pkg.version !== installation.version) throw new Error('安装清单与客户端程序版本不一致');
+  } catch (error) {
+    const reason = error.code === 'ENOENT' ? '安装清单、客户端程序或绑定目录缺失' :
+      error instanceof SyntaxError ? '安装元数据解析失败' : '安装清单无效、绑定不匹配或程序版本不一致';
+    return { ok: false, status: 'unknown', version: null, latest, runningVersion,
+      summary: `⚠️ 无法确认客户端安装版本：${reason}。中央仓库声明 v${latest}；不能据此判断客户端已是最新。请检查客户端部署；当前任务照常推进。` };
+  }
+  const current = installation.version;
   const cmp = compare(latest, current);
-  const kind = cmp > 0 ? diffKind(latest, current) : 'none';
-  const upgrade = cmp > 0 ? { kind, latest, current } : null;
-  return {
-    ok: true,
-    version: current,
-    summary: `检查完成：当前版本 v${current}，中央声明最新 v${latest}，${upgrade ? `可升级（${upgrade.kind}，${upgrade.kind === 'major' ? '需人审' : 'opt-in'}）` : '已是最新'}。${finalLine('', current)}`,
-  };
+  const upgrade = cmp > 0 ? { kind: diffKind(latest, current), latest, current } : null;
+  const reloadRequired = Boolean((generation && generation !== installation.generation) ||
+    (runningVersion && runningVersion !== current));
+  const status = reloadRequired ? 'reload-required' : cmp > 0 ? 'update-available' : cmp < 0 ? 'client-ahead' : 'current';
+  const comparison = upgrade ? `可升级（${upgrade.kind}）` : cmp < 0 ? '客户端版本高于仓库声明，不自动降级' : '客户端安装版本与仓库声明一致';
+  return { ok: true, status, version: current, latest, runningVersion, generation: installation.generation, upgrade, reloadRequired,
+    summary: `检查完成：已安装客户端 v${current}，中央仓库声明 v${latest}，${comparison}。${runningVersion ? `当前 MCP 进程 v${runningVersion}。` : ''}${reloadRequired ? '⚠️ 运行进程与安装版本或代次不一致，请重载 MCP；当前任务照常推进。' : ''}本次未联网检查远端发布；安装版本一致不代表新会话加载验收完成。` };
 }
 
 export function flowUpgrade(root, opts = {}) {
@@ -116,7 +136,7 @@ export function flowUpgrade(root, opts = {}) {
   const latest = bootstrap.version;
   const cmp = compare(latest, current);
   if (cmp <= 0) {
-    return { ok: true, version: current, summary: `无需升级：当前 v${current} 已是最新。${finalLine('', current)}` };
+    return { ok: true, version: current, summary: `仓库版本账本无需更新：v${current}；未执行客户端升级，请用 check 检查实际安装。${finalLine('', current)}` };
   }
   const kind = diffKind(latest, current);
   if (kind === 'major' && !opts.force) {
@@ -127,7 +147,7 @@ export function flowUpgrade(root, opts = {}) {
   return {
     ok: true,
     version: latest,
-    summary: `升级完成（${kind}）：v${current} → v${latest}，本地 lockfile 已更新，迁移脚本见 migrations/ 约定。${finalLine('', latest)}`,
+    summary: `仓库版本账本已更新（${kind}）：v${current} → v${latest}；未执行客户端升级。客户端需使用保全及全量重建安装流程。${finalLine('', latest)}`,
   };
 }
 
