@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync, symlinkSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { skillBundle } from './local-assets.js';
 import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks } from './execution.js';
@@ -382,4 +382,33 @@ test('task_begin delivers optional candidates, preserves cross-turn refusal and 
  assert.equal(next.candidateTrials.recommendations.length,0);
  const ledger=join(f.root,'runtime/personal/projects/example/experience/.avc/candidate-trials.json');writeFileSync(ledger,'broken');
  assert.equal(beginTask(f.root,{...f.key,turnId:native.turn_id,receipt,role:'ai-engineer',goal:'Perform frontend review',allowedTools:[tool,close],maxToolCalls:2,candidateTaskKey:'logical-review'},f.deployment).candidateTrials.taskContinues,true);
+});
+
+test('short-lived concurrent task writer does not lose Pre/Post observations',t=>{
+ const f=fixture(t,'monitor'),task=f.begin(),lock=join(f.root,'runtime/execution/tasks',task.taskId+'.lock');
+ const releaseSoon=()=>{mkdirSync(lock);const child=spawn(process.execPath,['-e','setTimeout(()=>require("node:fs").rmdirSync(process.argv[1]),150)',lock],{stdio:'ignore'});t.after(()=>child.kill());};
+ releaseSoon();const pre=f.event('PreToolUse');assert.equal(pre.systemMessage,undefined);
+ releaseSoon();const post=f.event('PostToolUse','call-a',{tool_response:{exit_code:0,output:'observed'}});assert.equal(post.systemMessage,undefined);
+ const stored=JSON.parse(readFileSync(join(f.root,'runtime/execution/tasks',task.taskId+'.json')));assert.equal(stored.calls['call-a'].status,'observed');
+});
+
+test('cold directory EEXIST races accept only real directories',t=>{
+ for (const kind of ['directory','symlink','file']) {
+  const f=fixture(t,'monitor');
+  const script=`const fs=require('node:fs'),{syncBuiltinESMExports}=require('node:module');
+   const exists=fs.existsSync,target=require('node:path').join(process.argv[2],'runtime/execution');
+   fs.existsSync=path=>{if(path===target&&!exists(path)){
+    if(process.argv[5]==='directory')fs.mkdirSync(path);
+    else if(process.argv[5]==='symlink')fs.symlinkSync(process.argv[2],path);
+    else fs.writeFileSync(path,'file');
+    return false;
+   }return exists(path);};syncBuiltinESMExports();
+   import(require('node:url').pathToFileURL(process.argv[1])).then(m=>{
+    try{const task=m.beginTask(process.argv[2],JSON.parse(process.argv[3]),process.argv[4]);console.log(JSON.stringify({status:task.status}));}
+    catch(error){console.log(JSON.stringify({error:error.message}));}
+   });`;
+  const child=spawnSync(process.execPath,['-e',script,fileURLToPath(new URL('./execution.js',import.meta.url)),f.root,JSON.stringify({...f.key,role:'ai-engineer',goal:'Cold directory fixture',allowedTools:[tool],maxToolCalls:2}),f.deployment,kind],{encoding:'utf8'});
+  assert.equal(child.status,0,child.stderr);const result=JSON.parse(child.stdout);
+  if(kind==='directory')assert.equal(result.status,'active');else assert.match(result.error,/Refusing symlink|Expected directory/);
+ }
 });

@@ -34,6 +34,7 @@ test('all existing pack types and repository artifacts are source-bound candidat
   assert.equal(listTrialCandidates(f.root).candidates.length,CANDIDATE_TYPES.length+1);
   assert.equal(f.register().unchanged,true);
   assert.throws(()=>f.register({hypothesis:'Changed without version'}),/never overwrite/);
+  for(const version of ['01.0.0','1.00.0','1.0.00'])assert.throws(()=>f.register({version}),/Invalid candidate identity/);
   assert.throws(()=>f.register({id:'escape',target:{kind:'repository',paths:['../secret']}}),/escapes/);
 });
 test('matching is contextual, capped at one, and only actual prompting starts deduplication',t=>{
@@ -82,6 +83,15 @@ test('source/content drift and symlinks suppress recommendations; failed collect
   assert.equal(taskTrialContext(f.root,'other','portfolio').taskContinues,true);
   fs.rmSync(path.join(f.personal,'staging/trial-candidates'),{recursive:true});fs.symlinkSync(f.root,path.join(f.personal,'staging/trial-candidates'));
   assert.equal(taskTrialContext(f.root,'other','portfolio').status,'unavailable');
+});
+test('a corrupt older revision does not hide a valid newer candidate, while a corrupt newest revision still blocks fallback',t=>{
+  const f=fixture(t);f.register({version:'1.10.0'});
+  const directory=path.join(f.personal,'staging/trial-candidates');
+  fs.writeFileSync(path.join(directory,'subject-led-design-1.0.0.json'),'broken old revision');
+  const listed=listTrialCandidates(f.root);assert.equal(listed.warnings.length,1);assert.equal(listed.candidates[0].candidate.version,'1.10.0');
+  assert.equal(matchCandidates(f.root,{taskKey:'newer',query:'portfolio'}).recommendations.length,1);
+  fs.writeFileSync(path.join(directory,'subject-led-design-1.11.0.json'),'broken newest revision');
+  assert.equal(listTrialCandidates(f.root).candidates.length,0);
 });
 test('tools requiring installation need a separate authorization; composite validation is recorded independently',t=>{
   const f=fixture(t);const r=f.register({id:'tool-checker',type:'skill',eligibility:'requires-authorization',target:{kind:'repository',paths:['mcp/checker']}});
