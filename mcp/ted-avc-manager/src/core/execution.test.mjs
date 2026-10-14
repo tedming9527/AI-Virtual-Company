@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { skillBundle } from './local-assets.js';
 import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks } from './execution.js';
+import {registerCandidate,recordTrial} from '../governance/candidate-trials.js';
 import { runCodexHook } from './codex-hooks.js';
 import { openMaintenance, maintenanceStatus, endMaintenance } from './maintenance.js';
 import { diagnosticCall, maintenanceDoctor } from './maintenance-diagnostics.js';
@@ -364,4 +365,21 @@ test('workflow required assets, cancellation and unknown completion cannot be cl
  const g=fixture(t),other=nativeWorkflow(g);g.begin(other);cancelWorkflow(g.root,other.workflowId);
  assert.match(g.event('PreToolUse').hookSpecificOutput.permissionDecisionReason,/cancelled/);
  writeFileSync(join(g.root,'result.md'),'cancel evidence');closeTask(g.root,{...g.key,artifacts:[{path:'result.md'}]},g.deployment);assert.equal(workflowStatus(g.root,other.workflowId).status,'cancelled');
+});
+
+test('task_begin delivers optional candidates, preserves cross-turn refusal and degrades corrupt trial state',t=>{
+ const f=fixture(t);
+ const candidate={id:'task-review',type:'role',version:'1.0.0',title:'Review role candidate',hypothesis:'May find missed defects',triggers:['frontend review'],exclude:['production'],scope:'One isolated review',validation:'Compare defect findings',expectedCost:'Five minutes',sources:[{kind:'research',url:'https://example.com/review/v1',revision:'v1'}],components:[],target:{kind:'pack',paths:['packs/role/reviewer']},eligibility:'reversible',status:'candidate'};
+ const saved=registerCandidate(f.root,{candidate});
+ const first=f.begin({candidateTaskKey:'logical-review',goal:'Perform frontend review'});assert.equal(first.candidateTrials.recommendations[0].sha256,saved.sha256);
+ const input={taskKey:'logical-review',candidateId:candidate.id,sha256:saved.sha256};
+ recordTrial(f.root,{...input,action:'offer',query:'frontend review',prompt:'Try this role?',reason:'Matches review task'});
+ recordTrial(f.root,{...input,action:'decide',choice:'declined',userResponse:'Skip',responseSource:'user'});
+ assert.equal(f.begin({candidateTaskKey:'logical-review',goal:'Perform frontend review'}).candidateTrials.recommendations.length,0);
+ const native={...f.native,turn_id:'turn-next'};runCodexHook(native,f.deployment);
+ const receipt=JSON.parse(readFileSync(join(f.root,'runtime/hooks/sessions',sha(native.session_id)+'.json'))).turns[native.turn_id].receipt;
+ const next=beginTask(f.root,{...f.key,turnId:native.turn_id,receipt,role:'ai-engineer',goal:'Perform frontend review',allowedTools:[tool,close],maxToolCalls:2,candidateTaskKey:'logical-review'},f.deployment);
+ assert.equal(next.candidateTrials.recommendations.length,0);
+ const ledger=join(f.root,'runtime/personal/projects/example/experience/.avc/candidate-trials.json');writeFileSync(ledger,'broken');
+ assert.equal(beginTask(f.root,{...f.key,turnId:native.turn_id,receipt,role:'ai-engineer',goal:'Perform frontend review',allowedTools:[tool,close],maxToolCalls:2,candidateTaskKey:'logical-review'},f.deployment).candidateTrials.taskContinues,true);
 });

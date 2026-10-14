@@ -14,7 +14,7 @@ test('stdio handshake serves management tools and malformed resource URI does no
  const hello=await rpc('initialize',{protocolVersion:'2024-11-05',capabilities:{},clientInfo:{name:'probe',version:'1'}});assert.equal(hello.result.serverInfo.name,'ted-avc-manager');
  p.stdin.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/initialized'})+'\n');
  const tools=(await rpc('tools/list')).result.tools;assert.ok(tools.some(t=>t.name==='task_begin'));assert.ok(tools.some(t=>t.name==='find_skill'));
- for (const name of ['workflow_create','workflow_status','workflow_cancel','workflow_templates','discover_capabilities','validate_local_skill','list_skill_candidates']) assert.ok(tools.some(t=>t.name===name));
+ for (const name of ['workflow_create','workflow_status','workflow_cancel','workflow_templates','discover_capabilities','validate_local_skill','list_skill_candidates','candidate_register','candidate_match','candidate_trial','candidate_trial_status']) assert.ok(tools.some(t=>t.name===name));
  assert.ok(tools.find(t=>t.name==='task_begin').inputSchema.properties.workflowId);
  for (const name of ['task_begin','load_asset','task_closeout']) {
   assert.deepEqual(tools.find(t=>t.name===name).annotations,{readOnlyHint:false,destructiveHint:false,openWorldHint:false});
@@ -32,6 +32,16 @@ test('stdio handshake serves management tools and malformed resource URI does no
  const update=await rpc('tools/call',{name:'check_update',arguments:{}});assert.match(update.result.content[0].text,/已安装客户端 v1.0.0/);assert.match(update.result.content[0].text,/中央仓库声明 v1.2.0/);assert.match(update.result.content[0].text,/可升级/);assert.match(update.result.content[0].text,/当前 MCP 进程/);
  const templates=await rpc('tools/call',{name:'workflow_templates',arguments:{}});assert.deepEqual(JSON.parse(templates.result.content[0].text),[]);
  const invalid=await rpc('tools/call',{name:'discover_capabilities',arguments:{zhQuery:'only English',enQuery:'skills'}});assert.match(invalid.error.message,/Chinese/);
+ const candidate={id:'mcp-trial',type:'framework',version:'1.0.0',title:'Browser review',hypothesis:'May reduce defects',triggers:['frontend review'],exclude:['payment'],scope:'One local fixture',validation:'Compare found issues',expectedCost:'Up to five minutes',sources:[{kind:'research',url:'https://example.com/study/v1',revision:'v1'}],components:[],target:{kind:'pack',paths:['packs/framework/browser-review']},eligibility:'reversible',status:'candidate'};
+ const call=async(name,arguments_)=>{const response=await rpc('tools/call',{name,arguments:arguments_});assert.equal(response.error,undefined,JSON.stringify(response.error));return JSON.parse(response.result.content[0].text);};
+ const saved=await call('candidate_register',{candidate});assert.equal(saved.publication,'none');
+ const taskKey='stdio-task',context={taskKey,query:'frontend review'};
+ assert.equal((await call('candidate_match',context)).recommendations[0].candidateId,candidate.id);
+ const input={taskKey,candidateId:candidate.id,sha256:saved.sha256};
+ await call('candidate_trial',{input:{...input,action:'offer',...context,prompt:'Try this unverified checker?',reason:'Reviewing a frontend fixture'}});
+ await call('candidate_trial',{input:{...input,action:'decide',choice:'declined',responseSource:'user',userResponse:'Skip this trial'}});
+ assert.equal((await call('candidate_match',context)).recommendations.length,0);
+ assert.equal((await call('candidate_trial_status',{taskKey})).trials[0].status,'declined');
  assert.equal((await rpc('resources/read',{uri:'tedavc://asset/%INVALID'})).error.code,-32602);
  assert.ok((await rpc('resources/list')).result.resources);
 });

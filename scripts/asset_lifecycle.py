@@ -125,11 +125,40 @@ def _register_central_release(personal,proposal,central_root,pack_path,tag,revie
     save(proposal/'release-receipt.json',receipt);save(proposal/'proposal.json',{**info,'status':'released','releaseReceipt':receipt['id']})
     return receipt
 
+def register_central_artifact_release(personal,proposal,central_root,targets,tag,review_ref,name):
+    """Release lineage for any existing central artifact/composition; map every frozen source file."""
+    import re, subprocess
+    personal,proposal,central_root=map(safe,[personal,proposal,central_root])
+    with personal_locked(personal):
+        if not proposal.is_relative_to(personal/'staging/central-proposals') or not re.fullmatch(r'v\d+\.\d+\.\d+',tag or '') or not review_ref:raise ValueError('Exact proposal, release tag and review reference required')
+        central_id=identity('central','material',name)
+        info=read(proposal/'proposal.json')
+        if info.get('status')!='pending-review' or info.get('ownership')!='user':raise ValueError('Invalid promotion state')
+        files=inventory(proposal/'files')
+        if files!=info['from']['files']:raise ValueError('Promotion candidate changed')
+        if not isinstance(targets,dict) or set(targets)!=set(files) or len(set(targets.values()))!=len(targets):raise ValueError('Exact full source-to-central mapping required')
+        for target in targets.values():
+            if not isinstance(target,str) or not target or '\\' in target or Path(target).is_absolute() or any(x in ['..','.git','runtime','tmp','output'] for x in target.split('/')):raise ValueError('Central target escaped or uses private/runtime area')
+            # Exact tracked files, including roles, frameworks, workflows, tools and presets.
+            if target.startswith('/') or target.endswith('/') or '//' in target or '.' in target.split('/'):raise ValueError('Invalid central target')
+        def git(*args):return subprocess.check_output(['git','-C',str(central_root),*args])
+        commit=git('rev-parse',tag+'^{commit}').decode().strip()
+        subprocess.run(['git','-C',str(central_root),'merge-base','--is-ancestor',commit,'HEAD'],check=True)
+        for source,target in targets.items():
+            if digest(git('show',commit+':'+target))!=files[source]:raise ValueError('Released artifact differs from reviewed candidate')
+        doc=ledger(personal);asset=doc['assets'].get(info['from']['assetId'])
+        if not asset or asset['revision']!=info['from']['revision'] or inventory(safe(asset['path']))!=asset.get('files'):raise ValueError('User source revision changed')
+        receipt={'id':uuid.uuid4().hex,'from':info['from'],'to':{'domain':'central','assetId':central_id,'releaseTag':tag,'commit':commit,'targets':targets},'reviewRef':review_ref,'status':'committed','sourcePreserved':True}
+        doc['transitions'].append(receipt);save(ledger_file(personal),doc)
+        save(proposal/'release-receipt.json',receipt);save(proposal/'proposal.json',{**info,'status':'released','releaseReceipt':receipt['id']})
+        return receipt
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['scan-client','import-user','promote-user','propose-central','register-central-release']);p.add_argument('--codex-home',type=Path,default=Path.home()/'.codex');p.add_argument('--personal-project',type=Path,required=True);p.add_argument('--source',type=Path);p.add_argument('--path');p.add_argument('--name');p.add_argument('--asset-id');p.add_argument('--authorization-ref');p.add_argument('--proposal',type=Path);p.add_argument('--central-root',type=Path);p.add_argument('--pack-path');p.add_argument('--tag');p.add_argument('--review-ref');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['scan-client','import-user','promote-user','propose-central','register-central-release','register-central-artifact-release']);p.add_argument('--codex-home',type=Path,default=Path.home()/'.codex');p.add_argument('--personal-project',type=Path,required=True);p.add_argument('--source',type=Path);p.add_argument('--path');p.add_argument('--name');p.add_argument('--asset-id');p.add_argument('--authorization-ref');p.add_argument('--proposal',type=Path);p.add_argument('--central-root',type=Path);p.add_argument('--pack-path');p.add_argument('--tag');p.add_argument('--review-ref');p.add_argument('--targets',type=Path);a=p.parse_args()
     if a.command=='scan-client':result=scan_client(a.codex_home)
     elif a.command=='import-user':result=import_user(a.codex_home,a.personal_project,a.source)
     elif a.command=='promote-user':result=promote_user(a.codex_home,a.personal_project,a.path,a.name,a.authorization_ref)
+    elif a.command=='register-central-artifact-release':result=register_central_artifact_release(a.personal_project,a.proposal,a.central_root,read(a.targets),a.tag,a.review_ref,a.name)
     elif a.command=='register-central-release':result=register_central_release(a.personal_project,a.proposal,a.central_root,a.pack_path,a.tag,a.review_ref)
     else:result=propose_central(a.personal_project,a.asset_id,a.authorization_ref)
     print(json.dumps(result,ensure_ascii=False))

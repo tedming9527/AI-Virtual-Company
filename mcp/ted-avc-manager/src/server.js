@@ -16,6 +16,7 @@ import { validateLog } from './governance/schema.js';
 import { findSkills, registerLocalSkill } from './core/local-assets.js';
 import { syncCandidates } from './panorama/candidates.js';
 import { createWorkflow, workflowStatus, cancelWorkflow, workflowTemplates } from './core/workflow.js';
+import { registerCandidate, matchCandidates, recordTrial, trialStatus } from './governance/candidate-trials.js';
 import { beginTask, loadAsset, closeTask } from './core/execution.js';
 import { listAssets, recommendAssets, proposeAsset, recordAssetUse, watchAssets, noteDeliveredAsset } from './core/awareness.js';
 
@@ -36,7 +37,11 @@ const TOOLS = [
   { name: 'find_skill', description: '发现中央、本地自定义及本机技能，区分发现与管理状态', inputSchema: { type: 'object', properties: { query: { type: 'string' } } } },
   { name: 'register_skill', description: '登记 personal/custom 内原创技能，绑定版本与正文/元数据哈希；外部先导入复核', inputSchema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } },
   ...['list_assets','recommend_assets','report_asset_use','propose_asset'].map(name=>({name,description:({list_assets:'列出通用/本地/native技能与知识元数据；不等于正文加载',recommend_assets:'根据任务关键词推荐可发现资产，不自动激活',report_asset_use:'记录模型使用声明，与真实读取/正文交付分开统计',propose_asset:'将技能/插件建议写入个人待复核候选；不自动安装或发布'})[name],inputSchema:{type:'object',properties:{query:{type:'string'},type:{type:'string'},source:{type:'string'},assetId:{type:'string'},name:{type:'string'},origin:{type:'string'},purpose:{type:'string'},validationId:{type:'string'},sources:{type:'array',items:{type:'object'}},sessionId:{type:'string'},turnId:{type:'string'}}}})),
-  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, description: ({task_begin:'在本地登记当前回合任务、角色和工具范围并写入审计记录；不执行目标中描述的操作，不授予后续工具权限，不联网',load_asset:'读取明确选定的本地资产正文，写入加载记录及摘要；不安装、不执行资产内容，不联网',task_closeout:'读取本地产物计算 SHA，写入任务关闭与审计记录；不执行或发布产物，不联网'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},agentId:{type:'string'},workflowId:{type:'string'},nodeId:{type:'string'},role:{type:'string'},goal:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
+  ...['task_begin', 'load_asset', 'task_closeout'].map(name => ({ name, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, description: ({task_begin:'在本地登记当前回合任务、角色和工具范围并写入审计记录；不执行目标中描述的操作，不授予后续工具权限，不联网',load_asset:'读取明确选定的本地资产正文，写入加载记录及摘要；不安装、不执行资产内容，不联网',task_closeout:'读取本地产物计算 SHA，写入任务关闭与审计记录；不执行或发布产物，不联网'})[name], inputSchema: { type: 'object', properties: { sessionId: {type:'string'},turnId:{type:'string'},receipt:{type:'string'},agentId:{type:'string'},workflowId:{type:'string'},nodeId:{type:'string'},role:{type:'string'},goal:{type:'string'},candidateTaskKey:{type:'string'},allowedTools:{type:'array',items:{type:'string'}},maxToolCalls:{type:'integer'},requiredAssets:{type:'array',items:{type:'string'}},source:{type:'string'},type:{type:'string'},name:{type:'string'},entry:{type:'string'},artifacts:{type:'array',items:{type:'object'}},unknownCalls:{type:'array',items:{type:'object'}} } } })),
+  {name:'candidate_register',description:'创建现有类型的私有待验证候选，可由模型在当前授权任务内提炼；不安装、执行或发布',inputSchema:{type:'object',additionalProperties:false,properties:{candidate:{type:'object'}},required:['candidate']}},
+  {name:'candidate_match',description:'按当前任务匹配候选，返回一次可选试用建议；未评分与低分分开，不自动采用',annotations:{readOnlyHint:true},inputSchema:{type:'object',additionalProperties:false,properties:{taskKey:{type:'string'},query:{type:'string'},retryReason:{type:'string'}},required:['taskKey','query']}},
+  {name:'candidate_trial',description:'记录实际提示、明确用户选择、试用开始、效果/成本/产物或取消；声明不证明用户身份或因果收益，不自动晋升',inputSchema:{type:'object',additionalProperties:false,properties:{input:{type:'object'}},required:['input']}},
+  {name:'candidate_trial_status',description:'只读查看候选试用、反馈及未知项',annotations:{readOnlyHint:true},inputSchema:{type:'object',additionalProperties:false,properties:{taskKey:{type:'string'}}}},
   { name: 'submit_log', description: '校验并暂存使用日志（免审合并前提：过 schema 校验门）', inputSchema: { type: 'object', properties: { log: { type: 'object' } } } },
 ];
 
@@ -141,6 +146,14 @@ export function start() {
         const result=({task_begin:beginTask,load_asset:loadAsset,task_closeout:closeTask})[name](ROOT,args,deploymentFile);
         if(name==='load_asset')noteDeliveredAsset(ROOT,result,args);
         text = JSON.stringify(result);
+      } else if (name === 'candidate_register') {
+        text=JSON.stringify(registerCandidate(ROOT,args));
+      } else if (name === 'candidate_match') {
+        text=JSON.stringify(matchCandidates(ROOT,args));
+      } else if (name === 'candidate_trial') {
+        text=JSON.stringify(recordTrial(ROOT,args.input));
+      } else if (name === 'candidate_trial_status') {
+        text=JSON.stringify(trialStatus(ROOT,args.taskKey));
       } else if (name === 'submit_log') {
         const r = validateLog(args.log);
         if (!r.valid) throw new Error(`日志校验未通过: ${r.errors.join('; ')}`);
