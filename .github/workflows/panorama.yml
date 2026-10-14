@@ -57,6 +57,7 @@ jobs:
           node scripts/check-knowledge.mjs
           node scripts/mcp-governance.mjs check-company
           node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+          python3 -m unittest discover -s scripts -p '*_test.py'
       - name: 采集公开候选 PR（仅读元数据）
         env:
           GITHUB_TOKEN: ${{ github.token }}

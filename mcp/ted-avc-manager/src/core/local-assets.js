@@ -1,3 +1,4 @@
+import { catalogRootFor } from './client-state.js';
 import { existsSync, readdirSync, lstatSync, readFileSync, writeFileSync, mkdirSync, realpathSync } from 'node:fs';
 import { join, relative, resolve, basename, sep } from 'node:path';
 import { homedir } from 'node:os';
@@ -74,7 +75,7 @@ export function nativeSkillRoots(home=homedir()) {
 export function discoverSkills(root, opts = {}) {
   const personal = personalProject(root), skills = [], warnings = [];
   const roots = [
-    { path: join(root, 'packs', 'skill'), source: 'general' },
+    { path: join(catalogRootFor(root), 'packs', 'skill'), source: 'general' },
     { path: join(personal.directory, 'custom', 'packs', 'skill'), source: 'local-custom' },
     { path: join(personal.directory, 'custom', 'skills'), source: 'local-custom' },
     ...(opts.externalRoots || nativeSkillRoots()).map(path => ({ path, source: 'external-installed' })),

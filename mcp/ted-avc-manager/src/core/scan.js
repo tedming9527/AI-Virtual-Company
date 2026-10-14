@@ -1,3 +1,4 @@
+import { catalogRootFor } from './client-state.js';
 // scan.js —— 目录规约扫描（约定大于配置：FR-1）
 
 import { readdirSync, existsSync, statSync, lstatSync, readFileSync } from 'node:fs';
@@ -28,6 +29,7 @@ export function readBootstrap(root) {
 
 // 扫描 packs/<type>/<name>/，约定：目录即身份，meta.json 即契约
 export function scanPacks(root, options = {}) {
+  root = catalogRootFor(root);
   const packsDir = join(root, 'packs');
   const found = [];
   const errors = [];

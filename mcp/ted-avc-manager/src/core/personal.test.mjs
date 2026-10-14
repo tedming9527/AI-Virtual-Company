@@ -67,7 +67,7 @@ test('doctor 检出缺失/多余/命名/state 问题，init 补建后转通过',
   assert.ok(clean.ok, JSON.stringify(clean.issues));
 });
 
-test('preset 同步：哈希不符保留 .local，未改动则平滑更新', (t) => {
+test('preset 同步：修改保全到 staging，中央副本全量更新', (t) => {
   const root = fixture(t);
   initPersonal(root, 'demo', { version: '1.0.0' });
   const central = makeCentralPresets(root, '1.0.0');
@@ -87,7 +87,9 @@ test('preset 同步：哈希不符保留 .local，未改动则平滑更新', (t)
   makeCentralPresets(root, '1.1.0');
   const second = syncPresets(root, root, 'demo', central);
   assert.equal(second.conflicts.length, 1);
-  assert.ok(fs.existsSync(`${presetFile}.local`));
+  assert.ok(second.recovery.length);
+  assert.match(fs.readFileSync(path.join(second.recovery[0], 'files/config.json'), 'utf8'), /user-edited/);
+  assert.equal(fs.existsSync(`${presetFile}.local`), false);
   assert.match(fs.readFileSync(presetFile, 'utf8'), /1\.1\.0/);
   assert.ok(doctorPersonal(root, 'demo').ok, '同步后哈希应重新一致');
 });
@@ -151,4 +153,22 @@ test('config follows declared preset order rather than directory sorting', t => 
   const result = mergeConfig(root, 'demo', ['z-base', 'a-overlay']);
   assert.equal(result.merged.limit.value, 20);
   assert.equal(result.merged.limit.source, 'preset/a-overlay/config.json');
+});
+
+test('central preset removal deletes obsolete copies, preserves local edits and unrelated custom', t => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'avc-preset-retire-')));
+  t.after(() => fs.rmSync(root,{recursive:true,force:true}));
+  const src=path.join(root,'presets/base');fs.mkdirSync(src,{recursive:true});
+  fs.writeFileSync(path.join(src,'old.md'),'central');
+  const b={version:'1.0.0',presets:['base']};syncPresets(root,root,'demo',b);
+  const dst=path.join(root,'projects/demo/preset/base');
+  fs.writeFileSync(path.join(dst,'draft.md'),'unique edit');
+  fs.unlinkSync(path.join(src,'old.md'));
+  const result=syncPresets(root,root,'demo',{...b,version:'2.0.0'});
+  assert.equal(fs.existsSync(path.join(dst,'old.md')),false);
+  assert.equal(fs.existsSync(path.join(dst,'draft.md')),false);
+  assert.equal(fs.readFileSync(path.join(result.recovery[0],'files/draft.md'),'utf8'),'unique edit');
+  assert.equal(fs.existsSync(path.join(result.recovery[0],'files/old.md')),false);
+  const last=syncPresets(root,root,'demo',{version:'3.0.0',presets:[]});
+  assert.deepEqual(last.removed,['base']);assert.equal(fs.existsSync(dst),false);
 });

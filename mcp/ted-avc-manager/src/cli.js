@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // cli.js —— ted-avc-manager 命令入口（FR-2~FR-9）
 
+import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import process from 'node:process';
 import { readFileSync } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
@@ -45,7 +46,7 @@ switch (cmd) {
       const { maintenanceDoctor } = await import('./core/maintenance-diagnostics.js');
       const pos = args.indexOf('--deployment');
       if (pos >= 0 && !args[pos + 1]) throw new Error('--deployment requires a file');
-      ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : process.env.AVC_DEPLOYMENT_FILE || join(ROOT, 'runtime/footer-hook-deployment.json')), null, 2));
+      ok(JSON.stringify(maintenanceDoctor(ROOT, pos >= 0 ? args[pos + 1] : deploymentFileFor(ROOT)), null, 2));
     } catch (e) { fail(e); }
     break;
   case 'governance-weekly-status': case 'governance-weekly-prepare': case 'governance-weekly-complete':
@@ -71,7 +72,7 @@ switch (cmd) {
       if (cmd === 'maintenance-open' && !args.includes('--authorize-unbound-maintenance')) throw new Error('Explicit --authorize-unbound-maintenance required; use only after user authorization');
       const { openMaintenance, maintenanceStatus, endMaintenance } = await import('./core/maintenance.js');
       const input = JSON.parse(readFileSync(args[1], 'utf8'));
-      ok(JSON.stringify(({'maintenance-open':openMaintenance,'maintenance-status':maintenanceStatus,'maintenance-close':endMaintenance})[cmd](ROOT,input,process.env.AVC_DEPLOYMENT_FILE || join(ROOT,'runtime','footer-hook-deployment.json')),null,2));
+      ok(JSON.stringify(({'maintenance-open':openMaintenance,'maintenance-status':maintenanceStatus,'maintenance-close':endMaintenance})[cmd](ROOT,input,deploymentFileFor(ROOT)),null,2));
     } catch (e) { fail(e); }
     break;
   case 'install-execution-hooks':
@@ -81,7 +82,7 @@ switch (cmd) {
     try {
       const { beginTask, loadAsset, closeTask } = await import('./core/execution.js');
       const input = JSON.parse(readFileSync(args[1], 'utf8'));
-      ok(JSON.stringify(({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,process.env.AVC_DEPLOYMENT_FILE || join(ROOT,'runtime','footer-hook-deployment.json')),null,2));
+      ok(JSON.stringify(({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,deploymentFileFor(ROOT)),null,2));
     } catch (e) { fail(e); }
     break;
   case 'install-codex-hooks': {
@@ -245,7 +246,7 @@ switch (cmd) {
   }
   case 'cleanup': {
     try {
-      const res = cleanupRuntime(runtimeDirOf(ROOT), { dryRun: !args.includes('--apply') });
+      const res = cleanupRuntime(join(stateRootFor(ROOT), 'runtime'), { dryRun: !args.includes('--apply') });
       ok(`${res.dryRun ? '[dry-run] ' : ''}清理完成：cache ${res.removed.cache} 条 / logs ${res.removed.logs} 条。规则：${res.rule}`);
     } catch (e) { fail(e); }
     break;

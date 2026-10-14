@@ -4,6 +4,8 @@ import { resolve, dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
 import { weeklyStatus } from '../governance/weekly.js';
+import { clientStateRoot, catalogRootFor } from './client-state.js';
+import { hookWarning } from './hook-warning.js';
 
 const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const hash = text => createHash('sha256').update(text).digest('hex');
@@ -25,7 +27,7 @@ export function readHookDeployment(file) {
     p.owners = {};
     for (const role of p.roles) {
       if (!/^[a-z][a-z0-9-]*$/.test(role)) throw new Error('Invalid role ID');
-      const meta = json(join(p.root, 'packs', 'role', role, 'meta.json'));
+      const meta = json(join(catalogRootFor(p.root), 'packs', 'role', role, 'meta.json'));
       if (meta.type !== 'role' || meta.name !== role || !/[\u4e00-\u9fff]/.test(meta.nameZh ?? '') || !/[\u4e00-\u9fff]/.test(meta.professionZh ?? '') || meta.displayName !== `${meta.nameZh}·${meta.professionZh}`) throw new Error(`Role ${role} requires canonical Chinese name + profession`);
       p.owners[role] = text(meta.displayName, 'owner display');
     }
@@ -34,6 +36,7 @@ export function readHookDeployment(file) {
 }
 
 export function installCodexHooks(deploymentFile, codexHome) {
+  if (existsSync(join(resolve(codexHome), 'ted-avc-manager', 'manifest.json'))) throw new Error('Managed client: use scripts/client_environment.py rebuild; partial hook replacement is disabled');
   const config = realpathSync(resolve(deploymentFile));
   readHookDeployment(config);
   const home = resolve(codexHome);
@@ -47,8 +50,8 @@ export function installCodexHooks(deploymentFile, codexHome) {
   document.hooks ??= {};
   for (const event of ['SessionStart', 'UserPromptSubmit', 'Stop']) {
     const groups = document.hooks[event] ?? [];
-    // Replace this adapter/config pair across package upgrades; preserve others.
-    document.hooks[event] = groups.map(g => ({ ...g, hooks: g.hooks.filter(h => !(h.command?.includes('/src/codex-hook.js') && h.command.endsWith(suffix))) })).filter(g => g.hooks.length);
+    // Replace all owned definitions, including stale deployment paths; preserve other adapters.
+    document.hooks[event] = groups.map(g => ({ ...g, hooks: g.hooks.filter(h => !(h.command?.includes('/src/codex-hook.js') && h.command.includes('--ted-avc-manager-footer'))) })).filter(g => g.hooks.length);
     document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact' } : {}), hooks: [{
       type: 'command', command, timeout: 10,
       statusMessage: `ted-avc-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
@@ -72,6 +75,11 @@ function safeDirectory(root, directory) {
 }
 
 export function runCodexHook(input, deploymentFile) {
+  try { return collectCodexHook(input, deploymentFile); }
+  catch (error) { return hookWarning('footer', error.message); }
+}
+
+function collectCodexHook(input, deploymentFile) {
   const c = readHookDeployment(deploymentFile);
   const cwd = realpathSync(resolve(input.cwd));
   const project = c.projects.find(p => cwd === p.root || cwd.startsWith(p.root + sep));
@@ -80,9 +88,10 @@ export function runCodexHook(input, deploymentFile) {
   text(input.session_id, 'session_id');
   const release = json(join(project.root, 'bootstrap.json')).version;
   if (release !== version) throw new Error(`Hook/package v${version} differs from project v${release}`);
-  const base = join(project.root, 'runtime', 'hooks');
+  const stateRoot = clientStateRoot(project);
+  const base = join(stateRoot, 'runtime', 'hooks');
   const stateDir = join(base, 'sessions');
-  safeDirectory(project.root, stateDir);
+  safeDirectory(stateRoot, stateDir);
   const stateFile = join(stateDir, hash(input.session_id) + '.json');
   const auditFile = join(base, 'events.jsonl');
   for (const file of [stateFile, auditFile]) if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('Refusing hook receipt symlink');
@@ -142,13 +151,6 @@ export function runCodexHook(input, deploymentFile) {
     record('footer_verified', { receipt: pending.receipt, deliveryVersion, owner: selected[0], messageSha256: hash(message) });
     return {};
   }
-  if (input.stop_hook_active || pending?.correctionRequested) {
-    record('correction_failed', { receipt: pending?.receipt ?? null });
-    return { continue: false, stopReason: 'Delivery footer still invalid after one correction', systemMessage: `ted-avc-manager v${version}: footer verification FAILED; no mediation acceptance claim.` };
-  }
-  state.turns[turn] ??= { receipt: randomBytes(6).toString('hex'), deliveryVersion: version };
-  state.turns[turn].correctionRequested = true;
-  writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 });
-  record('correction_requested', { receipt: state.turns[turn].receipt });
-  return { decision: 'block', reason: `Preserve the answer and add the exact delivery footer for the actual routed role at the end (before required memory citations). Do not claim a real employee executed it. Choose one:\n${Object.values(project.owners).map(display => footer(display, state.turns[turn].receipt, deliveryVersion)).join('\n')}` };
+  record('footer_unverified', { receipt: pending?.receipt ?? null, repairRequired: true });
+  return hookWarning('footer', 'Delivery footer missing or invalid; no mediation acceptance claim');
 }

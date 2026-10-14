@@ -41,6 +41,8 @@ jobs:
         run: node mcp/ted-avc-manager/src/cli.js panorama-source-snapshot --check
       - name: 通用层回归
         run: node --test mcp/ted-avc-manager/src/core/*.test.mjs mcp/ted-avc-manager/src/governance/*.test.mjs mcp/ted-avc-manager/src/panorama/*.test.mjs scripts/*.test.mjs
+      - name: 客户端重建与资产生命周期回归
+        run: python3 -m unittest discover -s scripts -p '*_test.py'
       - name: 校验现有日志 schema
         run: |
           for f in runtime/logs/*.json; do

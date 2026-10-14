@@ -1,6 +1,8 @@
 // server.js —— 对外薄 MCP 适配器（FR-9/FR-3）：把 ted-avc-manager 能力暴露为标准 MCP 工具
 // 内部核心链路仍为直连（无协议层）；本层仅服务「对接新模式 / 第三方 MCP 客户端」。
 
+import { acquireClientLease } from './core/client-lease.js';
+import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import { createInterface } from 'node:readline';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -77,7 +79,9 @@ export function start() {
     const ROOT = process.cwd();
     const name = params.name;
     const args = (params.arguments) || {};
+    let release;
     try {
+      release = acquireClientLease();
       let text;
       if (name === 'discover_capabilities') {
         text = JSON.stringify(await discoverCapabilities(args));
@@ -117,7 +121,7 @@ export function start() {
       } else if (name === 'propose_asset') {
         text=JSON.stringify(proposeAsset(ROOT,args));
       } else if (['task_begin','load_asset','task_closeout'].includes(name)) {
-        const deploymentFile = process.env.AVC_DEPLOYMENT_FILE || join(ROOT, 'runtime', 'footer-hook-deployment.json');
+        const deploymentFile = deploymentFileFor(ROOT);
         const result=({task_begin:beginTask,load_asset:loadAsset,task_closeout:closeTask})[name](ROOT,args,deploymentFile);
         if(name==='load_asset')noteDeliveredAsset(ROOT,result,args);
         text = JSON.stringify(result);
@@ -125,7 +129,7 @@ export function start() {
         const r = validateLog(args.log);
         if (!r.valid) throw new Error(`日志校验未通过: ${r.errors.join('; ')}`);
         const ts = new Date().toISOString().replace(/[:.]/g, '-');
-        const dir = join(ROOT, 'runtime', 'logs');
+        const dir = join(stateRootFor(ROOT), 'runtime', 'logs');
         mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, `usage-${ts}.json`), JSON.stringify(args.log, null, 2) + '\n', 'utf8');
         text = `日志已校验通过并暂存。${flowSync(ROOT).summary}`;
@@ -135,6 +139,6 @@ export function start() {
       respond(id, { content: [{ type: 'text', text }] });
     } catch (e) {
       respondError(id, -32603, e.message);
-    }
+    } finally { release?.(); }
   }
 }
