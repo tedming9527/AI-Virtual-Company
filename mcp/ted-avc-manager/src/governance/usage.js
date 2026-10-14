@@ -5,6 +5,7 @@ const SIGNALS = new Set(['delivered', 'read-completed', 'model-reported', 'adopt
 const HASH = /^[a-f0-9]{64}$/;
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,127}$/;
 const WINDOW = 7 * 86400000;
+const versioned = value => typeof value === 'string' && (/^[0-9]+\.[0-9]+\.[0-9]+$/.test(value) || /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10)===value);
 
 export function validateUsageEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) throw new Error('事件必须是对象');
@@ -13,7 +14,7 @@ export function validateUsageEvent(event) {
   if (event.schema !== 'avc.asset-usage.v2' || !ID.test(event.eventId || '') || !ID.test(event.taskId || '')) throw new Error('事件身份无效');
   const a = event.asset;
   if (!a || typeof a !== 'object' || Array.isArray(a) || Object.keys(a).some(key => !['source', 'type', 'id', 'version', 'bundleSha256'].includes(key)) ||
-    !SOURCES.has(a.source) || !TYPES.has(a.type) || !ID.test(a.id || '') || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(a.version || '') || !HASH.test(a.bundleSha256 || '')) throw new Error('资产身份或摘要无效');
+    !SOURCES.has(a.source) || !TYPES.has(a.type) || !ID.test(a.id || '') || !versioned(a.version) || !HASH.test(a.bundleSha256 || '')) throw new Error('资产身份或摘要无效');
   if (!SIGNALS.has(event.signal) || !Number.isFinite(Date.parse(event.observedAt || ''))) throw new Error('信号或时间无效');
   if (event.answerSha256 !== undefined && !HASH.test(event.answerSha256)) throw new Error('答案摘要无效');
   if (event.signal === 'outcome' && !['success', 'fail'].includes(event.value)) throw new Error('结果必须可核验');

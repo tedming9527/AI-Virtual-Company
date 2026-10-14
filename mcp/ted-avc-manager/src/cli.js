@@ -22,6 +22,9 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'ted': {
+    try {const {runTedCommand}=await import('./core/ted-commands.js');ok(JSON.stringify(await runTedCommand(ROOT,{action:args[1]||'help',offline:args.includes('--offline')}),null,2));}catch(error){fail(error);}break;
+  }
   case 'setup':
     process.argv.splice(2,1);
     await import('./setup.js');
@@ -275,6 +278,7 @@ switch (cmd) {
   ted-avc-manager init （引导安装器，不写配置）
   ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
   ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
+  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status] [--offline] （聊天 Ted 技能与 MCP 的同一后端）
   ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
   ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
   ted-avc-manager config                       （合并 preset/custom，逐项标注来源）

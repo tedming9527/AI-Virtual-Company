@@ -41,7 +41,10 @@ export function clientStatus({ codexHome = process.env.CODEX_HOME || join(homedi
     nativeActivation:current.length?'native-events-observed':problems.length?'unverified':deployment.scope!=='client'?'upgrade-required-for-client-ingress':'pending-host-reload-and-event',
     problems, observedEvents:events.length, eventsCaptured:current.length, turnsAttached:turns.length, contextReturned:outcomes.some(o=>o.collection?.contextReturned), footerStatus:footer?.collection.footerStatus??'not-observed',
     sessionChains:[...new Set(current.map(e=>e.sessionId).filter(Boolean))].map(id=>({sessionChainId:id,turns:turns.filter(t=>t.sessionId===id).length,taskContracts:routed.filter(t=>t.sessionId===id).length})),
-    taskContracts:routed.length, taskStatuses:routed.map(t=>({sessionId:t.sessionId,turnId:t.turnId,status:t.status,taskId:t.taskId})),
+    taskContracts:routed.length, taskStatuses:routed.map(t=>({sessionId:t.sessionId,turnId:t.turnId,status:t.status,taskId:t.taskId,
+      pendingCalls:Object.entries(t.calls||{}).filter(([,c])=>c.status==='reserved').map(([toolUseId,c])=>({toolUseId,tool:c.tool,status:c.status})),
+      observedCalls:Object.values(t.calls||{}).filter(c=>c.status==='observed').length,
+      unknownCalls:Object.values(t.calls||{}).filter(c=>c.status==='unknown').length})),
     evidence:'adapter-observed native events; not proof of model semantic compliance or all historical conversations',
   };
 }

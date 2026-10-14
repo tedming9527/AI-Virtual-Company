@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {releaseHighlights,qualitySummary} from './highlights.js';
+test('release highlights show latest actual asset change across a later engine-only release, never uncommitted candidates',t=>{
+ const root=mkdtempSync(join(tmpdir(),'avc-highlights-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const git=(...args)=>execFileSync('git',['-C',root,...args],{stdio:'ignore'});
+ git('init','-b','main');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+ const dir=join(root,'packs/skill/example');mkdirSync(dir,{recursive:true});
+ const knowledge=join(root,'packs/knowledge/example');mkdirSync(knowledge,{recursive:true});
+ const dated=version=>writeFileSync(join(knowledge,'meta.json'),JSON.stringify({type:'knowledge',name:'example',version}));
+ const meta=version=>writeFileSync(join(dir,'meta.json'),JSON.stringify({type:'skill',name:'example',displayName:'Example',version}));
+ dated('2026-10-12');meta('1.0.0');writeFileSync(join(dir,'SKILL.md'),'# original');git('add','.');git('commit','-m','initial');git('tag','v1.0.0');
+ dated('2026-10-13');meta('1.1.0');writeFileSync(join(dir,'SKILL.md'),'# improved');git('add','.');git('commit','-m','upgrade');git('tag','v1.1.0');
+ writeFileSync(join(root,'engine.txt'),'engine only');git('add','.');git('commit','-m','engine');git('tag','v1.1.1');
+ meta('9.0.0');
+ const history=releaseHighlights(root);assert.equal(history.status,'available');assert.equal(history.changes.length,2);
+ const skill=history.changes.find(c=>c.type==='skill'),entry=history.changes.find(c=>c.type==='knowledge');
+ assert.equal(skill.previousVersion,'1.0.0');assert.equal(skill.version,'1.1.0');assert.equal(skill.releaseTag,'v1.1.0');
+ assert.equal(entry.kind,'upgraded');assert.equal(entry.version,'2026-10-13');
+});
+test('excellent scores need current content, sufficient samples and non-provisional evidence; trends cannot compare stale versions',()=>{
+ const asset={type:'skill',name:'demo',version:'1.0.0',bundleSha256:'a'.repeat(64)},identity='pack:skill/demo@1.0.0';
+ const record={identity,contentDigest:asset.bundleSha256,quality:4.8,source:'可归因实证',sampleSize:25,assessedAt:'2026-10-14'};
+ assert.equal(qualitySummary([asset],{[identity]:record}).excellent,1);
+ for(const change of [{sampleSize:19},{contentDigest:'b'.repeat(64)},{identity:'pack:skill/demo@0.9.0'},{provisional:true}])assert.equal(qualitySummary([asset],{[identity]:{...record,...change}}).excellent,0);
+ const same={...record,quality:4.5,assessedAt:'2026-10-13'};
+ assert.equal(qualitySummary([asset],{[identity]:{...record,previous:same}}).rows[0].trend,0.3);
+ assert.equal(qualitySummary([asset],{[identity]:{...record,previous:{...same,contentDigest:'b'.repeat(64)}}}).rows[0].trend,null);
+});

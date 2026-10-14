@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // One synchronous ingress per host event; cached footer/execution aliases use it too.
 import { readFileSync } from 'node:fs';
-import { captureNative, nativeTaskStatus } from './core/session-ingress.js';
+import { captureNative, nativeTaskStatus, handleCapturedOnce } from './core/session-ingress.js';
 import { runCodexHook } from './core/codex-hooks.js';
 import { runExecutionHook } from './core/execution.js';
 import { hookWarning } from './core/hook-warning.js';
@@ -11,6 +11,7 @@ try {
   if (pos < 0 || !process.argv[pos + 1]) throw Error('--deployment required');
   const file = process.argv[pos + 1], input = JSON.parse(readFileSync(0, 'utf8'));
   collection = captureNative(input, file);
+  const output = handleCapturedOnce(input,file,collection,()=>{
   const parts = [];
   if (['SessionStart', 'UserPromptSubmit', 'Stop'].includes(input.hook_event_name)) parts.push(runCodexHook(input, file));
   if (['UserPromptSubmit', 'PreToolUse', 'PostToolUse'].includes(input.hook_event_name)) parts.push(runExecutionHook(input, file));
@@ -28,6 +29,8 @@ try {
   const control = parts.find(p=>p.decision!==undefined||p.continue!==undefined||p.hookSpecificOutput?.permissionDecision!==undefined);
   if (control) Object.assign(output, control);
   if (contexts.length && !control) output.hookSpecificOutput = { hookEventName: input.hook_event_name, additionalContext: [...new Set(contexts)].join('\n\n') };
+  return output;
+  });
   process.stdout.write(JSON.stringify(output) + '\n');
 } catch (error) {
   process.stdout.write(JSON.stringify({ ...hookWarning('ingress', error.message), _tedCollection: collection ?? { captured: false, attached: false, status: 'unverified' } }) + '\n');

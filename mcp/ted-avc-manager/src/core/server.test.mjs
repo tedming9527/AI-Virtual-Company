@@ -20,6 +20,15 @@ test('stdio handshake serves management tools and malformed resource URI does no
   assert.deepEqual(tools.find(t=>t.name===name).annotations,{readOnlyHint:false,destructiveHint:false,openWorldHint:false});
  }
  assert.equal(tools.find(t=>t.name==='upgrade').annotations,undefined);
+ for(const name of ['ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status'])assert.equal(tools.find(t=>t.name===name).annotations.readOnlyHint,true);
+ assert.equal(tools.find(t=>t.name==='ted_panorama').annotations.readOnlyHint,false);
+ assert.deepEqual((await rpc('prompts/list')).result.prompts.map(p=>p.name),['ted']);
+ const prompt=await rpc('prompts/get',{name:'ted',arguments:{action:'doctor'}});assert.match(prompt.result.messages[0].content.text,/ted_doctor/);
+ assert.equal((await rpc('prompts/get',{name:'ted',arguments:{action:'doctor;install'}})).error.code,-32602);
+ // A stale engine must still serve read-only diagnosis; fixed doctor cannot be
+ // redirected to panorama by an extra action argument in a raw protocol call.
+ const doctor=await rpc('tools/call',{name:'ted_doctor',arguments:{action:'panorama'}});assert.equal(JSON.parse(doctor.result.content[0].text).action,'doctor');
+ const repair=await rpc('tools/call',{name:'ted_repair',arguments:{}});assert.equal(JSON.parse(repair.result.content[0].text).applied,false);
  const update=await rpc('tools/call',{name:'check_update',arguments:{}});assert.match(update.result.content[0].text,/已安装客户端 v1.0.0/);assert.match(update.result.content[0].text,/中央仓库声明 v1.2.0/);assert.match(update.result.content[0].text,/可升级/);assert.match(update.result.content[0].text,/当前 MCP 进程/);
  const templates=await rpc('tools/call',{name:'workflow_templates',arguments:{}});assert.deepEqual(JSON.parse(templates.result.content[0].text),[]);
  const invalid=await rpc('tools/call',{name:'discover_capabilities',arguments:{zhQuery:'only English',enQuery:'skills'}});assert.match(invalid.error.message,/Chinese/);

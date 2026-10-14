@@ -147,7 +147,7 @@ function outcomePath(){
 function statusReport(){
  // This companion never runs collection and never emits a control decision.
  // Missing/late diagnostics are unverified, not a fabricated collection success.
- const started=Date.now(),deadline=started+6500;
+ const started=Date.now(),deadline=started+(['SessionEnd','Interrupt'].includes(input?.hook_event_name)?1800:6500);
  let message='采集结果尚未交付或无法读取；请查看同事件的 Ted 采集详情记录';
  try{
   const file=outcomePath();
@@ -236,8 +236,8 @@ def shared_files(home, root, personal, node, generation):
         command='/bin/sh '+shlex.quote(str(home/'ted-avc-manager-hook.sh'))+' '+kind
         # Keep the existing collector definition/trust identity. A separate, read-only
         # status handler supplies native color without discarding its detail output.
-        hooks['hooks'].setdefault(event,[]).append({'hooks':[{'type':'command','command':command,'timeout':3 if event=='Interrupt' else 10,'statusMessage':'Ted 会话接入与事件采集（失败只告警）',**({'additionalContextLimit':5000} if event in ['SessionStart','UserPromptSubmit','PreToolUse','SubagentStart'] else {})}]})
-        hooks['hooks'][event].append({'hooks':[{'type':'command','command':command+' status','timeout':3 if event=='Interrupt' else 9,'statusMessage':'Ted 采集状态（错误说明见同事件采集记录）'}]})
+        hooks['hooks'].setdefault(event,[]).append({'hooks':[{'type':'command','command':command,'timeout':3 if event in ['Interrupt','SessionEnd'] else 10,'statusMessage':'Ted 会话接入与事件采集（失败只告警）',**({'additionalContextLimit':5000} if event in ['SessionStart','UserPromptSubmit','PreToolUse','SubagentStart'] else {})}]})
+        hooks['hooks'][event].append({'hooks':[{'type':'command','command':command+' status','timeout':3 if event in ['Interrupt','SessionEnd'] else 9,'statusMessage':'Ted 采集状态（错误说明见同事件采集记录）'}]})
     rulebody=(personal/'preset/avc-client-baseline/client-rules.md').read_text()
     rules=replace_rules((home/'AGENTS.md').read_text() if (home/'AGENTS.md').exists() else '',BEGIN+'\n'+rulebody+'\n'+END)
     return env, launch, {'config.toml':config.encode(),'hooks.json':(json.dumps(hooks,ensure_ascii=False,indent=2)+'\n').encode(),'AGENTS.md':rules.encode(),'ted-avc-manager-hook.cjs':HOOK_RUNNER.encode(),'ted-avc-manager-hook.sh':shell.encode()}
@@ -272,6 +272,10 @@ def ownership(home, user_home, migrate):
     if bridge.exists():
         if read(bridge/'meta.json').get('name')!=OWNER: raise ValueError('Unowned bridge conflict')
         result['bridge']=bridge
+    command_skill=safe(home/'skills/ted')
+    if command_skill.exists():
+        if 'environment' not in result or not m.get('commandSkillFiles') or read(command_skill/'meta.json').get('name')!='ted': raise ValueError('Unowned ted skill conflict; preserve existing user skill')
+        result['command-skill']=command_skill
     skills=safe(home/'skills')
     if skills.exists():
         for p in skills.glob('ted-avc-user-*'):
@@ -325,6 +329,7 @@ def known_sources(root, personal, targets):
         m=read(old/'manifest.json')
         for rel,record in m['files'].items(): known[('environment',rel)]=record['sha256']
         for rel,h in m.get('bridgeFiles',{}).items(): known[('bridge',rel)]=h
+        for rel,h in m.get('commandSkillFiles',{}).items(): known[('command-skill',rel)]=h
         for item in m.get('imports',[]):
             source=safe(item['source'])
             if source.is_relative_to(personal/'custom') and inventory(source)==item.get('sourceFiles'):
@@ -454,30 +459,35 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             save(stage/'state/workspace/index.json',{'schema':'avc.client-workspace.v1','ownership':'client','status':'unpromoted','files':recovered,'autoActivate':False})
             env,launcher,shared=shared_files(home,root,personal,node,generation)
             roles=sorted(p.parent.name for p in (distribution/'packs/role').glob('*/meta.json'))
-            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','load_asset','task_begin']]}}]})
+            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status','load_asset','task_begin']]}}]})
             atomic(stage/'bin/ted-avc-manager',launcher.encode());(stage/'bin/ted-avc-manager').chmod(0o700)
             copy_verified(distribution/'packs/skill/ted-avc-manager',tx/'bridge')
+            command_files={}
+            if (distribution/'packs/skill/ted').is_dir():
+                copy_verified(distribution/'packs/skill/ted',tx/'command-skill');command_files=inventory(tx/'command-skill')
             # Referenced documents remain discoverable through the catalog, not broken relative skill links.
             subprocess.run([str(node),str(stage/'package/src/cli.js'),'--help'],cwd=root,check=True,stdout=subprocess.DEVNULL)
             files={r:{'sha256':h,'origin':'central-runtime' if r.startswith('package/') else 'generated','ownership':'client-installation'} for r,h in inventory(stage).items() if not r.startswith('state/')}
             commit=subprocess.run(['git','-C',str(root),'rev-parse','HEAD'],capture_output=True,text=True).stdout.strip()
-            manifest={'schema':SCHEMA,'owner':OWNER,'generation':generation,'version':read(root/'bootstrap.json')['version'],'sourceCommit':commit,'sourceTreeSha256':digest(json.dumps(inventory(root/'mcp/ted-avc-manager'),sort_keys=True).encode()),'files':files,'bridgeFiles':inventory(tx/'bridge'),'assetMap':new_map,'imports':[],'downstream':{'central':str(root),'personalDistribution':str(distribution)},'recovery':str(recovery),'nativeActivation':'pending-host-reload-and-new-session','shared':shared_names}
+            manifest={'schema':SCHEMA,'owner':OWNER,'generation':generation,'version':read(root/'bootstrap.json')['version'],'sourceCommit':commit,'sourceTreeSha256':digest(json.dumps(inventory(root/'mcp/ted-avc-manager'),sort_keys=True).encode()),'files':files,'bridgeFiles':inventory(tx/'bridge'),'commandSkillFiles':command_files,'assetMap':new_map,'imports':[],'downstream':{'central':str(root),'personalDistribution':str(distribution)},'recovery':str(recovery),'nativeActivation':'pending-host-reload-and-event','shared':shared_names}
             save(stage/'manifest.json',manifest)
             for k,p in targets.items():
                 if inventory(p)!=snapshots[k]: raise ValueError('Client changed during preservation')
             for n in shared_names:
                 if inventory(home/n)!=shared_before[n]: raise ValueError('Shared config changed concurrently')
-            journal.update({'status':'switching','sharedAfter':{n:digest(data) for n,data in shared.items()},'newEnvironment':inventory(stage),'newBridge':inventory(tx/'bridge')}); save(tx/'journal.json',journal)
+            journal.update({'status':'switching','sharedAfter':{n:digest(data) for n,data in shared.items()},'newEnvironment':inventory(stage),'newBridge':inventory(tx/'bridge'),'newCommandSkill':command_files}); save(tx/'journal.json',journal)
             # Cached hooks hit the persistent shim, see the lock and warn while the namespace is replaced.
             atomic(home/'ted-avc-manager-hook.cjs',shared['ted-avc-manager-hook.cjs'])
             atomic(home/'ted-avc-manager-hook.sh',shared['ted-avc-manager-hook.sh'])
             for p in targets.values(): remove(p)
             os.replace(stage,home/OWNER)
             (home/'skills').mkdir(exist_ok=True);os.replace(tx/'bridge',home/'skills/ted-avc-manager')
+            if command_files:os.replace(tx/'command-skill',home/'skills/ted')
             if fail_at=='switched': raise RuntimeError('Injected switching interruption')
             for n,data in shared.items(): atomic(home/n,data)
             if inventory(home/OWNER/'package')!=inventory(root/'mcp/ted-avc-manager'): raise ValueError('Installed package mismatch')
             if inventory(home/'skills/ted-avc-manager')!=manifest['bridgeFiles']: raise ValueError('Installed bridge mismatch')
+            if inventory(home/'skills/ted')!=command_files: raise ValueError('Installed command skill mismatch')
             for n,data in shared.items():
                 if (home/n).read_bytes()!=data: raise ValueError('Shared entry mismatch')
             for e in archive_edits:
@@ -502,6 +512,7 @@ def recover(home,user_home=None):
     with locked(home), personal_locked(safe(j['personal'])):
         allowed={str(home/OWNER)}
         allowed.add(str(home/'skills/ted-avc-manager'))
+        allowed.add(str(home/'skills/ted'))
         for p in (tx/'backup/imports').glob('*') if (tx/'backup/imports').exists() else []: allowed.add(str(home/'skills'/p.name))
         for k,p in j['targets'].items():
             target=safe(p)
@@ -518,13 +529,17 @@ def recover(home,user_home=None):
                 current=inventory(Path(p));accepted=[j['snapshots'][k],{}]
                 if k=='environment':accepted.append(j['newEnvironment'])
                 if k=='bridge':accepted.append(j['newBridge'])
+                if k=='command-skill':accepted.append(j.get('newCommandSkill',{}))
                 if current not in accepted:raise ValueError('Client changed after interruption; preserve and resolve before recovery')
-            for k,path,expected in [('environment',home/OWNER,j['newEnvironment']),('bridge',home/'skills/ted-avc-manager',j['newBridge'])]:
+            new_targets=[('environment',home/OWNER,j['newEnvironment']),('bridge',home/'skills/ted-avc-manager',j['newBridge'])]
+            if 'newCommandSkill' in j:new_targets.append(('command-skill',home/'skills/ted',j['newCommandSkill']))
+            for k,path,expected in new_targets:
                 if k not in j['targets'] and inventory(path) not in [{},expected]:raise ValueError('New client files changed after interruption')
             for n,existed in j['shared'].items():
                 current=inventory(home/n).get('')
                 if current not in [j['sharedBefore'][n],j.get('sharedAfter',{}).get(n)]:raise ValueError('Shared config changed after interruption; do not overwrite')
             remove(home/OWNER);remove(home/'skills/ted-avc-manager')
+            if 'newCommandSkill' in j:remove(home/'skills/ted')
             for k,p in j['targets'].items():
                 remove(Path(p));copy_verified(tx/'backup'/k,Path(p))
             for n,existed in j['shared'].items():
