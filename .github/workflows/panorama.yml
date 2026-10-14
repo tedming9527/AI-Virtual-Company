@@ -43,12 +43,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.catalog.outputs.ref }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: 安装固定版本 Yarn（安装向导双入口回归）
+        run: npm install --global yarn@1.22.22
       - name: 发布目录校验
         run: |
           node mcp/ted-avc-manager/src/cli.js validate-layout
