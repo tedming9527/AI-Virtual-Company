@@ -1,3 +1,5 @@
+import { CONTEXT_LIMITS, deliverContext, documentView } from '../core/context-budget.js';
+import { readNativeTurn } from '../core/session-ingress.js';
 import { candidateTrialSummary } from './candidate-trials.js';
 import { stateRootFor } from '../core/client-state.js';
 import { existsSync, lstatSync, readFileSync, readdirSync, mkdirSync, writeFileSync, renameSync, openSync, closeSync, unlinkSync } from 'node:fs';
@@ -61,7 +63,7 @@ function experienceInventory(project) {
     }
   const files = [];
   for (const root of roots) for (const item of fileInventory(root)) {
-    if (item.relativePath.startsWith('.avc' + sep) || item.bytes > 1024 * 1024) continue;
+    if (item.relativePath.startsWith('.avc' + sep)) continue;
     files.push({ path: relative(project, item.path), sha256: sha(readFileSync(item.path)), bytes: item.bytes });
     if (files.length > 5000) throw new Error('经验文件过多，需分批提炼');
   }
@@ -100,13 +102,66 @@ export function prepareWeekly(root, { now = Date.now(), writerId = localWriterId
     const inventory = experienceInventory(project), runId = randomUUID();
     let candidateTrials;
     try {candidateTrials=candidateTrialSummary(root);} catch(error) {candidateTrials={status:'unavailable',warning:error.message};}
-    const manifest = { candidateTrials, schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), status: 'awaiting-ai-proposal' };
+    const manifest = { candidateTrials, schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), contextPolicy: { limits: CONTEXT_LIMITS, reader: 'governance-weekly-read', summaryIsCompleteReview: false }, status: 'awaiting-ai-proposal' };
     const file = join(dir, `preparation-${runId}.json`);
     atomic(file, manifest);
     const pending = { runId, file: relative(project, file), through: manifest.through, sha256: sha(readFileSync(file)) };
     atomic(join(dir, 'weekly-state.json'), { ...state, writerId, pending });
     return { status: 'pending-ai', ...pending, experienceCount: inventory.length, windows: windows.length, capacity: manifest.capacity };
   } finally { closeSync(fd); unlinkSync(lock); }
+}
+// The full preparation remains on disk. Only bounded index pages and source views
+// are delivered; preserved files are never truncated or promoted by this reader.
+export function readWeekly(root, input, { writerId = localWriterId() } = {}) {
+  const { project, dir } = paths(root), state = stateOf(dir);
+  if (!state.pending || state.writerId !== writerId || input.runId !== state.pending.runId) throw Error('周度准备回执不匹配');
+  const stateRoot = stateRootFor(root);
+  if (process.env.AVC_DEPLOYMENT_FILE && read(process.env.AVC_DEPLOYMENT_FILE).scope === 'client') readNativeTurn(stateRoot, input);
+  else {
+    const receiptFile = join(stateRoot, 'runtime/hooks/sessions', sha(input.sessionId || '') + '.json');
+    if (!input.receipt || !existsSync(receiptFile) || read(receiptFile).turns?.[input.turnId]?.receipt !== input.receipt) throw Error('Native session/turn receipt mismatch');
+  }
+  const file = join(project, state.pending.file);
+  if (lstatSync(file).isSymbolicLink() || sha(readFileSync(file)) !== state.pending.sha256) throw Error('周度准备内容已变化');
+  const manifest = read(file);
+  let view, identity, source;
+  if (!input.path) {
+    const offset = input.indexCursor?.offset ?? 0;
+    if (!Number.isInteger(offset) || offset < 0 || offset > manifest.experience.length || (input.indexCursor && input.indexCursor.sha256 !== state.pending.sha256)) throw Error('Invalid preparation cursor');
+    const entries = []; let end = offset;
+    while (end < manifest.experience.length && entries.length < 20) {
+      const next = manifest.experience[end];
+      if (Buffer.byteLength(JSON.stringify([...entries, next])) > 4096) break;
+      entries.push(next); end++;
+    }
+    if (end === offset && offset < manifest.experience.length) throw Error('Source metadata exceeds page budget');
+    view = { entries, total: manifest.experience.length, nextIndexCursor: end < manifest.experience.length ? { sha256: state.pending.sha256, offset: end } : null,
+      complete: false, evidence: 'Metadata only; not source review', preparedSha256: state.pending.sha256 };
+    identity = `index:${offset}`;
+  } else {
+    source = manifest.experience.find(e => e.path === input.path);
+    if (!source) throw Error('Source not in frozen preparation');
+    // Match a fresh safe inventory rather than resolving arbitrary user paths.
+    const current = experienceInventory(project).find(e => e.path === source.path && e.sha256 === source.sha256);
+    if (!current) throw Error('Source changed or unavailable');
+    if (source.bytes > 1024 * 1024) return { status: 'source-too-large', taskContinues: true, source, complete: false, warning: 'Split this source into reviewed documents before extraction; original retained' };
+    view = documentView(readFileSync(join(project, source.path), 'utf8'), input);
+    identity = `${source.sha256}:${source.path}:${view.mode}:${view.startByte ?? 0}:${view.endByte ?? Buffer.byteLength(view.content)}`;
+  }
+  const delivery = deliverContext(stateRoot, input, `weekly:${input.runId}:${identity}`, JSON.stringify(view));
+  if (delivery.status !== 'delivered') return { status: delivery.status, taskContinues: true, contextBudget: delivery.budget, retry: { runId: input.runId, path: input.path, cursor: input.cursor, indexCursor: input.indexCursor } };
+  if (source && view.mode === 'chunk') {
+    const lock = join(dir, 'weekly.lock'); let fd;
+    try { fd = openSync(lock, 'wx', 0o600); } catch { return { status: 'unverified', taskContinues: true, warning: 'Review evidence locked; no completion claimed' }; }
+    try {
+      const evidenceFile = join(dir, `reads-${input.runId}.json`);
+      if (existsSync(evidenceFile) && lstatSync(evidenceFile).isSymbolicLink()) throw Error('Unsafe extraction evidence');
+      const evidence = existsSync(evidenceFile) ? read(evidenceFile) : { sources: {} };
+      const ranges = evidence.sources[source.sha256 + ':' + source.path] ||= [];
+      ranges.push([view.startByte, view.endByte]); atomic(evidenceFile, evidence);
+    } finally { closeSync(fd); unlinkSync(lock); }
+  }
+  return { status: 'delivered', ...view, contextBudget: delivery.budget };
 }
 export function completeWeekly(root, input, { now = Date.now(), writerId = localWriterId() } = {}) {
   const { project, dir } = paths(root);
@@ -122,6 +177,18 @@ export function completeWeekly(root, input, { now = Date.now(), writerId = local
   if (sha(content) !== state.pending.sha256) throw new Error('周度准备内容已变化');
   const manifest = JSON.parse(content), sources = new Map(manifest.experience.map(e => [e.path, e.sha256]));
   const currentSources = new Map(experienceInventory(project).map(e => [e.path, e.sha256]));
+  const evidenceFile = join(dir, `reads-${input.runId}.json`);
+  if (existsSync(evidenceFile) && lstatSync(evidenceFile).isSymbolicLink()) throw Error('Unsafe extraction evidence');
+  const reviewed = existsSync(evidenceFile) ? read(evidenceFile).sources : {};
+  for (const source of manifest.experience) {
+    let through = 0;
+    for (const [start, end] of (reviewed[source.sha256 + ':' + source.path] || []).sort((a,b) => a[0] - b[0])) {
+      if (start > through) break;
+      through = Math.max(through, end);
+    }
+    if (currentSources.get(source.path) !== source.sha256 || through !== source.bytes) throw Error('提取未完成：未读、变更或预算不足的来源不能推进覆盖水位');
+  }
+
   for (const p of input.proposals) {
     if (!p || Object.keys(p).some(key => !['title', 'action', 'sources', 'reason'].includes(key)) || typeof p.title !== 'string' || !p.title.trim() || p.title.length > 200 || !['extract', 'merge', 'observe', 'audit'].includes(p.action) ||
       !Array.isArray(p.sources) || !p.sources.length || p.sources.some(s => !s || Object.keys(s).some(key => !['path', 'sha256', 'bytes'].includes(key)) || !sources.has(s.path) || sources.get(s.path) !== s.sha256 || currentSources.get(s.path) !== s.sha256) ||

@@ -1,6 +1,6 @@
 {
   "name": "ted-avc-manager",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "description": "AI-Virtual-Company 技能包管理器：目录规约扫描 / 版本管理 / 命令协议 / 治理 / 全景图（含对外 MCP 适配器）",
   "type": "module",
   "bin": {

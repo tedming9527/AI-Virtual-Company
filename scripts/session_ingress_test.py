@@ -8,8 +8,8 @@ from client_environment import read, save, OWNER
 class SessionIngressTest(unittest.TestCase):
  setUp = harness.ClientTest.setUp
  run_rebuild = harness.ClientTest.run_rebuild
- def hook(self, payload, kind='native'):
-  r=subprocess.run(['/bin/sh',str(self.home/'ted-avc-manager-hook.sh'),kind],input=json.dumps(payload),text=True,capture_output=True,timeout=9)
+ def hook(self, payload, kind='native', env=None):
+  r=subprocess.run(['/bin/sh',str(self.home/'ted-avc-manager-hook.sh'),kind],input=json.dumps(payload),text=True,capture_output=True,timeout=9,env=env)
   self.assertEqual(r.returncode,0,r.stderr)
   return json.loads(r.stdout)
  def turn(self, session, turn):
@@ -124,6 +124,45 @@ class SessionIngressTest(unittest.TestCase):
   self.personal.rename(self.base/'offline-user-data')
   self.assertIn('systemMessage',self.hook({**p,'turn_id':'offline'}))
   self.assertTrue(list((self.home/OWNER/'state/runtime/mediation/events').glob('*.json')))
+
+ def test_binding_context_is_delivered_once_and_recovery_is_bounded(self):
+  self.run_rebuild();p={'session_id':'context-once','turn_id':'t','hook_event_name':'UserPromptSubmit'}
+  first=self.hook(p);self.assertIn('Native binding',first['hookSpecificOutput']['additionalContext'])
+  self.assertLessEqual(len(first['hookSpecificOutput']['additionalContext'].encode()),12288)
+  self.assertNotIn('hookSpecificOutput',self.hook(p,'execution'))
+  for n in range(3):
+   out=self.hook({**p,'hook_event_name':'PreToolUse','tool_name':'Bash','tool_use_id':str(n)})
+   self.assertNotIn('Native binding',json.dumps(out))
+  restored=self.hook({**p,'hook_event_name':'SessionStart','source':'compact'})
+  self.assertIn('Native binding',restored['hookSpecificOutput']['additionalContext'])
+  # A broken budget ledger cannot veto the next business tool or claim delivery.
+  ledger=next((self.home/OWNER/'state/runtime/context').glob('*.json'));ledger.write_text('{broken')
+  failure=self.hook({**p,'hook_event_name':'PreToolUse','tool_name':'Bash','tool_use_id':'after-failure'})
+  self.assertIn('systemMessage',failure);self.assertNotIn('permissionDecision',json.dumps(failure))
+
+ def test_hook_context_volume_stays_flat_and_failure_display_is_bounded(self):
+  self.run_rebuild();p={'session_id':'volume-audit','turn_id':'t','hook_event_name':'UserPromptSubmit'}
+  marker=self.base/'network-attempt';preload=self.base/'deny-network.cjs'
+  preload.write_text("const fs=require('node:fs');const deny=()=>{fs.writeFileSync("+json.dumps(str(marker))+",'attempt');throw Error('Network forbidden during hook audit');};global.fetch=deny;for(const n of ['http','https']){const m=require('node:'+n);m.request=deny;m.get=deny;}require('node:module').syncBuiltinESMExports();")
+  guard_env={**os.environ,'NODE_OPTIONS':'--require '+json.dumps(str(preload))}
+  first=self.hook(p,env=guard_env);initial=len(first['hookSpecificOutput']['additionalContext'].encode())
+  turn=self.turn(p['session_id'],'t');key={'sessionId':p['session_id'],'turnId':'t','receipt':turn['receipt']}
+  self.rpc('task_begin',{**key,'role':'test-expert','goal':'Measure hook output volume','allowedTools':['Bash'],'maxToolCalls':100})
+  injected=0;raw_bytes=0
+  for n in range(100):
+   for event in ['PreToolUse','PostToolUse']:
+    out=self.hook({**p,'hook_event_name':event,'tool_name':'Bash','tool_use_id':str(n),'tool_input':{'cmd':'fixture'},'tool_response':{'exit_code':0}},env=guard_env)
+    self.assertNotIn('systemMessage',out);injected+=len(out.get('hookSpecificOutput',{}).get('additionalContext','').encode());raw_bytes+=len(json.dumps(out).encode())
+  self.assertEqual(injected,0)
+  (self.home/OWNER/'deployment.json').unlink();visible=0;warning_bytes=0
+  for n in range(20):
+   out=self.hook({**p,'hook_event_name':'PreToolUse','tool_name':'Bash','tool_use_id':'failed-'+str(n)},env=guard_env)
+   self.assertNotIn('permissionDecision',json.dumps(out));self.assertNotIn('continue',out)
+   if 'systemMessage' in out:
+    visible+=1;self.assertLessEqual(len(out['systemMessage'].encode()),768)
+    warning_bytes+=len(out['systemMessage'].encode())+len(out.get('hookSpecificOutput',{}).get('additionalContext','').encode())
+  self.assertFalse(marker.exists(),'Hook attempted a network request');self.assertEqual(visible,3);self.assertLessEqual(warning_bytes,4608)
+  print('HOOK_CONTEXT_AUDIT '+json.dumps({'initialContextBytes':initial,'healthyToolEvents':200,'healthyAdditionalContextBytes':injected,'healthyRawJsonBytes':raw_bytes,'failureEvents':20,'visibleWarnings':visible,'warningStructuredBytes':warning_bytes,'networkAttempts':0,'modelTokens':'unknown','modelCost':'unknown'}))
 
  def test_cached_legacy_aliases_share_one_handler_under_real_concurrency(self):
   self.run_rebuild();p={'session_id':'parallel-legacy','turn_id':'t','hook_event_name':'UserPromptSubmit'};self.hook(p)

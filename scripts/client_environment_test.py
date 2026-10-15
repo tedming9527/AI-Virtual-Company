@@ -125,6 +125,8 @@ class ClientTest(unittest.TestCase):
   self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh'
   payload={'cwd':str(self.root),'session_id':'diagnostic','turn_id':'turn','hook_event_name':'PreToolUse','tool_name':'exec','tool_use_id':'tool'}
   def invoke():
+   # Each injected fault is a distinct turn; same-turn storm suppression has its own integration test.
+   payload['turn_id']=payload['turn_id']+'-next'
    r=subprocess.run(['/bin/sh',str(shim),'execution'],input=json.dumps(payload),text=True,capture_output=True,timeout=9)
    self.assertEqual(r.returncode,0);v=json.loads(r.stdout);self.assertIn('systemMessage',v);self.assertEqual(v['hookSpecificOutput'],{'hookEventName':'PreToolUse','additionalContext':v['systemMessage']})
    self.assertIn('⚠️ Ted 采集失败',r.stderr);self.assertIn('当前任务照常推进',r.stderr);self.assertIn('修复',r.stderr)
@@ -205,7 +207,7 @@ class ClientTest(unittest.TestCase):
   detail=subprocess.run(['/bin/sh',str(shim),'execution'],input=payload,text=True,capture_output=True,timeout=9)
   out,err=status.communicate(timeout=9)
   self.assertEqual(status.returncode,1);self.assertEqual(detail.returncode,0)
-  self.assertIn('Task locked',json.loads(detail.stdout)['systemMessage']);self.assertIn('Task locked',err)
+  self.assertIn('Task locked',json.loads(detail.stdout)['systemMessage']);self.assertIn('采集未验证',err);self.assertNotIn('Task locked',err)
   self.assertEqual(counter.read_text(),'call\n');self.assertEqual(out,'')
   # A normal result does not leave a stale failure for a different tool invocation.
   entry.write_text('console.log("{}")')

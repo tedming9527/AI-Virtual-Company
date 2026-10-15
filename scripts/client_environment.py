@@ -127,7 +127,8 @@ def personal_locked(personal):
 
 HOOK_RUNNER = r'''const fs=require('node:fs'),cp=require('node:child_process'),path=require('node:path');
 const home=__dirname, base=path.join(home,'ted-avc-manager'), lock=path.join(home,'.ted-avc-manager-rebuild.lock');
-const warning=reason=>({systemMessage:'⚠️ Ted 采集失败或未验证：'+reason+'。当前任务照常推进；本次采集证据缺失，请检查采集配置、路径、权限或锁并修复钩子。不暂停、不重试、不追加回合；原生权限仍有效。'});
+const clip=(s,n)=>{const b=Buffer.from(String(s));let end=Math.min(b.length,n);while(end>0&&end<b.length&&(b[end]&192)===128)end--;return b.subarray(0,end).toString('utf8');};
+const warning=reason=>({systemMessage:'⚠️ Ted 采集失败或未验证：'+clip(reason,200)+'。当前任务照常推进；本次采集证据缺失，请检查采集配置、路径、权限或锁并修复钩子。不暂停、不重试、不追加回合；原生权限仍有效。'});
 // This desktop drops stdout/stderr on exit 1 and shows only the exit code.
 // Use its structured warning entry (exit 0), never the blocking exit 2.
 let lease,input;
@@ -164,13 +165,32 @@ function statusReport(){
    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,50);
   }
  }catch(e){message=e.message;}
- process.stderr.write('⚠️ Ted 采集未验证 ['+invocationKey().slice(0,12)+']：'+message+'；当前任务照常推进。\n');
+ process.stderr.write('⚠️ Ted 采集未验证 ['+invocationKey().slice(0,12)+']；详情已记录，当前任务照常推进。\n');
  // Exit 1 is a native failed run, not exit 2's veto/continuation.
  process.exitCode=1;
 }
+function admitWarning() {
+ if(!input?.session_id||!input?.turn_id)return true;
+ let directory=base;
+ try {
+  if(fs.existsSync(lock))throw Error('rebuilding');
+  for(const segment of ['state','runtime','hooks','notices']){
+   directory=path.join(directory,segment);
+   if(!fs.existsSync(directory))try{fs.mkdirSync(directory,{mode:0o700});}catch(e){if(e.code!=='EEXIST')throw e;}
+   if(fs.lstatSync(directory).isSymbolicLink()||!fs.statSync(directory).isDirectory())throw Error('unsafe notice path');
+  }
+  const key=require('node:crypto').createHash('sha256').update(JSON.stringify([input.session_id,input.turn_id,input.agent_id||''])).digest('hex');
+  // Three atomic exclusive slots bound visible warnings even across concurrent callbacks.
+  for(let i=0;i<3;i++){
+   const file=path.join(directory,key+'.'+i);
+   try{fs.writeFileSync(file,'unverified',{flag:'wx',mode:0o600});return true;}catch(e){if(e.code!=='EEXIST')throw e;}
+  }
+  return false;
+ }catch{return true;} // Failed storage cannot masquerade as a verified/silent collection.
+}
 const emit=value=>{
  if(value.systemMessage&&value._tedCollection?.captured)value.systemMessage='事件已采集；中介关联/署名仍需核验。'+value.systemMessage;
- if(value.systemMessage)value.systemMessage+=' [采集关联 '+invocationKey().slice(0,12)+']';
+ if(value.systemMessage)value.systemMessage=clip(value.systemMessage,700)+' [采集关联 '+invocationKey().slice(0,12)+']';
  try{
   const dest=outcomePath(),tmp=dest+'.'+process.pid+'.tmp';
   const pending=value._tedCollection?.captured===true&&value._tedCollection?.taskStatus==='pending'&&value._tedCollection?.taskVerified===false;
@@ -178,7 +198,6 @@ const emit=value=>{
  }catch{}
 
  if(value.systemMessage){
-  process.stderr.write(value.systemMessage+'\n');
   const event=input?.hook_event_name;
   if(['PreToolUse','PostToolUse'].includes(event))value.hookSpecificOutput={hookEventName:event,additionalContext:[value.hookSpecificOutput?.additionalContext,value.systemMessage].filter(Boolean).join('\n\n')};
   // Keep a machine-written diagnostic even if a host hides its warning entry.
@@ -195,6 +214,15 @@ const emit=value=>{
    const dest=path.join(directory,key+'.json'),tmp=dest+'.'+process.pid+'.tmp';
    try{fs.writeFileSync(tmp,JSON.stringify({schema:'avc.collection-warning.v1',at:new Date().toISOString(),sessionId:input?.session_id??null,turnId:input?.turn_id??null,event:event??null,status:'unverified',taskContinues:true,message:value.systemMessage},null,2)+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
   }catch{}
+ }
+ if(value.systemMessage){
+  if(admitWarning())process.stderr.write(value.systemMessage+'\n');
+  else {
+   delete value.systemMessage;
+   // The underlying diagnostic/outcome remains unverified; only repeated display is suppressed.
+   delete value.hookSpecificOutput;
+   if(value._tedCollection)value._tedCollection.warningDisplay='suppressed';
+  }
  }
  const nativeOutput={...value};delete nativeOutput._tedCollection;
  process.stdout.write(JSON.stringify(nativeOutput)+'\n');
@@ -461,7 +489,7 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             save(stage/'state/workspace/index.json',{'schema':'avc.client-workspace.v1','ownership':'client','status':'unpromoted','files':recovered,'autoActivate':False})
             env,launcher,shared=shared_files(home,root,personal,node,generation)
             roles=sorted(p.parent.name for p in (distribution/'packs/role').glob('*/meta.json'))
-            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status','load_asset','task_begin']]}}]})
+            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status','ted_summary','load_asset','task_begin']]}}]})
             atomic(stage/'bin/ted-avc-manager',launcher.encode());(stage/'bin/ted-avc-manager').chmod(0o700)
             copy_verified(distribution/'packs/skill/ted-avc-manager',tx/'bridge')
             command_files={}

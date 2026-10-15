@@ -118,3 +118,10 @@ test('knowledge search and recommendation tolerate missing summary and use decla
  assert.equal(recommendAssets(root,'端口诊断',options).recommendations[0].name,'declared');
  assert.equal(listAssets(root,{query:'元数据优先用途'},options).assets[0].name,'recovery');
 });
+
+test('partial loader evidence distinguishes returned fragment hash from the pinned full document hash',t=>{
+ const {root}=fixture(t),content='source fragment',sourceSha=sha('complete source document');
+ const result=noteDeliveredAsset(root,{source:'general',type:'knowledge',name:'partial',entry:'SKILL.md',content,sha256:sourceSha,contentSha256:sha(content),mode:'chunk',documentComplete:false});
+ assert.equal(result.sha256,sourceSha);assert.equal(result.contentSha256,sha(content));assert.equal(result.documentComplete,false);
+ assert.throws(()=>noteDeliveredAsset(root,{content,sha256:sourceSha,contentSha256:sha('wrong')}),/hash/);
+});
