@@ -52,12 +52,12 @@ function tedProperties(action) {
   return {...(['update','repair','doctor','summary'].includes(action)?summaryBatchProperties:{}),
     ...(action==='update'?{offline:{type:'boolean'}}:{}),
     sessionId:{type:'string'},turnId:{type:'string'},agentId:{type:'string'},
-    ...(action==='summary'?summaryOperationProperties:{})};
+    ...(action==='summary'?summaryOperationProperties:{}),...(action==='monitor'?{operation:{type:'string',enum:['open','status','stop']}}:{})};
 }
 
 const TOOLS = [
-  ...TED_COMMANDS.map(c=>({name:'ted_'+c.action,description:c.description,annotations:{readOnlyHint:!['panorama','update','repair','summary'].includes(c.action),destructiveHint:false,openWorldHint:c.action==='update'},inputSchema:{type:'object',additionalProperties:false,properties:tedProperties(c.action)}})),
-  {name:'ted_command',description:'Ted 便捷命令；repair/update 分批登记双语摘要请求；summary 默认只读，submit 写缓存；安装修复仅返回计划',annotations:{readOnlyHint:false,destructiveHint:false},inputSchema:{type:'object',additionalProperties:false,properties:{command:{type:'string'},action:{type:'string',enum:TED_COMMANDS.map(c=>c.action)},offline:{type:'boolean'},sessionId:{type:'string'},turnId:{type:'string'},agentId:{type:'string'},...summaryBatchProperties,...summaryOperationProperties}}},
+  ...TED_COMMANDS.map(c=>({name:'ted_'+c.action,description:c.description,annotations:{readOnlyHint:!['panorama','update','repair','summary','monitor'].includes(c.action),destructiveHint:false,openWorldHint:c.action==='update'},inputSchema:{type:'object',additionalProperties:false,properties:tedProperties(c.action)}})),
+  {name:'ted_command',description:'Ted 便捷命令；repair/update 分批登记双语摘要请求；summary 默认只读，submit 写缓存；安装修复仅返回计划',annotations:{readOnlyHint:false,destructiveHint:false},inputSchema:{type:'object',additionalProperties:false,properties:{command:{type:'string'},action:{type:'string',enum:TED_COMMANDS.map(c=>c.action)},offline:{type:'boolean'},sessionId:{type:'string'},turnId:{type:'string'},agentId:{type:'string'},...summaryBatchProperties,...summaryOperationProperties,operation:{type:'string',enum:['inspect','prepare','submit','open','status','stop']}}}},
   { name: 'client_status', description: '只读核对当前安装、真实事件、会话接入和任务路由；旧 MCP 进程也可诊断，不宣称模型语义遵从', annotations: {readOnlyHint:true}, inputSchema:{type:'object',properties:{sessionId:{type:'string'},turnId:{type:'string'}}} },
   {name:'discover_capabilities', description:'向 GitHub 发送明确的中英文公开能力查询，合并仓库候选；不读取私有文件、不下载或安装', inputSchema:{type:'object',properties:{zhQuery:{type:'string'},enQuery:{type:'string'},owners:{type:'array',items:{type:'string'}}},required:['zhQuery','enQuery']}},
   {name:'validate_local_skill', description:'验证已登记本地技能结构并保存绑定完整包哈希的证据；不代替行为验收', inputSchema:{type:'object',properties:{assetId:{type:'string'}},required:['assetId']}},
@@ -191,7 +191,7 @@ export function start() {
       } else if (name === 'candidate_match') {
         text=JSON.stringify(matchCandidates(ROOT,args));
       } else if (name === 'candidate_trial') {
-        text=JSON.stringify(recordTrial(ROOT,args.input));
+        text=JSON.stringify(recordTrial(ROOT,{...args.input,sessionId:args.sessionId||args.input.sessionId,turnId:args.turnId||args.input.turnId,agentId:args.agentId||args.input.agentId}));
       } else if (name === 'candidate_trial_status') {
         text=JSON.stringify(trialStatus(ROOT,args.taskKey));
       } else if (name === 'submit_log') {

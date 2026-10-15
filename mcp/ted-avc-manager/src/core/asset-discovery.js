@@ -1,3 +1,4 @@
+import {emitMonitor,inventoryIdentity,candidateIdentity} from '../monitor/emit.js';
 import {existsSync,lstatSync,readdirSync,readFileSync} from 'node:fs';
 import {join,relative,sep} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -53,10 +54,10 @@ export function discoverAssets(root,input={},options={}){
   const maxBytes=input.maxBytes??4096,maxItems=input.maxItems??8;
   if(!Number.isInteger(maxBytes)||maxBytes<1024||maxBytes>8192||!Number.isInteger(maxItems)||maxItems<1||maxItems>32)throw Error('Invalid discovery page limits');
   const inventory=listAssets(root,{},options),extra=documents(catalogRootFor(root),inventory.assets);
-  let trials=[];let candidateCoverage='not-selected';
+  const monitorCandidates=new Map();let trials=[];let candidateCoverage='not-selected';
   if(!input.kind&&!input.type)try{
    const found=listTrialCandidates(root);candidateCoverage=found.warnings.length?'partial':'indexed';
-   trials=found.candidates.map(record=>{const c=record.candidate;return {id:'candidate:'+c.id,name:c.title,type:c.type,source:'local-candidate',version:c.version,description:c.hypothesis,keywords:c.triggers,status:c.status,management:'pending-review',sha256:record.sha256,load:{tool:'candidate_trial_status',candidateId:c.id},previewOnly:true};});
+   trials=found.candidates.map(record=>{const c=record.candidate;monitorCandidates.set('candidate:'+c.id,candidateIdentity(record));return {id:'candidate:'+c.id,name:c.title,type:c.type,source:'local-candidate',version:c.version,description:c.hypothesis,keywords:c.triggers,status:c.status,management:'pending-review',sha256:record.sha256,load:{tool:'candidate_trial_status',candidateId:c.id},previewOnly:true};});
   }catch{candidateCoverage='unavailable';}
   const candidates=[...inventory.assets,...extra.assets,...trials].filter(a=>(!input.assetId||a.id===input.assetId)&&(!input.lookupId||hash(a.id)===input.lookupId)&&(!input.type||a.type===input.type)&&(!input.source||a.source===input.source)&&(input.kind!=='skills'||a.type==='skill')&&(input.kind!=='packs'||!a.id.startsWith('general:knowledge-entry:')&&!a.id.startsWith('general:document:')));
   const selected=selectAssets(root,candidates,query,options),generation=hash(JSON.stringify(selected.assets.map(a=>[a.id,a.sha256,a.version,a.summaryZh,a.summaryEn,selected.demand[a.id]?.at]))),queryDigest=hash(JSON.stringify([query,input.type,input.source,input.kind,input.assetId,input.lookupId]));
@@ -85,6 +86,8 @@ export function discoverAssets(root,input={},options={}){
   }
   if(index<selected.assets.length){result.status='partial';result.nextCursor=Buffer.from(JSON.stringify({generation,queryDigest,after:index>start?hash(selected.assets[index-1].id):null})).toString('base64url');if(index===start){result.status='page-too-small';result.nextCursor=null;result.nextStep='Increase maxBytes or narrow the query';}}
   if(options.collection&&options.collection!=='assets'){result[options.collection]=result.assets;delete result.assets;}
-  return deliverResponse(options.stateRoot||stateRootFor(root),input,result,{maxBytes});
+  const response=deliverResponse(options.stateRoot||stateRootFor(root),input,result,{maxBytes});
+  for(const item of response.assets||response.skills||response.packs||[]){const origin=selected.assets.find(a=>a.id===item.id);if(!origin)continue;emitMonitor(root,input,{kind:query?'recommended':'discovered',asset:monitorCandidates.get(item.id)||inventoryIdentity(root,origin)},{stateRoot:options.stateRoot||stateRootFor(root)});}
+  return response;
  }catch(error){return {status:'unavailable',reason:bytePrefix(error.message,160),taskContinues:true,contextDelivery:{status:'unverified',accounted:false,controlOnly:true}};}
 }

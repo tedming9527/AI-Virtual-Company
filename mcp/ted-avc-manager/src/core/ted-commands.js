@@ -10,6 +10,7 @@ import { repositoryOf } from '../panorama/candidates.js';
 import { acquireClientLease } from './client-lease.js';
 import { maintainBilingualSummaries, prepareBilingualSummary, submitBilingualSummary } from './summary-language.js';
 export const TED_COMMANDS=[
+  {action:'monitor',description:'打开本机只读监控；仅记录已登记候选和正式资料，副本保留24小时'},
   {action:'help',description:'查看便捷命令与实际支持的客户端入口'},
   {action:'update',description:'检查版本，并分批登记需补齐的中英短摘要；不安装客户端'},
   {action:'panorama',description:'生成本地全景图，展示最近资料升级与有效评分'},
@@ -19,7 +20,7 @@ export const TED_COMMANDS=[
   {action:'summary',description:'默认只读查看预算与双语短摘要；prepare/submit 分批补齐，提交会写摘要缓存'},
   {action:'status',description:'只读查看事件、上下文返回和任务契约状态'},
 ];
-const aliases={'摘要优化':'summary','摘要':'summary','optimize':'summary','检查更新':'update','check-update':'update','全景图':'panorama','评分':'scores','体检':'doctor','修复':'repair','状态':'status','帮助':'help'};
+const aliases={'监控':'monitor','打开监控':'monitor','摘要优化':'summary','摘要':'summary','optimize':'summary','检查更新':'update','check-update':'update','全景图':'panorama','评分':'scores','体检':'doctor','修复':'repair','状态':'status','帮助':'help'};
 export function parseTedCommand(command) {
   if(typeof command!=='string'||command.length>200||/[\r\n\0]/.test(command))throw Error('Invalid ted command');
   const match=/^(?:\/ted|\$ted|ted)(?:\s+(\S+))?\s*$/.exec(command.trim());
@@ -137,6 +138,7 @@ function handoffSnapshot(root, key) {
 }
 async function executeTedCommand(root,input={},options={}) {
   const action=tedAction(input),operation=input.operation??'inspect';
+  if(action==='monitor'){try{const {runMonitor}=await import('../monitor/commands.js');return await runMonitor(root,{operation:input.operation??'open',sessionId:input.sessionId});}catch{return {action,operation:input.operation??'open',error:'monitor-unavailable; ordinary task continues',taskContinues:true};}}
   if(!['inspect','prepare','submit'].includes(operation)||input.operation!==undefined&&action!=='summary')throw Error('Summary operation must be inspect, prepare, or submit');
   const readOnly=!['panorama','repair','update'].includes(action)&&!(action==='summary'&&operation==='submit');
   if(action==='help')return {action,readOnly,commands:TED_COMMANDS,invocation:{skill:'$ted <action>',menu:'输入 /，在技能列表选择 Ted，再补充动作；实际菜单可见性需宿主验收',text:'/ted <action>',mcp:{tool:'ted_doctor',arguments:{}},cli:'ted-avc-manager ted <action>',nativeSlash:'Enabled skills appear in supported host slash menus; text aliases are not proof of picker visibility',nativeMention:'Standalone skill; native @Ted plugin registration is not claimed'}};

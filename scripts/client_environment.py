@@ -489,7 +489,7 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             save(stage/'state/workspace/index.json',{'schema':'avc.client-workspace.v1','ownership':'client','status':'unpromoted','files':recovered,'autoActivate':False})
             env,launcher,shared=shared_files(home,root,personal,node,generation)
             roles=sorted(p.parent.name for p in (distribution/'packs/role').glob('*/meta.json'))
-            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status','ted_summary','load_asset','task_begin']]}}]})
+            save(stage/'deployment.json',{'organization':'Ted','scope':'client','protocolVersion':1,'environment':env,'projects':[{'root':str(root),'stateRoot':str(home/OWNER/'state'),'roles':roles,'execution':{'enabled':True,'mode':'monitor','maxToolCalls':1000,'bootstrapTools':['mcp__ted_avc_manager__'+n for n in ['list_packs','find_skill','list_assets','recommend_assets','check_update','ted_help','ted_update','ted_scores','ted_doctor','ted_repair','ted_status','ted_summary','ted_monitor','load_asset','task_begin']]}}]})
             atomic(stage/'bin/ted-avc-manager',launcher.encode());(stage/'bin/ted-avc-manager').chmod(0o700)
             copy_verified(distribution/'packs/skill/ted-avc-manager',tx/'bridge')
             command_files={}
