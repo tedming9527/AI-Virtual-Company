@@ -3,6 +3,7 @@
 
 import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import process from 'node:process';
+import { acquireClientLease } from './core/client-lease.js';
 import { readFileSync, statSync } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
 import { parseCommand } from './core/protocol.js';
@@ -128,13 +129,16 @@ switch (cmd) {
     try { const { installExecutionHooks } = await import('./core/execution.js'); if (!args[1] || !args[2]) throw new Error('install-execution-hooks <deployment.json> <codex-home>'); ok(JSON.stringify(installExecutionHooks(args[1], args[2]), null, 2)); } catch (e) { fail(e); }
     break;
   case 'task-begin': case 'load-asset': case 'task-closeout':
+    {let release;
     try {
+      release=acquireClientLease();
       const { beginTask, loadAsset, closeTask,executionResponse } = await import('./core/execution.js');
       const input = JSON.parse(readFileSync(args[1], 'utf8'));
       const result=({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,deploymentFileFor(ROOT),{deferDelivery:cmd==='task-begin'});
       ok(JSON.stringify(cmd==='load-asset'?result:executionResponse(ROOT,input,result)));
-    } catch (e) { fail(e); }
+    } catch (e) { fail(e); } finally {release?.();}
     break;
+    }
   case 'install-codex-hooks': {
     try {
       if (!args[1] || !args[2]) throw new Error('用法: ted-avc-manager install-codex-hooks <deployment.json> <codex-home>');

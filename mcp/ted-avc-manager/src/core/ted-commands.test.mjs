@@ -36,6 +36,15 @@ function bilingualFixture(t){
  writeFileSync(join(root,'runtime/asset-inventory.json'),JSON.stringify({schema:'avc.asset-inventory.v1',assets:[asset]}));
  return {root,entry,body,asset,options:{stateRoot:root,catalogRoot:root,codexHome:join(root,'client')}};
 }
+test('task maintenance write facts survive damaged accounting, including policy changes and paging',async t=>{
+ const f=bilingualFixture(t),id='a'.repeat(64),file=join(f.root,'runtime/execution/tasks',id+'.json');mkdirSync(join(file,'..'),{recursive:true});
+ writeFileSync(file,JSON.stringify({schema:'avc.execution-task.v1',taskId:id,status:'active',startedAt:new Date(Date.now()-8*86400000).toISOString(),calls:{missing:{tool:'Bash',status:'reserved'}}}));
+ const key={sessionId:'tasks',turnId:'one'},dir=join(f.root,'runtime/context');mkdirSync(dir,{recursive:true});
+ writeFileSync(join(dir,createHash('sha256').update(JSON.stringify([key.sessionId,''])).digest('hex')+'.json'),'{broken');
+ const result=await runTedCommand(f.root,{action:'tasks',operation:'reconcile',policy:{forceCloseDays:5},...key},f.options);
+ assert.equal(result.contextDelivery.status,'unverified');assert.equal(result.operationOutcome.changed,1);assert.equal(result.operationOutcome.policyApplied,true);assert.equal(result.operationOutcome.forceCloseDays,5);assert.equal(result.retryable,false);assert.ok(Buffer.byteLength(JSON.stringify(result))<=1024);
+ assert.equal(JSON.parse(readFileSync(file)).status,'closed');
+});
 
 test('Ted inspect stays read-only; repair, prepare and submit produce a consumed source-bound pair',async t=>{
  const f=bilingualFixture(t),call=input=>runTedCommand(f.root,input,f.options);

@@ -18,6 +18,7 @@ import { syncCandidates } from './panorama/candidates.js';
 import { createWorkflow, workflowStatus, cancelWorkflow, workflowTemplates } from './core/workflow.js';
 import { registerCandidate, matchCandidates, recordTrial, trialStatus } from './governance/candidate-trials.js';
 import { beginTask, loadAsset, closeTask, executionResponse } from './core/execution.js';
+import { startTaskMaintenance } from './governance/task-maintenance.js';
 import { listAssets, recommendAssets, proposeAsset, recordAssetUse, watchAssets, noteDeliveredAsset } from './core/awareness.js';
 import { discoverAssets } from './core/asset-discovery.js';
 import { deliverResponse,deliverContext,bytePrefix } from './core/context-budget.js';
@@ -52,7 +53,8 @@ function tedProperties(action) {
   return {...(['update','repair','doctor','summary'].includes(action)?summaryBatchProperties:{}),
     ...(action==='update'?{offline:{type:'boolean'}}:{}),
     sessionId:{type:'string'},turnId:{type:'string'},agentId:{type:'string'},
-    ...(action==='summary'?summaryOperationProperties:{}),...(action==='monitor'?{operation:{type:'string',enum:['open','status','stop']}}:{})};
+    ...(action==='summary'?summaryOperationProperties:{}),...(action==='monitor'?{operation:{type:'string',enum:['open','status','stop']}}:{}),
+    ...(action==='tasks'?{operation:{type:'string',enum:['inspect','reconcile','cleanup']},cursor:{type:'string'},maxItems:{type:'integer',minimum:1,maximum:100},policy:{type:'object',additionalProperties:false,properties:{forceCloseDays:{type:'integer',minimum:5,maximum:10},rawRetentionDays:{type:'integer',minimum:5,maximum:30}}}}:{})};
 }
 
 const TOOLS = [
@@ -80,6 +82,9 @@ const TOOLS = [
 for(const tool of TOOLS)Object.assign(tool.inputSchema.properties,{sessionId:{type:'string'},turnId:{type:'string'},agentId:{type:'string'}});
 TOOLS.find(t=>t.name==='task_begin').inputSchema.properties.toolCapabilities={type:'array',items:{type:'string',enum:['shell','edit','delegation']}};
 Object.assign(TOOLS.find(t=>t.name==='load_asset').inputSchema.properties,{documentId:{type:'string'},sourceSha256:{type:'string'}});
+TOOLS.find(t=>t.name==='task_closeout').inputSchema.properties.evidenceKind={type:'string',enum:['conversation']};
+Object.assign(TOOLS.find(t=>t.name==='ted_command').inputSchema.properties,{operation:{type:'string',enum:['inspect','prepare','submit','open','status','stop','reconcile','cleanup']},policy:tedProperties('tasks').policy});
+TOOLS.find(t=>t.name==='ted_tasks').annotations.readOnlyHint=false;
 
 export function start() {
   const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: false });
@@ -88,7 +93,9 @@ export function start() {
     if (result.changes.length && ready) process.stdout.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/resources/list_changed'})+'\n');
     else if(result.changes.length)changedBeforeReady=true;
   }});
-  rl.on('close',()=>watcher.dispose());
+  let maintenance;
+  try{if(process.env.AVC_GENERATION&&process.env.CODEX_HOME)maintenance=startTaskMaintenance(stateRootFor(process.env.AVC_PROJECT_ROOT||process.cwd()));}catch{}
+  rl.on('close',()=>{watcher.dispose();maintenance?.dispose();});
 
   rl.on('line', (line) => {
     let msg;

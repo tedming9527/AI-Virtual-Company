@@ -1,6 +1,13 @@
 import unittest
 from asset_observations import reconcile_observations
 class ObservationTest(unittest.TestCase):
+ def test_retired_canonical_facts_do_not_resurrect_statistics_in_later_rebuilds(self):
+  original={'schema':'avc.observations.v1','events':[{'assetKey':'retired','signal':'delivered'}],'rollups':{},'suggestions':[]}
+  _,first=reconcile_observations(original,{'retired':{}},{})
+  again,second=reconcile_observations(original,{}, {},suppressed_keys=first['suppressedAssetKeys'])
+  self.assertEqual(again['events'],[]);self.assertEqual(second['suppressedAssetKeys'],['retired'])
+  revived,_=reconcile_observations(original,{}, {'retired':{}},suppressed_keys=second['suppressedAssetKeys'])
+  self.assertEqual(len(revived['events']),1)
  def test_confirmed_retirement_clears_all_observation_shapes(self):
   old={'a':{},'b':{}};new={'b':{}}
   v={'schema':'avc.observations.v1','events':[{'assetKey':'a','signal':'delivered'},{'assetKey':'b','signal':'read'},{'assetKey':'unknown','signal':'read'}],'rollups':{'a':{},'b':{}},'suggestions':[{'assetKey':'a'},{'assetKey':'b'}]}

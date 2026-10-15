@@ -3,6 +3,7 @@ import { readFileSync, existsSync, lstatSync, mkdirSync, rmdirSync, writeFileSyn
 import { resolve, join, relative, sep, dirname, basename } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { clientStateRoot } from './client-state.js';
+import { withRawLogLock } from './raw-log.js';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
@@ -32,6 +33,7 @@ function safe(root, file, directory = false) {
   return target;
 }
 function publish(file, data) {
+ return withRawLogLock(file,()=>{
   if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf8'));
   const tmp = file + '.' + randomBytes(8).toString('hex') + '.tmp';
   try {
@@ -39,6 +41,7 @@ function publish(file, data) {
     try { linkSync(tmp, file); } catch (e) { if (e.code !== 'EEXIST') throw e; }
     return JSON.parse(readFileSync(file, 'utf8'));
   } finally { try { unlinkSync(tmp); } catch {} }
+ },{waitMs:500});
 }
 export function nativeTurnFile(stateRoot, sessionId, turnId, agentId = '') {
   return safe(stateRoot, join(stateRoot, 'runtime/mediation/turns', hash(JSON.stringify([sessionId, turnId, agentId])) + '.json'));
@@ -105,7 +108,7 @@ export function captureNative(input, deploymentFile) {
   // Only a real prompt/tool/start event may attach its current turn; Stop never
   // invents a missing receipt to make an old final answer pass attribution.
   let turn;
-  if (config.scope === 'client' && id(input.turn_id) && !['Stop', 'SubagentStop', 'SessionEnd', 'Interrupt'].includes(input.hook_event_name)) {
+  if (config.scope === 'client' && id(input.turn_id) && !['Stop', 'SubagentStop', 'SessionEnd', 'Interrupt','SessionArchived'].includes(input.hook_event_name)) {
     safe(stateRoot, join(stateRoot, 'runtime/mediation/turns'), true);
     turn = publish(nativeTurnFile(stateRoot, input.session_id, input.turn_id, input.agent_id ?? ''), {
       schema: 'avc.turn-attachment.v1', sessionChainId: input.session_id, sessionId: input.session_id, turnId: input.turn_id, agentId: input.agent_id ?? null,

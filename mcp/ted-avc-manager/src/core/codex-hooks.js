@@ -7,6 +7,7 @@ import { weeklyStatus } from '../governance/weekly.js';
 import { clientStateRoot, catalogRootFor, catalogVersionFor } from './client-state.js';
 import { hookProject, captureNative } from './session-ingress.js';
 import { hookWarning } from './hook-warning.js';
+import { appendRawLog } from './raw-log.js';
 
 const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
 const hash = text => createHash('sha256').update(text).digest('hex');
@@ -98,10 +99,10 @@ function collectCodexHook(input, deploymentFile) {
   const auditFile = join(base, 'events.jsonl');
   for (const file of [stateFile, auditFile]) if (existsSync(file) && lstatSync(file).isSymbolicLink()) throw new Error('Refusing hook receipt symlink');
   let state = existsSync(stateFile) ? json(stateFile) : { turns: {} };
-  const record = (status, extra = {}) => appendFileSync(auditFile, JSON.stringify({
+  const record = (status, extra = {}) => appendRawLog(auditFile, {
     at: new Date().toISOString(), event: input.hook_event_name,
     sessionId: input.session_id, turnId: input.turn_id ?? null, version, status, ...extra,
-  }) + '\n', { mode: 0o600 });
+  });
   if (input.hook_event_name === 'SessionStart') {
     // Resume/compact can run after UserPromptSubmit. Never issue a competing
     // delivery instruction or mutate a turn nonce at session scope.

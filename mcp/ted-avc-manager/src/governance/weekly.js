@@ -7,7 +7,8 @@ import { join, relative, sep } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
 import { personalProject, fileInventory } from '../core/local-assets.js';
-import { summarizeUsage, proposeGovernance } from './usage.js';
+import { summarizeUsage, proposeGovernance, assetKey } from './usage.js';
+import { collectedSignalSummary } from './task-retention.js';
 
 const DAY = 86400000, WEEK = 7 * DAY;
 const PERSONAL_SOFT_LIMIT = 1024 ** 3;
@@ -36,7 +37,7 @@ export function weeklyStatus(root, { now = Date.now() } = {}) {
     pending: state.pending, coveredThrough: state.coveredThrough, lastSucceededAt: state.lastSucceededAt,
     writerId: state.writerId, writerAvailable: !state.writerId || state.writerId === localWriterId() };
 }
-function deliveredEvents(tasks) {
+function deliveredEvents(tasks,suppressed=new Set()) {
   if (!existsSync(tasks)) return [];
   const events = [];
   for (const name of readdirSync(tasks)) {
@@ -48,6 +49,7 @@ function deliveredEvents(tasks) {
     for (const item of task.assets || []) {
       if (!item.bundleSha256 || !item.loadedAt || !['general', 'local-custom'].includes(item.source)) continue;
       const asset = { source: item.source, type: item.type, id: item.name, version: item.version, bundleSha256: item.bundleSha256 };
+      if(suppressed.has(assetKey(asset)))continue;
       events.push({ schema: 'avc.asset-usage.v2', eventId: sha(`${task.taskId}:${item.loadedAt}:${item.source}:${item.type}:${item.name}:${item.bundleSha256}`),
         asset, taskId: task.taskId, signal: 'delivered', observedAt: item.loadedAt });
     }
@@ -93,7 +95,8 @@ export function prepareWeekly(root, { now = Date.now(), writerId = localWriterId
     const end = Math.floor(now / 1000) * 1000;
     const start = state.coveredThrough ? Date.parse(state.coveredThrough) : end - WEEK;
     if (!Number.isFinite(start) || start > end || end - start > 52 * WEEK) throw new Error('覆盖水位无效或积压超过一年，需人工核查');
-    const events = deliveredEvents(tasks), windows = [];
+    const retiredFile=join(stateRootFor(root),'observation-retirement.json'),retired=existsSync(retiredFile)?read(retiredFile):{};
+    const events = deliveredEvents(tasks,new Set(retired.suppressedAssetKeys||retired.retiredAssetKeys||[])), windows = [];
     for (let cursor = start; cursor < end; cursor += WEEK) {
       const through = Math.min(cursor + WEEK, end);
       const rollup = summarizeUsage(events, { from: new Date(cursor).toISOString(), through: new Date(through).toISOString() });
@@ -102,7 +105,8 @@ export function prepareWeekly(root, { now = Date.now(), writerId = localWriterId
     const inventory = experienceInventory(project), runId = randomUUID();
     let candidateTrials;
     try {candidateTrials=candidateTrialSummary(root);} catch(error) {candidateTrials={status:'unavailable',warning:error.message};}
-    const manifest = { candidateTrials, schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), contextPolicy: { limits: CONTEXT_LIMITS, reader: 'governance-weekly-read', summaryIsCompleteReview: false }, status: 'awaiting-ai-proposal' };
+    let collectionSignals;try{collectionSignals=collectedSignalSummary(stateRootFor(root));}catch(error){collectionSignals={status:'unavailable',reason:error.message,taskContinues:true};}
+    const manifest = { candidateTrials, collectionSignals, schema: 'avc.weekly-preparation.v1', runId, from: new Date(start).toISOString(), through: new Date(end).toISOString(), windows, experience: inventory, capacity: personalCapacity(project), contextPolicy: { limits: CONTEXT_LIMITS, reader: 'governance-weekly-read', summaryIsCompleteReview: false }, status: 'awaiting-ai-proposal' };
     const file = join(dir, `preparation-${runId}.json`);
     atomic(file, manifest);
     const pending = { runId, file: relative(project, file), through: manifest.through, sha256: sha(readFileSync(file)) };

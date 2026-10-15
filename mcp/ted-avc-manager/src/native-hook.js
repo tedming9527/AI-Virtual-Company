@@ -7,7 +7,8 @@ import { hookProject } from './core/session-ingress.js';
 import { readFileSync } from 'node:fs';
 import { captureNative, nativeTaskStatus, handleCapturedOnce } from './core/session-ingress.js';
 import { runCodexHook } from './core/codex-hooks.js';
-import { runExecutionHook } from './core/execution.js';
+import { runExecutionHook, observeTaskEnd } from './core/execution.js';
+import { sweepTaskLifecycle, noteSessionLifecycle } from './core/task-lifecycle.js';
 import { hookWarning } from './core/hook-warning.js';
 let collection;
 try {
@@ -19,6 +20,15 @@ try {
   const parts = [];
   if (['SessionStart', 'UserPromptSubmit', 'Stop'].includes(input.hook_event_name)) parts.push(runCodexHook(input, file));
   if (['UserPromptSubmit', 'PreToolUse', 'PostToolUse'].includes(input.hook_event_name)) parts.push(runExecutionHook(input, file));
+  try {
+    const lifecycleProject=hookProject(JSON.parse(readFileSync(file,'utf8')),input);
+    if(lifecycleProject)noteSessionLifecycle(clientStateRoot(lifecycleProject),input,collection);
+    observeTaskEnd(input,file,collection);
+    if(['SessionStart','UserPromptSubmit'].includes(input.hook_event_name)) {
+      const project=hookProject(JSON.parse(readFileSync(file,'utf8')),input);
+      if(project)sweepTaskLifecycle(clientStateRoot(project));
+    }
+  } catch(error) { parts.push(hookWarning('lifecycle',error.message)); }
   // A resumed/forked/child session can attach at its first real tool event even
   // without a new user prompt. Provide the same task context on that event.
   if (collection.turn && ['SessionStart', 'SubagentStart', 'PreToolUse'].includes(input.hook_event_name)

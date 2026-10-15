@@ -2,9 +2,9 @@
   "type": "skill",
   "name": "ted",
   "displayName": "Ted 便捷命令",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "status": "active",
-  "description": "以确定性命令处理 Ted 更新检查、本地全景、评分、诊断、摘要优化及本机资料实时监控。",
+  "description": "以确定性命令处理 Ted 更新检查、全景、评分、诊断、摘要优化、任务到期结算与本机资料监控。",
   "rubric": [
     "确定性分派",
     "阶段证据准确",
@@ -18,7 +18,10 @@
     "doctor",
     "repair",
     "摘要优化",
-    "summary"
+    "summary",
+    "任务结算",
+    "不活跃",
+    "tasks"
   ],
   "aliases": [
     "/ted",

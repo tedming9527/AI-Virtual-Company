@@ -2,6 +2,7 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync, realpathSync } from 'node:fs';
 import { join,dirname } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { acquireClientLease } from './client-lease.js';
 export const CONTEXT_LIMITS = Object.freeze({ responseBytes: 8192, summaryBytes: 2048, hookBytes: 12288, turnBytes: 65536, sessionBytes: 262144 });
 const hash = s => createHash('sha256').update(s).digest('hex');
 export function bytePrefix(text, limit) {
@@ -64,6 +65,7 @@ export function contextStatus(root, key) {
   return { unit: 'utf8-bytes', scope: 'shared session and turn across agents; not model tokens or host context', limits: CONTEXT_LIMITS, sessionBytes: v.bytes, turnBytes: t?.bytes || 0,agentTurnBytes:t?.agents?.[hash(key.agentId||'')]?.bytes||0,legacyCoverage:'parent and explicitly encountered legacy agents only' };
 }
 export function deliverContext(root, key, id, text, { maxBytes = CONTEXT_LIMITS.responseBytes,parts,build,always=false } = {}) {
+ const release=acquireClientLease();try {
   const file = location(root, key, true), lock = file + '.lock';
   const deadline = Date.now() + 500;
   while (true) {
@@ -93,6 +95,7 @@ export function deliverContext(root, key, id, text, { maxBytes = CONTEXT_LIMITS.
     finally { rmSync(temp, { force: true }); }
     return { status: 'delivered', content: text, budget: budget() };
   } finally { rmSync(lock, { recursive: true }); }
+ } finally {release();}
 }
 // Complete adapter JSON body accounting, including escaping and its own meter.
 // A small, explicitly unaccounted control is the only failure fallback.
