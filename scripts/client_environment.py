@@ -194,7 +194,7 @@ const emit=value=>{
  try{
   const dest=outcomePath(),tmp=dest+'.'+process.pid+'.tmp';
   const pending=value._tedCollection?.captured===true&&value._tedCollection?.taskStatus==='pending'&&value._tedCollection?.taskVerified===false;
-  try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':pending?'pending-task':value._tedCollection?.captured?'captured':'not-applicable',collection:value._tedCollection??null,message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
+  require(path.join(base,'package/src/core/raw-lock.cjs')).withRawLogLock(dest,()=>{try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':pending?'pending-task':value._tedCollection?.captured?'captured':'not-applicable',collection:value._tedCollection??null,message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}},{waitMs:500});
  }catch{}
 
  if(value.systemMessage){
@@ -389,10 +389,28 @@ def rebuild_distribution(root,personal,tx):
     return target
 
 def active_tasks(targets):
+    """Validate transferable execution facts, not the number of live chats."""
+    pending=[]
     for key,p in targets.items():
         if key!='environment': continue
         for f in (p/'state/runtime/execution/tasks').glob('*.json'):
-            if read(f).get('status')=='active': raise ValueError('Unfinished task: preserve environment until closeout')
+            task=read(safe(f))
+            if task.get('status')=='active':
+                if task.get('schema')!='avc.execution-task.v1' or not re.fullmatch(r'[a-f0-9]{64}',task.get('taskId','')) or f.stem!=task['taskId'] or not all(isinstance(task.get(k),str) and task[k] for k in ['sessionId','turnId','receipt']) or not isinstance(task.get('calls'),dict):
+                    raise ValueError('Unrecognized unfinished task; preserve environment for reviewed migration')
+                pending.append(task['taskId'])
+        for lock in (p/'state/runtime').rglob('*.lock'):
+            if lock.is_file():
+                owner=read(safe(lock))
+                if owner.get('schema')=='avc.writer-lock.v1' and isinstance(owner.get('pid'),int) and not alive(owner['pid']):lock.unlink();continue
+            raise ValueError('Runtime operation lock exists; rebuild postponed without changing task state')
+    return pending
+
+def runtime_fact(rel):
+    prefix='state/runtime/'
+    if not rel.startswith(prefix):return False
+    name=rel[len(prefix):]
+    return name.split('/')[0] in ['execution','mediation','hooks','context','governance','workflows','supervision'] or name in ['asset-events.jsonl','skill-registry.json']
 
 def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
     root,home,personal,node=map(safe,[root,home,personal,node]); user_home=safe(user_home or Path.home())
@@ -404,7 +422,7 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
     with locked(home), personal_locked(personal):
         tx=home/'.ted-avc-manager-transaction'
         if tx.exists(): raise ValueError('Interrupted transaction exists; run recover first')
-        targets=ownership(home,user_home,migrate); active_tasks(targets)
+        targets=ownership(home,user_home,migrate); pending_tasks=active_tasks(targets)
         tx.mkdir(mode=0o700); generation=uuid.uuid4().hex
         snapshots={k:inventory(p) for k,p in targets.items()}; shared_names=['config.toml','hooks.json','AGENTS.md','ted-avc-manager-hook.cjs','ted-avc-manager-hook.sh']
         shared_before={n:inventory(home/n) for n in shared_names}
@@ -423,7 +441,8 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
                 old_state=targets['environment']/'state'
                 if (old_state/'observations.json').exists():previous=read(old_state/'observations.json')
                 previous['events'].extend(collect_native(old_state))
-            observations,retirement=reconcile_observations(previous,old_manifest.get('assetMap',{}),new_map)
+            prior_retirement=read(targets['environment']/'state/observation-retirement.json') if 'environment' in targets and (targets['environment']/'state/observation-retirement.json').exists() else {}
+            observations,retirement=reconcile_observations(previous,old_manifest.get('assetMap',{}),new_map,suppressed_keys=prior_retirement.get('suppressedAssetKeys',prior_retirement.get('retiredAssetKeys',[])))
             retired_map={key:old_manifest['assetMap'][key] for key in retirement['retiredAssetKeys']}
             archive_edits=plan_archive_retirements(personal,retired_map,new_map)
             journal['archiveEdits']=[{'relative':e['relative'],'before':e['before'],'after':digest(e['data'])} for e in archive_edits]
@@ -435,6 +454,9 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             workspace_index=read(targets['environment']/'state/workspace/index.json').get('files',{}) if 'environment' in targets and (targets['environment']/'state/workspace/index.json').exists() else {}
             for k,p in targets.items():
                 for rel,h in snapshots[k].items():
+                    if k=='environment' and runtime_fact(rel):
+                        excluded.append({'path':k+'/'+rel,'sha256':h,'reason':'hash-verified-operational-state-handoff'})
+                        continue
                     # Runtime/source deployment is rebuildable; historical audit and unique edits are not.
                     generated = k=='environment' and rel in ['manifest.json','deployment.json','bin/ted-avc-manager','state/observations.json','state/observation-retirement.json']
                     if k=='environment' and rel in ['state/runtime/asset-inventory.json','state/runtime/native-skill-index.json']:
@@ -482,6 +504,14 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             distribution=rebuild_distribution(root,personal,tx)
             stage=tx/'new';stage.mkdir()
             copy_verified(root/'mcp/ted-avc-manager',stage/'package')
+            handoff={}
+            if 'environment' in targets:
+                for rel,h in snapshots['environment'].items():
+                    if runtime_fact(rel):
+                        data=(targets['environment']/rel).read_bytes()
+                        if digest(data)!=h:raise ValueError('Runtime changed during handoff')
+                        atomic(stage/rel,data);handoff[rel]=h
+                if any(inventory(stage/rel).get('')!=h for rel,h in handoff.items()):raise ValueError('Runtime handoff verification failed')
             (stage/'state/workspace').mkdir(parents=True)
             for rel in recovered: atomic(stage/'state/workspace'/rel,(recovery/'files'/rel).read_bytes())
             save(stage/'state/observations.json',observations)
@@ -500,6 +530,7 @@ def rebuild(root,home,personal,node,user_home=None,migrate=False,fail_at=None):
             files={r:{'sha256':h,'origin':'central-runtime' if r.startswith('package/') else 'generated','ownership':'client-installation'} for r,h in inventory(stage).items() if not r.startswith('state/')}
             commit=subprocess.run(['git','-C',str(root),'rev-parse','HEAD'],capture_output=True,text=True).stdout.strip()
             manifest={'schema':SCHEMA,'owner':OWNER,'generation':generation,'version':read(root/'bootstrap.json')['version'],'sourceCommit':commit,'sourceTreeSha256':digest(json.dumps(inventory(root/'mcp/ted-avc-manager'),sort_keys=True).encode()),'files':files,'bridgeFiles':inventory(tx/'bridge'),'commandSkillFiles':command_files,'assetMap':new_map,'imports':[],'downstream':{'central':str(root),'personalDistribution':str(distribution)},'recovery':str(recovery),'nativeActivation':'pending-host-reload-and-event','shared':shared_names}
+            manifest['runtimeHandoff']={'previousGeneration':old_manifest.get('generation'),'pendingTasks':len(pending_tasks),'files':handoff,'evidence':'Exact historical facts, not new-generation native verification'}
             save(stage/'manifest.json',manifest)
             for k,p in targets.items():
                 if inventory(p)!=snapshots[k]: raise ValueError('Client changed during preservation')

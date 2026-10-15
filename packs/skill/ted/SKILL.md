@@ -16,6 +16,7 @@ description: 处理 Ted 便捷命令，包括 /ted 文本触发、检查更新�
 | `repair` | 安装修复方案尚未执行；另行分批登记双语短摘要补齐请求 |
 | `monitor` | 打开本机只读资料监控；仅记录已登记候选与正式资料，滚动保留 24 小时 |
 | `summary` | 默认只读查看预算、交接信息和已登记资料的中英短摘要 |
+| `tasks` | 默认只读预览活性与拟结算；reconcile 核对，cleanup 保全统计后清理到期原始日志 |
 
 这是聊天输入框技能入口：在支持技能菜单的客户端输入 `/` 并选择 Ted，或输入 `$ted` 明确选择技能，然后补充动作或自然语言要求。界面标签来自 `agents/openai.yaml`。MCP 支持的客户端也可选择 `ted` prompt。`/ted` 同时保留为文本触发约定；安装文件、宿主列入技能清单、菜单可见和实际工具调用分别核验，不把文字别名当作已验证菜单，不声称已经注册原生 `@Ted` 插件入口。
 
@@ -29,13 +30,19 @@ description: 处理 Ted 便捷命令，包括 /ted 文本触发、检查更新�
 
 已有原生会话标识时，将当前 sessionId/turnId（子代理同时带 agentId）传给摘要、诊断、修复与更新工具，使完整 JSON 响应累计计量。缺标识会明确返回 unbound 和单次硬上限，不要求为此另开任务；预算耗尽或计量故障时按控制状态保留待办，继续其他已授权工作。
 
-已有 metadata description 保存同源的 `zh-CN` / `en` 短字段，绑定正文、description、元数据 SHA-256、声明的 sourceVersion 与摘要策略版本。当前由 `doctor` / `summary` 维护预览消费；普通 list_assets/recommend_assets 检索及 load_asset 正文摘录未改为双语。不设置语言环境、不筛掉其他语言资料、不翻译或覆盖正文。`doctor` 和 `summary` 默认只读；`repair` / `update` 每批检查至多 4 项并复用可核验缓存或登记缺失请求，按返回 `nextCursor` 继续。两语言共享字节预算；`pending` 不等于已补齐。
+已有 metadata description 保存同源的 `zh-CN` / `en` 短字段，绑定正文、description、元数据 SHA-256、声明的 sourceVersion 与摘要策略版本。`doctor` / `summary` 提供维护预览，普通 list_assets/recommend_assets 检索消费通过来源校验的双语字段；缺失时保留原描述回退。load_asset 正文摘录保持原文，不自动翻译整篇资料。不设置语言环境、不筛掉其他语言资料、不翻译或覆盖正文。`doctor` 和 `summary` 默认只读；`repair` / `update` 每批检查至多 4 项并复用可核验缓存或登记缺失请求，按返回 `nextCursor` 继续。两语言共享字节预算；`pending` 不等于已补齐。
 
 用户要求修复或更新时，在当前任务预算内处理返回的请求：调用 `ted_summary`，传 `operation:"prepare"` 与 `requestId`；只按返回的 `originalDescription` 补齐 `missingLanguages`，保留否定和限制。再用 `operation:"submit"` 回传同一 `requestId`、`sourceSha256`、`descriptionSha256`、`policyVersion` 和 `summaries:{"zh-CN":"…",en:"…"}`（可仅提交缺失字段）。每批至多处理 4 个请求，达到预算、遇到来源变化或验证失败便保留 pending/游标，继续其他已授权工作；不靠改标签宣称翻译完成。工具只校验来源、字节与语言特征，`pairComplete` 不证明语义等价、完整指令覆盖或升级完成。提交结果失败时不报告修复成功。CLI 后备使用 `ted-avc-manager ted summary --input <input.json>`，参数相同。
 
 `load_asset` 默认 `mode=summary` 返回有界摘录和章节游标，不代表全文采用。需要正文时显式 `mode=chunk`，按 `nextCursor` 连续读取；游标绑定源 SHA-256，源变更须重新发现。重复片段不再次交付，预算耗尽保留未读游标，继续其他授权业务。
 
 自动升级提取同样先索引后分段；周度使用 `governance-weekly-read <input.json>`，携带当前原生 sessionId/turnId/receipt 与 runId，先读分页索引，再以 path 和 mode=chunk 读取来源。摘要、预算不足和未读来源不能当成完整提取或升级回执；不自动发布，不删除原始资料。
+
+## 任务结算与到期清理
+
+`/ted tasks`（`/ted 任务`、`/ted 结算`）或 `ted_tasks` 默认 inspect，不修改任务。`operation:"reconcile"` 应用分页核对，可明确传 `policy:{forceCloseDays:7}` 将连续无有效进展的硬结算上限配置为 5～10 天，默认 7 天。状态查询不续期；强制结算不制造业务成功或终止工具。纯问答用 `task_closeout` 的 `evidenceKind:"conversation"`，没有已观测答复时仍报告未验证，不虚构文件。
+
+`operation:"cleanup"` 先保全计数和最小审计证明，再清理默认到期 10 天的受管原始采集副本；未知结果与旧 active 不永久锁住原日志。已采集的加载、读取、声明及独立结果按各自证据继续统计，未采部分列未知。按 nextCursor/moreLogs 续页；预算降级时以 operationOutcome 中的实际变更和游标为准，不盲目重试。CLI 为 `ted-avc-manager ted tasks --input <input.json>`。常驻 MCP 每五分钟做一批本地维护，客户端关闭期间不承诺到点执行；宿主归档事件支持另需验收。未安装新版时不声称此入口已生效。
 
 ## 本地资料监控
 

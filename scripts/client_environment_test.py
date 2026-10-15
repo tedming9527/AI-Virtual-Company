@@ -97,6 +97,35 @@ class ClientTest(unittest.TestCase):
   scan_client(self.home);receipt=promote_user(self.home,self.personal,'draft-skill','draft-skill','test')
   self.assertEqual(receipt['to']['assetId'],'user:skill:draft-skill');self.assertEqual(inventory(src),inventory(Path(receipt['to']['path'])))
   self.run_rebuild();self.assertFalse((self.home/OWNER/'state/workspace/draft-skill').exists())
+ def test_unfinished_execution_and_budget_survive_rebuild_and_rollback_without_fake_closeout(self):
+  self.run_rebuild();state=self.home/OWNER/'state';tid='a'*64
+  task={'schema':'avc.execution-task.v1','taskId':tid,'sessionId':'session','turnId':'turn','receipt':'real-old-receipt','status':'active','calls':{'pending':{'status':'reserved'}},'assets':[]}
+  file=state/'runtime/execution/tasks'/f'{tid}.json';save(file,task)
+  save(state/'runtime/context/budget.json',{'schema':'avc.context-budget.v2','bytes':12345,'turns':{}})
+  before=inventory(state/'runtime');previous=read(self.home/OWNER/'manifest.json')['generation']
+  self.run_rebuild();self.assertEqual(inventory(state/'runtime'),before)
+  self.assertEqual(read(file),task);manifest=read(self.home/OWNER/'manifest.json')
+  self.assertEqual(manifest['runtimeHandoff']['pendingTasks'],1);self.assertEqual(manifest['runtimeHandoff']['previousGeneration'],previous)
+  self.assertEqual(manifest['nativeActivation'],'pending-host-reload-and-event')
+  with self.assertRaises(RuntimeError):self.run_rebuild(fail_at='switched')
+  recover(self.home,user_home=self.base/'user');self.assertEqual(inventory(state/'runtime'),before)
+ def test_retired_asset_statistics_remain_retired_across_repeated_runtime_handoffs(self):
+  self.run_rebuild();base=self.home/OWNER;manifest=read(base/'manifest.json');asset_key,asset=next((k,v) for k,v in manifest['assetMap'].items() if v['type']=='skill' and v['id']=='docker-lan-access')
+  tid='b'*64;task={'schema':'avc.execution-task.v1','taskId':tid,'sessionId':'old','turnId':'turn','receipt':'receipt','status':'active','calls':{},'assets':[{**asset,'name':asset['id'],'loadedAt':'2026-10-15T00:00:00Z'}]}
+  file=base/'state/runtime/execution/tasks'/f'{tid}.json';save(file,task);shutil.rmtree(self.root/'packs/skill/docker-lan-access')
+  self.run_rebuild();self.run_rebuild()
+  self.assertEqual(read(file),task);self.assertIn(asset_key,read(base/'state/observation-retirement.json')['suppressedAssetKeys'])
+  self.assertFalse(any(e.get('assetKey')==asset_key for e in read(base/'state/observations.json')['events']))
+ def test_native_stop_auto_settles_without_a_file_and_keeps_business_outcome_unknown(self):
+  self.run_rebuild();base=self.home/OWNER;shim=self.home/'ted-avc-manager-hook.sh'
+  prompt={'cwd':str(self.root),'session_id':'stop-session','turn_id':'stop-turn','hook_event_name':'UserPromptSubmit'}
+  subprocess.run(['/bin/sh',str(shim),'native'],input=json.dumps(prompt),capture_output=True,text=True,check=True)
+  turn=read(next((base/'state/runtime/mediation/turns').glob('*.json')))
+  inp=self.base/'begin-stop.json';save(inp,{'sessionId':prompt['session_id'],'turnId':prompt['turn_id'],'receipt':turn['receipt'],'agentId':'','role':'test-expert','goal':'Verify no-file native stop settlement','allowedTools':['Bash'],'maxToolCalls':2})
+  subprocess.run([str(base/'bin/ted-avc-manager'),'task-begin',str(inp)],capture_output=True,text=True,check=True)
+  subprocess.run(['/bin/sh',str(shim),'native'],input=json.dumps({**prompt,'hook_event_name':'Stop','last_assistant_message':'fixture answer; no file output'}),capture_output=True,text=True,check=True)
+  task=read(next((base/'state/runtime/execution/tasks').glob('*.json')))
+  self.assertEqual(task['status'],'closed');self.assertEqual(task['lifecycle']['closeReason'],'host-ended');self.assertEqual(task.get('outcome','unknown'),'unknown');self.assertNotIn('artifacts',task)
  def test_live_binding_uses_client_state_and_downstream_catalog(self):
   self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh'
   payload={'cwd':str(self.root),'session_id':'scope-test','turn_id':'turn','hook_event_name':'UserPromptSubmit'}

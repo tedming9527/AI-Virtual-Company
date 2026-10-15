@@ -17,33 +17,35 @@ def asset_map(packs):
 
 def key(asset):return f'{asset["source"]}:{asset["type"]}/{asset.get("id",asset.get("name"))}@{asset["version"]}#{asset["bundleSha256"]}'
 
-def reconcile_observations(previous, old_map, new_map, live_user_keys=()):
+def reconcile_observations(previous, old_map, new_map, live_user_keys=(), suppressed_keys=()):
     if previous.get('schema')!='avc.observations.v1':raise ValueError('Unknown observation schema; retain for review')
     retired=set(old_map)-set(new_map)-set(live_user_keys)
+    suppressed=(set(suppressed_keys)|retired)-set(new_map)-set(live_user_keys)
     # Unknown provenance is retained, not guessed obsolete.
     events=[];seen=set()
     for e in previous.get('events',[]):
-        if e.get('assetKey') in retired:continue
+        if e.get('assetKey') in suppressed:continue
         event_id=e.get('eventId')
         if event_id and event_id in seen:continue
         if event_id:seen.add(event_id)
         events.append(e)
-    rollups={k:v for k,v in previous.get('rollups',{}).items() if k not in retired}
-    suggestions=[s for s in previous.get('suggestions',[]) if s.get('assetKey') not in retired]
+    rollups={k:v for k,v in previous.get('rollups',{}).items() if k not in suppressed}
+    suggestions=[s for s in previous.get('suggestions',[]) if s.get('assetKey') not in suppressed]
     # Recompute only explicitly recorded signals; task success is not asset attribution.
     counts={}
     for e in events:
         if not e.get('assetKey'):continue
         row=counts.setdefault(e['assetKey'],{});signal=e.get('signal','unknown');row[signal]=row.get(signal,0)+1
     for k,v in counts.items():rollups[k]={'signals':v,'score':None,'status':'insufficient-attributed-evidence'}
-    return {'schema':'avc.observations.v1','events':events,'rollups':rollups,'suggestions':suggestions}, {'schema':'avc.observation-retirement.v1','retiredAssetKeys':sorted(retired),'removedEvents':len(previous.get('events',[]))-len(events),'removedRollups':len(set(previous.get('rollups',{}))&retired),'reason':'verified-complete-distribution-replacement'}
+    return {'schema':'avc.observations.v1','events':events,'rollups':rollups,'suggestions':suggestions}, {'schema':'avc.observation-retirement.v1','retiredAssetKeys':sorted(retired),'suppressedAssetKeys':sorted(suppressed),'removedEvents':len(previous.get('events',[]))-len(events),'removedRollups':len(set(previous.get('rollups',{}))&suppressed),'reason':'verified-complete-distribution-replacement'}
 
 def collect_native(state):
     """Known raw logs -> observations. Parsing failure keeps originals, no fake success."""
     events=[];tasks=state/'runtime/execution/tasks'
     for file in sorted(tasks.glob('*.json')):
         task=read(file)
-        if task.get('status')=='active':raise ValueError('Active task cannot be compacted')
+        # Observed deliveries count even when outcome/closeout is missing.
+        # Canonical task facts are handed off separately, never compacted here.
         for asset in task.get('assets',[]):
             if not all(k in asset for k in ['source','type','name','version','bundleSha256']):continue
             events.append({'eventId':digest((str(file)+json.dumps(asset,sort_keys=True)).encode()),'assetKey':key(asset),'signal':'delivered','at':asset.get('loadedAt'),'taskId':task.get('taskId')})

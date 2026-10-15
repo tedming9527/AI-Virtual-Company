@@ -89,6 +89,19 @@ test('missing completion requires explicit unknown classification and real artif
   const closed = closeTask(f.root, { ...f.key, unknownCalls: [{ toolUseId: 'call-a', reason: 'client emitted no post event' }], artifacts: [{ path: artifact }] }, f.deployment);
   assert.equal(closed.observation.unknownCalls, 1);
 });
+test('no-file conversation closes without invented artifacts or a verified reply claim',t=>{
+ const f=fixture(t);f.begin();const closed=closeTask(f.root,{...f.key,evidenceKind:'conversation'},f.deployment);
+ assert.equal(closed.status,'closed');assert.deepEqual(closed.artifacts,[]);assert.equal(closed.deliveryEvidence.verified,false);assert.equal(closed.lifecycle.closeReason,'explicit');
+});
+test('late native result corrects an automatic deadline close without resetting the contract or inventing outcome',t=>{
+ const f=fixture(t);const started=f.begin();f.event('PreToolUse');
+ const file=join(f.root,'runtime/execution/tasks',started.taskId+'.json'),task=JSON.parse(readFileSync(file));
+ task.status='closed';task.closeMode='automatic';task.lifecycle={closedAt:new Date().toISOString(),closeReason:'deadline',settlement:'incomplete'};writeFileSync(file,JSON.stringify(task));
+ f.event('PostToolUse','call-a',{tool_response:{exit_code:0}});
+ const corrected=JSON.parse(readFileSync(file));assert.equal(corrected.status,'closed');assert.equal(corrected.calls['call-a'].status,'observed');assert.equal(corrected.lifecycle.settlement,'reconciled');
+ assert.equal(corrected.contract.maxToolCalls,2);
+ f.event('PreToolUse','call-b');const resumed=JSON.parse(readFileSync(file));assert.equal(resumed.status,'active');assert.equal(Object.keys(resumed.calls).length,2);assert.equal(resumed.violations.length,0);
+});
 test('role drift, forbidden tool, ID mutation deny before side effects', t => {
   const f = fixture(t); f.begin();
   assert.equal(f.event('PreToolUse', 'forbidden', { tool_name: 'functions.other' }).hookSpecificOutput.permissionDecision, 'deny');

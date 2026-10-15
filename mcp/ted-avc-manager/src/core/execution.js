@@ -1,4 +1,6 @@
 import {emitMonitor,loaderIdentity,monitorActive} from '../monitor/emit.js';
+import { noteTaskEvent, settleInactive, explicitlySettled, lifecycleView, syncSessionLifecycle, isTaskProgress } from './task-lifecycle.js';
+import { appendRawLog, claimRawLogLock } from './raw-log.js';
 import { deliverContext, deliverResponse, documentView, CONTEXT_LIMITS } from './context-budget.js';
 // Project-scoped native execution receipts. This is not a hosted model gateway.
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, realpathSync, lstatSync, renameSync, rmSync, readdirSync } from 'node:fs';
@@ -7,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
 import { readHookDeployment } from './codex-hooks.js';
 import { clientStateRoot, stateRootFor, catalogRootFor, verifyDistributedFile, catalogVersionFor } from './client-state.js';
-import { hookProject, captureNative, readNativeTurn, sessionWorkspaces } from './session-ingress.js';
+import { hookProject, captureNative, readNativeTurn, sessionWorkspaces, nativeTurnFile } from './session-ingress.js';
 import { hookWarning } from './hook-warning.js';
 import { resolvePersonalStorage } from './storage.js';
 import { refreshInventory, recordObservedRead, listAssets } from './awareness.js';
@@ -82,21 +84,11 @@ function atomic(file, value) {
 }
 function locked(root, taskId, fn) {
   const paths = files(root, taskId);
-  // Different real events in the same turn can run concurrently. Serialize their
-  // metadata writes briefly; never retry the business tool or steal an old lock.
-  const deadline = Date.now() + 1000;
-  while (true) {
-    try { mkdirSync(paths.lock); break; }
-    catch (error) {
-      if (error.code !== 'EEXIST') throw error;
-      if (Date.now() >= deadline) throw new Error('Task locked by another operation; bounded verification wait expired');
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10);
-    }
-  }
-  try { return fn(paths); } finally { rmSync(paths.lock, { recursive: true }); }
+  let release;try{release=claimRawLogLock(paths.task,{lockFile:paths.lock,waitMs:1000});}catch{throw Error('Task locked by another operation; bounded verification wait expired');}
+  let result;try {result=fn(paths);return result;} finally {try{release();}catch(error){if(result&&typeof result==='object')result.cleanupWarning=String(error.message).slice(0,160);else process.stderr.write('Ted task lock release unverified; ordinary work continues\n');}}
 }
 function record(paths, task, event, extra = {}) {
-  appendFileSync(paths.audit, JSON.stringify({ at: now(), taskId: task.taskId, sessionId: task.sessionId, turnId: task.turnId, engineVersion, catalogVersion: task.catalogVersion, event, ...extra }) + '\n', { mode: 0o600 });
+  appendRawLog(paths.audit,{ at: now(), taskId: task.taskId, sessionId: task.sessionId, turnId: task.turnId, engineVersion, catalogVersion: task.catalogVersion, event, ...extra });
 }
 function pinnedCatalog(root) {
   root = catalogRootFor(root);
@@ -191,6 +183,7 @@ export function beginTask(root, input, deploymentFile, options={}) {
     }
     const task = { schema: 'avc.execution-task.v1', ...key, projectRoot: d.root, engineVersion, catalogVersion: d.catalogVersion, catalogSha256: pinnedCatalog(d.root), mode: d.settings.mode, status: 'active', startedAt: now(), contract,
       role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, toolRegistration:{...registration,capabilities:input.toolCapabilities||[]}, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
+    noteTaskEvent(task,{hook_event_name:'UserPromptSubmit'},{at:task.startedAt});
     if (workflow) {
       const attempt = claimNativeNode(d.root, input.workflowId, input.nodeId, key.taskId);
       task.workflow = { ...contract.workflow, attemptId: attempt.id };
@@ -201,7 +194,7 @@ export function beginTask(root, input, deploymentFile, options={}) {
   });
 }
 export function executionResponse(root,key,result){
- const view={schema:result.schema,sessionId:result.sessionId,turnId:result.turnId,agentId:result.agentId,receipt:result.receipt,taskId:result.taskId,status:result.status,role:result.role,actualExecutor:result.actualExecutor,
+ const view={schema:result.schema,sessionId:result.sessionId,turnId:result.turnId,agentId:result.agentId,receipt:result.receipt,taskId:result.taskId,status:result.status,lifecycle:lifecycleView(result),deliveryEvidence:result.deliveryEvidence,role:result.role,actualExecutor:result.actualExecutor,
   contract:result.contract?{...result.contract,allowedTools:result.contract.allowedTools.slice(0,16),omittedTools:Math.max(0,result.contract.allowedTools.length-16)}:undefined,
   toolRegistration:result.toolRegistration?{mappings:result.toolRegistration.mappings?.slice(0,8),capabilities:result.toolRegistration.capabilities}:undefined,
   candidateTrials:result.candidateTrials,projectCount:result.projects?.length,projects:result.projects?.slice(0,8),artifactCount:result.artifacts?.length,artifacts:result.artifacts?.slice(0,4),observedCalls:result.observation?.observedCalls,unknownCalls:result.observation?.unknownCalls,violations:result.violations?.length,integrity:result.integrity};
@@ -297,11 +290,12 @@ export function closeTask(root, input, deploymentFile) {
       task.calls[item.toolUseId].status = 'unknown'; task.calls[item.toolUseId].unknownReason = item.reason;
     }
     if (Object.values(task.calls).some(call => call.status === 'reserved')) throw new Error('Unobserved reservations require explicit unknownCalls classification');
-    if (!Array.isArray(input.artifacts) || !input.artifacts.length) throw new Error('At least one actual output artifact required');
+    if ((!Array.isArray(input.artifacts) || !input.artifacts.length) && input.evidenceKind !== 'conversation') throw new Error('At least one actual output artifact required, or evidenceKind=conversation for no-file settlement');
+    if(input.artifacts!==undefined&&!Array.isArray(input.artifacts))throw Error('artifacts must be an array');
     const bootstrap = read(join(catalogRootFor(d.root), 'bootstrap.json')), personal = resolvePersonalStorage(d.root, bootstrap);
     const deliverables = join(personal.root, 'projects', personal.slug, 'deliverables');
     const workspaces = d.clientScope ? sessionWorkspaces(d.stateRoot, input.sessionId).map(w => w.workspaceRoot) : [d.root];
-    const artifacts = input.artifacts.map(item => {
+    const artifacts = (input.artifacts||[]).map(item => {
       const requested = resolve(key.workspace?.root || d.root, item.path);
       const base = [...workspaces, deliverables].filter(root => requested === root || requested.startsWith(root + sep)).sort((a,b) => b.length-a.length)[0];
       if (!base) throw Error('Output evidence outside observed session workspaces/deliverables');
@@ -315,6 +309,8 @@ export function closeTask(root, input, deploymentFile) {
     task.projectEvidence = 'artifact-location within observed session workspaces; change semantics require separate evidence';
     try { task.candidateTrials = trialStatus(d.root, task.contract.candidateTaskKey || task.taskId); } catch (error) { task.candidateTrials = {status:'unavailable',warning:error.message,taskContinues:true}; }
     task.status = 'closed'; task.closedAt = now(); task.artifacts = artifacts;
+    explicitlySettled(task,task.closedAt);
+    task.deliveryEvidence=artifacts.length?{kind:'file',verified:true}:{kind:'conversation',verified:!!task.lifecycle?.answerSha256,answerSha256:task.lifecycle?.answerSha256||null,limitation:'No file output; reply correctness and unobserved reply body are not verified'};
     task.integrity = integrity(d.root, task, d.catalogVersion);
     task.observation = { reservedCalls: Object.keys(task.calls).length, observedCalls: Object.values(task.calls).filter(call => call.status === 'observed').length, unknownCalls: Object.values(task.calls).filter(call => call.status === 'unknown').length, violations: task.violations.length, modelTokens: 'unknown', modelCost: 'unknown', scope: 'Native hooks observed only; user can disable adapter; no hosted gateway or full supervision claim' };
     if (task.workflow) finishNativeNode(d.root, task.workflow, task);
@@ -348,7 +344,7 @@ function executeHook(input, deploymentFile, options = {}) {
 Route one task with task_begin using this exact binding, one allowed role, goal, exact native tool names (shell: Bash; editing: apply_patch; collaboration tools: collaboration plus method name without dot), maxToolCalls <= ${d.settings.maxToolCalls}; include task_closeout. Explicit toolCapabilities shell/edit/delegation may register their exact native sets. No implicit expansion or historical rewrites; native permissions still apply. Actual executor: platform agent.
 Collection failures only warn; continue authorized work. Preserve native permissions and independent maintenance restrictions. Diagnostics ted_help/update/scores/doctor/repair/status/summary do not require file delivery. task_begin returns role PROFILE and optional candidateTrials; private candidate trials need explicit choice and source-bound evidence.
 Discover relevant metadata via recommend_assets/list_assets; pass sessionId/turnId/agentId above to discovery and Ted commands for shared accounting. Follow nextCursor; no automatic inventory bodies. load_asset defaults to extractive preview; use mode=chunk and digest-bound nextCursor for full evidence. Summaries are not full adoption. report_asset_use is a weak declaration only after actual use; pass the same logicalTaskId across turns, never report recommendations as adoption. Adapter UTF-8 budgets: response ${CONTEXT_LIMITS.responseBytes}, turn ${CONTEXT_LIMITS.turnBytes}, session ${CONTEXT_LIMITS.sessionBytes}, shared across agents; not model tokens. Budget exhaustion withholds optional context, never business execution. ted summary gives optimization advice without clearing host context.
-Before closeout query ted_status for pending calls, classify only still-reserved calls lacking completion unknown. Use real file artifacts; no output means closeout unverified. Footer/receipt never proves full supervision. Across resume retain this turn binding; never reuse another turn's receipt.` } };
+Before closeout query ted_status for pending calls, classify only still-reserved calls lacking completion unknown. Use real file artifacts, or evidenceKind=conversation when there is no file output; unobserved reply content stays unverified. Footer/receipt never proves full supervision. Across resume retain this turn binding; never reuse another turn's receipt.` } };
   }
   identifier(input.tool_name, 'tool_name'); identifier(input.tool_use_id, 'tool_use_id');
   return locked(d.stateRoot, key.taskId, paths => {
@@ -370,18 +366,27 @@ Before closeout query ted_status for pending calls, classify only still-reserved
       const call = task.calls[input.tool_use_id];
       if (!call || call.tool !== input.tool_name) { record(paths, task, 'unmatched_post_tool', { tool: input.tool_name, toolUseId: input.tool_use_id }); return {}; }
       if (call.status !== 'reserved') { record(paths, task, 'post_tool_replayed', { tool: input.tool_name, toolUseId: input.tool_use_id }); return {}; }
+      if(isTaskProgress(input.tool_name))noteTaskEvent(task,input,{captureId:attachment?.captureId});
       const responseField = owns(input, 'tool_response') ? 'tool_response' : owns(input, 'tool_result') ? 'tool_result' : null;
       call.status = responseField ? 'observed' : 'unknown'; call.completedAt = now();
       if (responseField) call.responseSha256 = sha(JSON.stringify(input[responseField]));
       const response = responseField && input[responseField];
       call.exitCode = owns(input, 'exit_code') && Number.isInteger(input.exit_code) ? input.exit_code : response && typeof response === 'object' && Number.isInteger(response.exit_code) ? response.exit_code : 'unknown';
       if (!responseField) call.unknownReason = 'PostToolUse exposed no response field';
+      const operation=response&&typeof response==='object'&&(response.session_id??response.task_id);
+      if(operation!==undefined&&call.exitCode==='unknown'){call.operationId=String(operation);call.executionState='running';call.livenessAt=now();}
+      const polled=input.tool_input?.session_id??input.tool_input?.task_id;
+      if(polled!==undefined)for(const prior of Object.values(task.calls))if(prior.operationId===String(polled)){
+        prior.executionState=call.exitCode==='unknown'?'running':'ended';prior.livenessAt=now();
+      }
+      if(task.lifecycle?.closedAt)task.lifecycle.settlement=Object.values(task.calls).some(c=>c.status==='reserved')?'incomplete':'reconciled';
       if (task.workflow) observeNativeNode(d.root, task.workflow, task.taskId, input.tool_use_id);
       atomic(paths.task, task); record(paths, task, 'tool_completion_observed', { toolUseId: input.tool_use_id, tool: call.tool, status: call.status, responseSha256: call.responseSha256, exitCode: call.exitCode });
       return {};
     }
     const reasons = [];
     const control = MCP_TOOL.test(input.tool_name) && /__(task_closeout|load_asset)$/.test(input.tool_name);
+    if(task.closeMode==='automatic'&&!control&&!task.calls[input.tool_use_id]&&isTaskProgress(input.tool_name))noteTaskEvent(task,input,{captureId:attachment?.captureId});
     if (task.status !== 'active') reasons.push(`Task is ${task.status}`);
     if (!control) reasons.push(...integrity(d.root, task, d.catalogVersion).issues);
     if (!control && task.workflow) try { assertNativeNode(d.root, task.workflow, task.taskId); } catch (error) { reasons.push(error.message); }
@@ -400,10 +405,27 @@ Before closeout query ted_status for pending calls, classify only still-reserved
       if (d.settings.mode === 'enforce') { atomic(paths.task, task); record(paths, task, 'tool_denied', { tool: input.tool_name, toolUseId: input.tool_use_id, reason }); return denial(d.settings.mode, reason); }
       record(paths, task, 'tool_violation_monitored', { tool: input.tool_name, toolUseId: input.tool_use_id, reason });
     }
-    if (!prior && !control) task.calls[input.tool_use_id] = { tool: input.tool_name, inputSha256, status: 'reserved', admittedAt: now(), violation: reasons.length > 0 };
+    if (!prior && !control) {
+      if(isTaskProgress(input.tool_name))noteTaskEvent(task,input,{captureId:attachment?.captureId});
+      task.calls[input.tool_use_id] = { tool: input.tool_name, inputSha256, status: 'reserved', admittedAt: now(), violation: reasons.length > 0 };
+    }
     atomic(paths.task, task); record(paths, task, control ? 'management_control_admitted' : prior ? 'tool_reservation_replayed' : 'tool_reserved', { tool: input.tool_name, toolUseId: input.tool_use_id });
     return {}; // No permissionDecision=allow: preserve native approval/sandbox policy.
   });
+}
+// Called only by native ingress, never from model-supplied task tool arguments.
+export function observeTaskEnd(input,deploymentFile,collection) {
+ if(!collection?.captured||!['Stop','Interrupt','SessionEnd','SubagentStop','SessionArchived'].includes(input.hook_event_name)||!input.session_id||!input.turn_id)return;
+ const config=readHookDeployment(deploymentFile),p=hookProject(config,input);if(!p?.execution?.enabled)return;
+ const d=deployment(p.root,deploymentFile),file=nativeTurnFile(d.stateRoot,input.session_id,input.turn_id,input.agent_id??'');
+ if(!existsSync(file))return;const turn=read(file),key=binding(d.root,{sessionId:input.session_id,turnId:input.turn_id,agentId:input.agent_id??'',receipt:turn.receipt},d.stateRoot,d.clientScope);
+ return locked(d.stateRoot,key.taskId,paths=>{
+  if(!existsSync(paths.task))return;const task=read(paths.task);
+  if(noteTaskEvent(task,input,{captureId:collection.captureId})){
+   syncSessionLifecycle(d.stateRoot,task);
+   settleInactive(task);atomic(paths.task,task);record(paths,task,'lifecycle_observed',{lifecycle:lifecycleView(task),captureId:collection.captureId});
+  }
+ });
 }
 export function runExecutionHook(input, deploymentFile, options = {}) {
   try {

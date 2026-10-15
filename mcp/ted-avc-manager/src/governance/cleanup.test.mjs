@@ -35,3 +35,11 @@ test('cleanup refuses symlinked roots and entries while independent ordinary cac
  fs.symlinkSync(victim,path.join(cache,'linked'));fs.writeFileSync(path.join(cache,'old'),'rebuildable');fs.utimesSync(path.join(cache,'old'),old,old);fs.writeFileSync(path.join(cache,'fresh'),'fresh');
  assert.equal(cleanupRuntime(rt,{dryRun:false}).removed.cache,1);assert.equal(fs.readFileSync(victim,'utf8'),'unique');assert.equal(fs.existsSync(path.join(cache,'fresh')),true);
 });
+test('unfinished task flag cannot keep an expired verified raw log forever; retain an unknown-outcome expiry receipt',t=>{
+ const rt=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'avc-cleanup-expiry-')));t.after(()=>fs.rmSync(rt,{recursive:true,force:true}));
+ const file=path.join(rt,'logs','old.jsonl'),rollup=path.join(rt,'governance/rollups/window.json');fs.mkdirSync(path.dirname(file),{recursive:true});fs.mkdirSync(path.dirname(rollup),{recursive:true});
+ fs.writeFileSync(file,'observed\n');fs.writeFileSync(rollup,'{"delivered":1,"outcome":"unknown"}');const old=new Date(Date.now()-31*86400000);fs.utimesSync(file,old,old);
+ fs.writeFileSync(path.join(rt,'governance/consumed-log-receipts.json'),JSON.stringify({schema:'avc.consumed-logs.v1',entries:[{name:'old.jsonl',sha256:sha('observed\n'),rollupFile:'window.json',rollupSha256:sha(fs.readFileSync(rollup)),status:'verified',taskClosed:false}]}));
+ assert.equal(cleanupRuntime(rt,{dryRun:false}).removed.logs,1);assert.equal(fs.existsSync(file),false);assert.ok(fs.existsSync(rollup));
+ const proof=JSON.parse(fs.readFileSync(path.join(rt,'governance/expired-log-receipts',sha('observed\n')+'.json')));assert.equal(proof.outcome,'unknown');assert.equal(proof.taskClosed,false);
+});

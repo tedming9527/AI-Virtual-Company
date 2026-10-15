@@ -9,7 +9,10 @@ import { buildPanoramaModel } from '../panorama/generate.js';
 import { repositoryOf } from '../panorama/candidates.js';
 import { acquireClientLease } from './client-lease.js';
 import { maintainBilingualSummaries, prepareBilingualSummary, submitBilingualSummary } from './summary-language.js';
+import { reconcileTasks, configureTaskPolicy } from './task-lifecycle.js';
+import { cleanupTaskLogs } from '../governance/task-retention.js';
 export const TED_COMMANDS=[
+  {action:'tasks',description:'分页查看活性和七天强制结算；reconcile 应用核对，cleanup 汇总后清理到期原始日志'},
   {action:'monitor',description:'打开本机只读监控；仅记录已登记候选和正式资料，副本保留24小时'},
   {action:'help',description:'查看便捷命令与实际支持的客户端入口'},
   {action:'update',description:'检查版本，并分批登记需补齐的中英短摘要；不安装客户端'},
@@ -25,7 +28,7 @@ export function parseTedCommand(command) {
   if(typeof command!=='string'||command.length>200||/[\r\n\0]/.test(command))throw Error('Invalid ted command');
   const match=/^(?:\/ted|\$ted|ted)(?:\s+(\S+))?\s*$/.exec(command.trim());
   if(!match)throw Error('Use /ted <action>, $ted <action>, or ted <action>');
-  const action=aliases[match[1]]||match[1]||'help';
+  const action=({'任务':'tasks','结算':'tasks'}[match[1]])||aliases[match[1]]||match[1]||'help';
   if(!TED_COMMANDS.some(c=>c.action===action))throw Error('Unknown ted action; use ted help');return action;
 }
 export function tedAction(input={}) {
@@ -63,7 +66,11 @@ function summaryWriteFacts(b) {
 }
 function summaryControl(result) {
   const b=result.bilingual||{};
-  return {...result,bilingual:{status:b.status,requestId:b.requestId,pairComplete:b.pairComplete,counts:b.counts,...summaryWriteFacts(b),detailsOmitted:true},snapshot:undefined,plan:undefined,usage:undefined,limits:undefined};
+  return {...result,...(result.action==='tasks'?{operationOutcome:taskWriteFacts(result),result:undefined}:{}),bilingual:{status:b.status,requestId:b.requestId,pairComplete:b.pairComplete,counts:b.counts,...summaryWriteFacts(b),detailsOmitted:true},snapshot:undefined,plan:undefined,usage:undefined,limits:undefined};
+}
+function taskWriteFacts(result) {
+ const r=result.result||{},number=n=>Number.isSafeInteger(n)&&n>=0?n:undefined;
+ return {operation:result.operation,operationReturned:!!result.result,applied:result.operation==='inspect'?false:r.apply===true,changed:number(r.changed),scanned:number(r.scanned),removedFiles:number(r.removedFiles),removedEvents:number(r.removedEvents),compactedLogs:number(r.compactedLogs),nextCursor:typeof r.nextCursor==='string'?r.nextCursor.slice(0,80):r.nextCursor===null?null:undefined,moreLogs:r.moreLogs===true,issueCount:Array.isArray(r.issues)?r.issues.length+(r.omittedIssues||0):undefined,policyApplied:result.policyApplied===true,forceCloseDays:r.policy?.forceCloseDays,cleanupWarning:typeof result.cleanupWarning==='string'?bytePrefix(result.cleanupWarning,64):undefined,partial:result.partial===true||!!result.cleanupWarning||!!r.issues?.length,taskContinues:true};
 }
 function measured(result,status,extra={}) {
   const value={...result,contextDelivery:{status,unit:'utf8-bytes',scope:'complete JSON body; protocol framing excluded',responseBytes:0,...extra}};
@@ -73,10 +80,11 @@ function measured(result,status,extra={}) {
 function boundedResponse(result,status,extra={}) {
   let value=measured(result,status,extra);
   if(value.contextDelivery.responseBytes>CONTEXT_LIMITS.responseBytes)value=measured({...summaryControl(result),responseTruncated:true,restartPage:true},status,extra);
-  if(value.contextDelivery.responseBytes>CONTEXT_LIMITS.responseBytes)value=measured({action:result.action,operation:result.operation,readOnly:result.readOnly,applied:result.applied,taskContinues:true,error:result.error?.slice(0,256),bilingual:summaryControl(result).bilingual,responseTruncated:true,restartPage:true},status,extra);
+  if(value.contextDelivery.responseBytes>CONTEXT_LIMITS.responseBytes)value=measured({action:result.action,operation:result.operation,readOnly:result.readOnly,applied:result.applied,taskContinues:true,error:result.error?.slice(0,256),bilingual:summaryControl(result).bilingual,...(result.action==='tasks'?{operationOutcome:taskWriteFacts(result)}:{}),responseTruncated:true,restartPage:true},status,extra);
   return value;
 }
 function unaccountedControl(result,status,warning) {
+  if(result.action==='tasks')return measured({action:'tasks',operation:result.operation,readOnly:result.readOnly,operationOutcome:taskWriteFacts(result),error:result.error?.slice(0,96),retryable:false,taskContinues:true},status,{accounted:false,controlOnly:true});
   const short=(value,n=48)=>typeof value==='string'?bytePrefix(value,n):value===null?null:undefined,b=result.bilingual||{};
   const control={action:result.action,operation:result.operation,readOnly:result.readOnly,applied:result.applied,taskContinues:true,retryable:true,
     error:short(result.error,80),bilingual:{status:short(b.status),pairComplete:b.pairComplete,requestId:short(b.requestId,64),...summaryWriteFacts(b),detailsOmitted:true},
@@ -138,6 +146,17 @@ function handoffSnapshot(root, key) {
 }
 async function executeTedCommand(root,input={},options={}) {
   const action=tedAction(input),operation=input.operation??'inspect';
+  if(action==='tasks') {
+    if(!['inspect','reconcile','cleanup'].includes(operation))throw Error('Task operation must be inspect, reconcile or cleanup');
+    let release,policyApplied=false,response;
+    try{
+      if(operation!=='inspect')release=acquireClientLease();
+      const state=options.stateRoot||stateRootFor(root),settings={cursor:input.cursor,maxItems:input.maxItems??100,policy:input.policy};
+      if(operation==='reconcile'&&input.policy){configureTaskPolicy(state,input.policy);policyApplied=true;}
+      const result=operation==='cleanup'?cleanupTaskLogs(state,{...settings,apply:true}):reconcileTasks(state,{...settings,apply:operation==='reconcile'});
+      return response={action,operation,readOnly:operation==='inspect',result,policyApplied,taskContinues:true};
+    }catch(error){return response={action,operation,policyApplied,partial:policyApplied,error:String(error.message).slice(0,256),taskContinues:true};}finally{try{release?.();}catch(error){if(response)response.cleanupWarning=String(error.message).slice(0,80);}}
+  }
   if(action==='monitor'){try{const {runMonitor}=await import('../monitor/commands.js');return await runMonitor(root,{operation:input.operation??'open',sessionId:input.sessionId});}catch{return {action,operation:input.operation??'open',error:'monitor-unavailable; ordinary task continues',taskContinues:true};}}
   if(!['inspect','prepare','submit'].includes(operation)||input.operation!==undefined&&action!=='summary')throw Error('Summary operation must be inspect, prepare, or submit');
   const readOnly=!['panorama','repair','update'].includes(action)&&!(action==='summary'&&operation==='submit');

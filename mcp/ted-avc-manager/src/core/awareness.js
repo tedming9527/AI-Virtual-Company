@@ -1,4 +1,5 @@
 import {emitMonitor,inventoryIdentity} from '../monitor/emit.js';
+import { appendRawLog } from './raw-log.js';
 import { acquireClientLease } from './client-lease.js';
 import { catalogRootFor, stateRootFor } from './client-state.js';
 // Inventory visibility, content delivery and observed reads are separate evidence.
@@ -37,7 +38,7 @@ function event(root, data) {
   const item = { schema: 'avc.asset-event.v1', id: randomUUID(), at: new Date().toISOString(), ...data };
   const file = runtimeFile(root, 'asset-events.jsonl');
   mkdirSync(dirname(file), { recursive: true });
-  appendFileSync(file, JSON.stringify(item) + '\n', { mode: 0o600 });
+  appendRawLog(file,item);
   return item;
 }
 function context(input = {}) {
