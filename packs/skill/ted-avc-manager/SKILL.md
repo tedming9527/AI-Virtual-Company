@@ -14,6 +14,7 @@ description: 在已启用 ted-avc-manager 适配器的客户端所有会话中�
 - 用 `list_assets` 或 `recommend_assets` 获取相关 skill / knowledge / framework / role 的元数据。列表可见不表示正文已加载；名称重复时指定 source 和 type。
 - 用 `task_begin` 建立当前回合契约，选择一个允许岗位、实际任务目标、明确工具集合及调用预算。岗位完整 PROFILE 返回后，才报告岗位正文交付；契约不能扩大用户授权。
 - 在第一次业务工具前固定契约，按实际原生名称列入需要的终端、编辑和问答/协调工具。Codex 终端事件名为 `Bash`；需要异步问答时列入 `request_user_input_async`，不使用 `functions.exec_command` 等界面包装名替代。只列实际需要的工具，不用通配符，也不为消除告警回写或扩大已固定的历史契约。
+- 源码修改通常同时需要 `Bash` 和 `apply_patch`；协作工具的原生名是 `collaboration` 与方法名直接相连，例如 `collaborationinterrupt_agent`。可显式传 `toolCapabilities:["shell","edit"]`，需要代理协作时再声明 `delegation`；后端返回展开后的精确集合和已知包装名映射。能力声明不增加权限，历史遗漏仍保留告警。
 - 对实际需要的公司通用包或已复核登记的个人 skill，调用 `load_asset`，携带同一原生绑定和明确 source / type / name / entry。按任务需求继续加载知识正文；只读取索引不能声称整个知识包已应用。引用包内后续资料时再次按支持的文件入口加载，避免一次加载无关内容。
 - `task_begin.candidateTrials` 返回与当前目标相关的私有候选。先判断适用性；值得试用时说明理由、未验证项、范围、比较方法和成本，提示一次是否试用。使用返回的 taskKey，跨回合沿用 candidateTaskKey；实际提示后记录 `candidate_trial` offer，明确用户选择后 decide/start，结束时 result 记录产物、效果和成本。未回复不试用，不耽误普通任务；拒绝后同任务不重复，采集失败只警告。
 - 大模型可在授权任务内自行选择现有类型提炼候选，以 `candidate_register` 保存来源、版本、组成项和拟目标；`candidate_match` 检索、`candidate_trial_status` 查询。候选是所有资料的阶段，包括专业包、流程与高级复合知识；不是经验专属类型。未评分保持 unknown，低分重试说明条件变化；一次试用不自动晋升，复合资料需要整体验证。
@@ -45,6 +46,12 @@ description: 在已启用 ted-avc-manager 适配器的客户端所有会话中�
 用 `client_status` 分别核对事件捕获、会话/回合关联、上下文返回和任务合同；安装成功不是原生介入成功。旧会话下一次真实事件走同一入口，未知历史不补造。项目专属经验按实际改动及产物归属，跨项目经验保留多个来源，通用升级另走评审。
 
 ## 上下文预算与摘要
+
+发现与 Ted 调用携带当前原生 `sessionId/turnId/agentId`，沿用一个逻辑任务跨回合的 `logicalTaskId`。父子代理共享会话与回合总额，交付去重仍按代理隔离。缺标识显示 unbound，不能宣称累计计量或要求先补记账才能执行普通业务。
+
+`find_skill/list_assets/recommend_assets/list_packs` 默认分页，读取 `nextCursor` 继续；原有 skills/assets/recommendations/packs 集合名保留。实际检索保留原描述，使用来源校验通过的中英短摘要、标题、标签及低权重正文，不在 Hook 中翻译。包内文档、中央 docs/rules 与待审候选可发现，资格仍单独报告；候选不因相关而自动试用。规则卡的 `load.documentId/sourceSha256` 可交给 `load_asset` 分段读取；来源变动重新查询。
+
+只有实际采用时才调用 `report_asset_use`，使用相同 `logicalTaskId` 避免重复热度；该声明仍非已验证应用。自动推荐、读取和重复交付不增加采用先验。近期声明仅在相关结果中衰减且最多加权 2%，不构成质量评分或自动升级证据。
 
 `/ted summary`（`/ted 摘要优化`）或 `ted_summary` 查看预算和收敛方案；CLI 可带 `--session <id> --turn <id>`。仅统计适配器交付的 UTF-8 字节，不代表模型 token，也不能清空宿主已加载上下文。预算不会因查询而重置。
 

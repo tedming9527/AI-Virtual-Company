@@ -11,7 +11,8 @@ test('Chinese, English, mixed queries and declared aliases preserve match eviden
   for (const q of ['局域网','LAN','ＤＯＣＫＥＲ＿ＬＡＮ－ＡＣＣＥＳＳ','docker 局域网','  Docker   LAN  ']) assert.equal(searchAssets(assets,q)[0].id,'a');
   assert.equal(searchAssets(assets,'内网服务')[0].matches[0].kind,'declared-alias');
   assert.equal(searchAssets(assets,'docker-lan-access')[0].id,'a');
-  assert.equal(searchAssets(assets,'Docker unrelated').length,0);
+  assert.equal(searchAssets(assets,'Docker unrelated')[0].id,'a');
+  assert.ok(searchAssets(assets,'Docker unrelated')[0].matches.every(m=>m.term!=='unrelated'));
   assert.equal(searchAssets(assets,'').length,2);
   assert.equal(searchAssets([{name:'legacy'}],'LEGACY').length,1);
 });

@@ -4,15 +4,15 @@
 <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 Z" fill="#64748b"/></marker></defs>
 <rect width="1280" height="1280" fill="#f8fafc"/>
 <text x="40" y="45" font-size="28" font-weight="800" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">AI-Virtual-Company · 现行架构</text>
-<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央目录 v1.5.0  |  一张图看清责任、目录与升级  |  实线表示流程关系，不代表每步都已自动化</text>
+<text x="40" y="72" font-size="14" font-weight="400" fill="#475569" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">2026-10-15 · 1.9.1 整改范围  |  源码整改已验收，安装生效另验  |  流程箭头不代表全自动</text>
 <text x="40" y="111" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">谁负责什么</text>
 <rect x="40" y="128" width="390" height="206" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.6"/>
 <text x="58" y="159" font-size="16" font-weight="700" fill="#075985" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">系统代码 · 可重复的确定性动作</text>
-<text x="58" y="189" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">扫描目录并校验 meta、入口、版本和摘要</text>
-<text x="58" y="215" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">绑定任务，观察宿主可见的 Pre/Post 事件</text>
-<text x="58" y="241" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">按窗口去重统计；证据不足显示“未评分”</text>
+<text x="58" y="189" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">查询期投影规则正文，核验双语来源与版本</text>
+<text x="58" y="215" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">有界发现卡 → SHA 游标分段 → 执行观察</text>
+<text x="58" y="241" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">相关性优先；弱近期声明先验，不自证采用</text>
 <text x="58" y="267" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">生成本地/公开全景图并隔离私有字段</text>
-<text x="58" y="293" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">不推断满意度，也不自动批准发布</text>
+<text x="58" y="293" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">采集失败继续任务；不自动晋升或发布</text>
 <rect x="445" y="128" width="390" height="206" rx="14" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
 <text x="463" y="159" font-size="16" font-weight="700" fill="#6d28d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">大模型 · 需要语义判断的工作</text>
 <text x="463" y="189" font-size="13" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">按需读取资料，检索同课题及必要来源</text>
@@ -32,8 +32,8 @@
 <text x="58" y="424" font-size="16" font-weight="700" fill="#1d4ed8" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">中央仓库 · 通用事实源</text>
 <text x="58" y="454" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">packs/&lt;type&gt;/&lt;name&gt;/：四类包自动发现</text>
 <text x="58" y="483" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">每包 meta.json + SKILL/PROFILE 等入口</text>
-<text x="58" y="512" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">当前 27 包：skill 13 / knowledge 5</text>
-<text x="58" y="541" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">framework 1 / role 8</text>
+<text x="58" y="512" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">skill / knowledge / framework / role</text>
+<text x="58" y="541" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">按目录发现，包数与版本以实际目录为准</text>
 <text x="58" y="570" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">bootstrap.json 与 presets/ 定义有序下发</text>
 <text x="58" y="599" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">rules/ 定跨包规则；模板由 templates/ 承载</text>
 <text x="58" y="628" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">mcp/ 引擎；docs/、scripts/ 实现与说明</text>
@@ -45,19 +45,19 @@
 <text x="463" y="512" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">课题内按 memory / meetings / deliverables</text>
 <text x="463" y="541" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">及 experience 等用途组织；长期资料可同步</text>
 <text x="463" y="570" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">custom/ 自有资产；外部先入 staging/</text>
-<text x="463" y="599" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">未提炼经验继续保留，复核后才处理</text>
+<text x="463" y="599" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">摘要完整不授权删除，处置另绑原文版本</text>
 <text x="463" y="628" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">archive/ 历史；discard/ 受清理门禁约束</text>
 <text x="463" y="657" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">个人正文、路径和使用记录不进入 Git</text>
 <rect x="850" y="393" width="390" height="310" rx="14" fill="#ffedd5" stroke="#ea580c" stroke-width="1.6"/>
 <text x="868" y="424" font-size="16" font-weight="700" fill="#c2410c" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">运行态 · 同步元数据与本机缓存分离</text>
-<text x="868" y="454" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">仓库 runtime/：应只留轻量元数据与视图</text>
-<text x="868" y="483" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">原始事件先汇总核验；30 天是最早可删</text>
-<text x="868" y="512" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">活动任务与未完成回执不得直接清理</text>
-<text x="868" y="541" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">大缓存、临时副本、node_modules 不进 iCloud</text>
+<text x="868" y="454" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">客户端状态按部署解析，与个人原文分离</text>
+<text x="868" y="483" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">完整 JSON 计量；不冒充模型 token 计量</text>
+<text x="868" y="512" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">父子共享 session/turn，去重按 agent 隔离</text>
+<text x="868" y="541" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">短卡 / 双语摘要 / SHA 游标片段按需交付</text>
 <text x="868" y="570" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">正式长期源码与锁文件留在课题或项目</text>
 <text x="868" y="599" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">联网 MCP 只按需做只读连接探测</text>
 <text x="868" y="628" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">宿主沙箱、工具审批继续生效</text>
-<text x="868" y="657" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">本机 Hook 不等于完整模型监督</text>
+<text x="868" y="657" font-size="12.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">ACK / 事务恢复 / 全域安全回收仍待补齐</text>
 <text x="40" y="748" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">升级流程：从证据到建议，再由人决定</text>
 <rect x="40" y="768" width="190" height="178" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="1.6"/>
 <text x="58" y="799" font-size="15" font-weight="700" fill="#5b21b6" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">① 来源发现 · 系统</text>
@@ -67,7 +67,7 @@
 <line x1="230" y1="858" x2="241" y2="858" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
 <rect x="242" y="768" width="190" height="178" rx="14" fill="#ffffff" stroke="#a78bfa" stroke-width="1.6"/>
 <text x="260" y="799" font-size="15" font-weight="700" fill="#5b21b6" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">② 使用证据 · 系统</text>
-<text x="260" y="829" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">加载、采用、结果、反馈</text>
+<text x="260" y="829" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">加载 / 声明 / 结果 / 反馈</text>
 <text x="260" y="858" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">分开计数；按窗口去重</text>
 <text x="260" y="887" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">样本不足＝未评分</text>
 <line x1="432" y1="858" x2="443" y2="858" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
@@ -94,7 +94,7 @@
 <text x="1068" y="829" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">新版本重新积累证据</text>
 <text x="1068" y="858" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">建议升级 / 降级 / 审计</text>
 <text x="1068" y="887" font-size="11.5" font-weight="400" fill="#334155" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">不自动改资产或删原文</text>
-<text x="40" y="973" font-size="13" font-weight="600" fill="#6d28d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">周度 prepare/complete 与统计已实现；自动子代理完成、满意度归因、外部来源结论和真人复核均须分别取证。</text>
+<text x="40" y="973" font-size="13" font-weight="600" fill="#6d28d9" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">周度按索引与片段共享预算；完整升级事务、汇总消费、清理闭环及真实客户端生效须继续验收。</text>
 <text x="40" y="1022" font-size="19" font-weight="700" fill="#0f172a" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">同一展示逻辑，两种数据范围</text>
 <rect x="40" y="1040" width="580" height="112" rx="14" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.6"/>
 <text x="58" y="1071" font-size="15" font-weight="700" fill="#075985" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif">本地全景图 · runtime/panorama/</text>

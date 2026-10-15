@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { deliverContext, contextStatus, documentView, CONTEXT_LIMITS } from './context-budget.js';
 function fixture(t) { const root=mkdtempSync(join(tmpdir(),'avc-budget-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root; }
 const key={sessionId:'session',turnId:'turn'};
@@ -13,10 +14,27 @@ test('session total persists across turns, repeat delivery charges once, agents 
  const first=deliverContext(root,key,'same','中文😀');
  assert.equal(first.budget.turnBytes,10);assert.equal(deliverContext(root,key,'same','中文😀').status,'already-delivered');
  assert.equal(deliverContext(root,{...key,turnId:'next'},'same','中文😀').budget.sessionBytes,20);
- assert.equal(contextStatus(root,{...key,agentId:'child'}).sessionBytes,0);
+ assert.equal(contextStatus(root,{...key,agentId:'child'}).sessionBytes,20);
+ assert.equal(contextStatus(root,{...key,agentId:'child'}).agentTurnBytes,0);
  for(let turn=0;turn<6;turn++)for(let part=0;part<8;part++)deliverContext(root,{...key,turnId:'fill'+turn},'part'+part,'x'.repeat(8000));
  assert.ok(contextStatus(root,key).sessionBytes<=CONTEXT_LIMITS.sessionBytes);
  assert.equal(deliverContext(root,{...key,turnId:'last'},'extra','x'.repeat(8192)).status,'budget-exhausted');
+});
+test('concurrent child agents share the turn cap and known legacy agent ledgers import once without rewriting history',async t=>{
+ const root=fixture(t),module=fileURLToPath(new URL('./context-budget.js',import.meta.url));
+ const run=agent=>new Promise((resolve,reject)=>{
+  const script=`import {deliverContext} from ${JSON.stringify('file://'+module)};console.log(JSON.stringify(deliverContext(process.argv[1],{sessionId:'children',turnId:'t',agentId:process.argv[2]},'same','x'.repeat(8192))));`;
+  const p=spawn(process.execPath,['--input-type=module','-e',script,root,agent]);let out='',err='';p.stdout.on('data',v=>out+=v);p.stderr.on('data',v=>err+=v);p.on('error',reject);p.on('close',code=>code?reject(Error(err)):resolve(JSON.parse(out)));
+ });
+ const results=await Promise.all(Array.from({length:9},(_,i)=>run('child-'+i)));
+ assert.equal(results.filter(r=>r.status==='delivered').length,8);assert.equal(contextStatus(root,{sessionId:'children',turnId:'t'}).turnBytes,65536);
+ const hash=s=>createHash('sha256').update(s).digest('hex'),legacyKey={sessionId:'legacy',turnId:'old',agentId:'old-child'};
+ const file=join(root,'runtime/context',hash(JSON.stringify(['legacy','old-child']))+'.json');
+ const old=JSON.stringify({schema:'avc.context-budget.v1',bytes:3,turns:{[hash('old')]:{bytes:3,delivered:{[hash('historic')]:3}}}});writeFileSync(file,old);
+ assert.equal(deliverContext(root,legacyKey,'historic','old').status,'already-delivered');
+ assert.equal(deliverContext(root,legacyKey,'new','body').budget.sessionBytes,7);
+ assert.equal(contextStatus(root,{...legacyKey,agentId:''}).sessionBytes,7);assert.equal(contextStatus(root,legacyKey).agentTurnBytes,7);
+ assert.equal(readFileSync(file,'utf8'),old);
 });
 test('UTF-8 chunks reconstruct source, stale/interior cursors fail, headings and preview stay bounded',()=>{
  const text='# 章节\n'+'😀中文\n'.repeat(3000), preview=documentView(text);

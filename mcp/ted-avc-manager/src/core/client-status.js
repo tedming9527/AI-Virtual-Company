@@ -45,7 +45,8 @@ export function clientStatus({ codexHome = process.env.CODEX_HOME || join(homedi
     taskContracts:routed.length, taskStatuses:routed.map(t=>({sessionId:t.sessionId,turnId:t.turnId,status:t.status,taskId:t.taskId,
       pendingCalls:Object.entries(t.calls||{}).filter(([,c])=>c.status==='reserved').map(([toolUseId,c])=>({toolUseId,tool:c.tool,status:c.status})),
       observedCalls:Object.values(t.calls||{}).filter(c=>c.status==='observed').length,
-      unknownCalls:Object.values(t.calls||{}).filter(c=>c.status==='unknown').length})),
+      unknownCalls:Object.values(t.calls||{}).filter(c=>c.status==='unknown').length,
+      violations:t.violations?.length||0,toolRegistration:t.toolRegistration||'fixed native contract; historical warnings retained'})),
     evidence:'adapter-observed native events; not proof of model semantic compliance or all historical conversations',
   };
 }

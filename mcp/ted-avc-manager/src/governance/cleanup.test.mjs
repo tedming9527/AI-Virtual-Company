@@ -26,3 +26,12 @@ test('old consumed log is protected until verified rollup and closed-task receip
   assert.equal(cleanupRuntime(rt, { dryRun: false }).removed.logs, 1);
   assert.equal(fs.existsSync(file), false);
 });
+test('cleanup refuses symlinked roots and entries while independent ordinary cache files remain reclaimable',t=>{
+ const base=fs.mkdtempSync(path.join(os.tmpdir(),'avc-cleanup-links-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+ const rt=path.join(base,'runtime'),outside=path.join(base,'protected');fs.mkdirSync(rt);fs.mkdirSync(outside);
+ const victim=path.join(outside,'source.txt');fs.writeFileSync(victim,'unique');const old=new Date(Date.now()-10*86400000);fs.utimesSync(victim,old,old);
+ const cache=path.join(rt,'cache');fs.symlinkSync(outside,cache);
+ assert.equal(cleanupRuntime(rt,{dryRun:false}).removed.cache,0);assert.equal(fs.readFileSync(victim,'utf8'),'unique');fs.unlinkSync(cache);fs.mkdirSync(cache);
+ fs.symlinkSync(victim,path.join(cache,'linked'));fs.writeFileSync(path.join(cache,'old'),'rebuildable');fs.utimesSync(path.join(cache,'old'),old,old);fs.writeFileSync(path.join(cache,'fresh'),'fresh');
+ assert.equal(cleanupRuntime(rt,{dryRun:false}).removed.cache,1);assert.equal(fs.readFileSync(victim,'utf8'),'unique');assert.equal(fs.existsSync(path.join(cache,'fresh')),true);
+});

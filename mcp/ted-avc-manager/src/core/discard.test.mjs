@@ -16,6 +16,10 @@ test('discard waits 90 days and refuses changed files', t => {
   fs.writeFileSync(source, 'old');
   const item = discardPersonalFile(root, { path: 'inbox/old.txt', reason: '已核对无课题归属' });
   assert.equal(fs.existsSync(source), false);
+  const manifestFile=path.join(personal,'discard/manifest.json'),manifest=JSON.parse(fs.readFileSync(manifestFile));
+  manifest.items[0].expiresAt='invalid-date';fs.writeFileSync(manifestFile,JSON.stringify(manifest));
+  assert.equal(cleanupPersonalDiscard(root,{dryRun:false}).results[0].action,'refused');assert.equal(fs.existsSync(path.join(personal,item.path)),true);
+  manifest.items[0].expiresAt=item.expiresAt;fs.writeFileSync(manifestFile,JSON.stringify(manifest));
   assert.equal(cleanupPersonalDiscard(root, { now: Date.parse(item.expiresAt) - 1 }).results.length, 0);
   assert.equal(cleanupPersonalDiscard(root, { now: Date.parse(item.expiresAt) }).results[0].action, 'would_delete');
   const staged = path.join(personal, item.path);
