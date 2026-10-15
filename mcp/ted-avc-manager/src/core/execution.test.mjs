@@ -52,6 +52,18 @@ test('before begin exact bootstrap tools only; enforce denial prevents handler s
   assert.equal(f.event('PreToolUse', 'call-b', { tool_name: 'mcp__pack_manager__task_begin' }).hookSpecificOutput, undefined);
   assert.equal(f.event('PreToolUse', 'call-c', { tool_name: 'mcp__other__task_begin' }).hookSpecificOutput.permissionDecision, 'deny');
 });
+test('coordination helper requires its exact native name and records genuine fixture completion', t => {
+  const f = fixture(t), helper = 'request_user_input_async';
+  f.begin({allowedTools:[helper,close]});
+  assert.equal(f.event('PreToolUse','wrapper',{tool_name:'functions.request_user_input_async'}).hookSpecificOutput.permissionDecision,'deny');
+  assert.deepEqual(f.event('PreToolUse','question',{tool_name:helper}),{});
+  f.event('PostToolUse','question',{tool_name:helper,tool_response:{accepted:true}});
+  const task=f.begin({allowedTools:[helper,close]});
+  assert.equal(task.calls.question.tool,helper);
+  assert.equal(task.calls.question.status,'observed');
+  assert.equal(task.violations.length,1);
+  assert.equal(task.violations[0].tool,'functions.request_user_input_async');
+});
 test('tool-use IDs reserve budget once, response observation and artifact SHA closeout are factual', t => {
   const f = fixture(t); f.begin();
   assert.deepEqual(f.event('PreToolUse'), {}); assert.deepEqual(f.event('PreToolUse'), {});

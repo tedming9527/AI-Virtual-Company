@@ -13,6 +13,7 @@ description: 在已启用 ted-avc-manager 适配器的客户端所有会话中�
 
 - 用 `list_assets` 或 `recommend_assets` 获取相关 skill / knowledge / framework / role 的元数据。列表可见不表示正文已加载；名称重复时指定 source 和 type。
 - 用 `task_begin` 建立当前回合契约，选择一个允许岗位、实际任务目标、明确工具集合及调用预算。岗位完整 PROFILE 返回后，才报告岗位正文交付；契约不能扩大用户授权。
+- 在第一次业务工具前固定契约，按实际原生名称列入需要的终端、编辑和问答/协调工具。Codex 终端事件名为 `Bash`；需要异步问答时列入 `request_user_input_async`，不使用 `functions.exec_command` 等界面包装名替代。只列实际需要的工具，不用通配符，也不为消除告警回写或扩大已固定的历史契约。
 - 对实际需要的公司通用包或已复核登记的个人 skill，调用 `load_asset`，携带同一原生绑定和明确 source / type / name / entry。按任务需求继续加载知识正文；只读取索引不能声称整个知识包已应用。引用包内后续资料时再次按支持的文件入口加载，避免一次加载无关内容。
 - `task_begin.candidateTrials` 返回与当前目标相关的私有候选。先判断适用性；值得试用时说明理由、未验证项、范围、比较方法和成本，提示一次是否试用。使用返回的 taskKey，跨回合沿用 candidateTaskKey；实际提示后记录 `candidate_trial` offer，明确用户选择后 decide/start，结束时 result 记录产物、效果和成本。未回复不试用，不耽误普通任务；拒绝后同任务不重复，采集失败只警告。
 - 大模型可在授权任务内自行选择现有类型提炼候选，以 `candidate_register` 保存来源、版本、组成项和拟目标；`candidate_match` 检索、`candidate_trial_status` 查询。候选是所有资料的阶段，包括专业包、流程与高级复合知识；不是经验专属类型。未评分保持 unknown，低分重试说明条件变化；一次试用不自动晋升，复合资料需要整体验证。
