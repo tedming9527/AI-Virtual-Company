@@ -40,3 +40,11 @@ test('legacy installations are diagnosed as needing ingress upgrade rather than 
   const status=clientStatus({codexHome:home});
   assert.equal(status.scope,'legacy-project');assert.equal(status.nativeActivation,'upgrade-required-for-client-ingress');
 });
+test('captured pending routing stays distinct from verified task and failed collection',t=>{
+  const {home,put}=fixture(t),key='b'.repeat(64);
+  put(`state/runtime/mediation/events/${key}.json`,{captureId:key,generation:'current',sessionId:'chain',turnId:'turn'});
+  put(`state/runtime/hooks/outcomes/${key}.json`,{at:100,status:'pending-task',collection:{captureId:key,captured:true,taskStatus:'pending',taskVerified:false,contextReturned:true,footerStatus:'not-checked'}});
+  const status=clientStatus({codexHome:home});
+  assert.equal(status.eventsCaptured,1);assert.equal(status.pendingTaskEvents,1);
+  assert.equal(status.taskContracts,0);assert.equal(status.footerStatus,'not-observed');assert.deepEqual(status.problems,[]);
+});

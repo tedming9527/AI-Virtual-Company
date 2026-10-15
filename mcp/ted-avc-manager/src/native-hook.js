@@ -25,6 +25,8 @@ try {
   const contexts = parts.map(p => p.hookSpecificOutput?.additionalContext).filter(Boolean).sort((a,b)=>Number(b.includes('Native binding'))-Number(a.includes('Native binding')));
   const output = { _tedCollection: { ...collection, turn: undefined, contextReturned: contexts.length > 0,
     footerStatus: input.hook_event_name === 'Stop' && collection.captured ? (parts[0]?.systemMessage ? 'unverified' : 'verified') : 'not-checked' } };
+  const taskState = parts.find(p => p._tedTask)?._tedTask;
+  if (taskState) Object.assign(output._tedCollection, { taskStatus: taskState.status, taskVerified: taskState.verified });
   if (warnings.length) output.systemMessage = [...new Set(warnings)].join('\n');
   const control = parts.find(p=>p.decision!==undefined||p.continue!==undefined||p.hookSpecificOutput?.permissionDecision!==undefined);
   if (control) Object.assign(output, control);

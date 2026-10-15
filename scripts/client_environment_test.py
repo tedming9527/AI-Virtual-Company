@@ -168,6 +168,33 @@ class ClientTest(unittest.TestCase):
   self.assertEqual(directory.read_text(),'unwritable diagnostic sink')
 
 
+ def test_monitor_pending_routing_is_not_a_failed_hook_or_a_verified_task(self):
+  self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh';base=self.home/OWNER
+  payload={'cwd':str(self.root),'session_id':'pending-session','turn_id':'pending-turn','hook_event_name':'PreToolUse','tool_name':'Bash','tool_use_id':'before-bind','tool_input':{'cmd':'true'}}
+  def run(value,status=False):
+   return subprocess.run(['/bin/sh',str(shim),'native']+(['status'] if status else []),input=json.dumps(value),capture_output=True,text=True,timeout=9)
+  before=run(payload);self.assertEqual(before.returncode,0)
+  output=json.loads(before.stdout);self.assertNotIn('systemMessage',output);self.assertIn('任务待关联',output['hookSpecificOutput']['additionalContext'])
+  status=run(payload,True);self.assertEqual(status.returncode,0);self.assertEqual(status.stderr,'')
+  outcomes=list((base/'state/runtime/hooks/outcomes').glob('*.json'));self.assertEqual(len(outcomes),1)
+  outcome=read(outcomes[0]);self.assertEqual(outcome['status'],'pending-task');self.assertTrue(outcome['collection']['captured']);self.assertFalse(outcome['collection']['taskVerified'])
+  self.assertEqual(list((base/'state/runtime/execution/tasks').glob('*.json')),[])
+  subprocess.run(['true'],check=True)
+  post={**payload,'hook_event_name':'PostToolUse','tool_response':{'exit_code':0}}
+  self.assertEqual(run(post).returncode,0);self.assertEqual(run(post,True).returncode,0)
+  turn=read(next((base/'state/runtime/mediation/turns').glob('*.json')))
+  request={'sessionId':'pending-session','turnId':'pending-turn','receipt':turn['receipt'],'agentId':'','role':'test-expert','goal':'Verify pending-to-bound transition','allowedTools':['Bash'],'maxToolCalls':2}
+  inp=self.base/'begin.json';save(inp,request)
+  subprocess.run([str(base/'bin/ted-avc-manager'),'task-begin',str(inp)],capture_output=True,text=True,check=True)
+  bound={**payload,'tool_use_id':'after-bind'}
+  self.assertNotIn('systemMessage',json.loads(run(bound).stdout));self.assertEqual(run(bound,True).returncode,0)
+  self.assertEqual(run({**bound,'hook_event_name':'PostToolUse','tool_response':{'exit_code':0}}).returncode,0)
+  task=read(next((base/'state/runtime/execution/tasks').glob('*.json')))
+  self.assertNotIn('before-bind',task['calls']);self.assertEqual(task['calls']['after-bind']['status'],'observed')
+  # A real collector failure must still produce an orange failure companion.
+  (base/'deployment.json').unlink();broken={**bound,'tool_use_id':'missing-config'}
+  self.assertIn('systemMessage',json.loads(run(broken).stdout));self.assertEqual(run(broken,True).returncode,1)
+
  def test_paired_native_status_and_detail_do_not_run_collection_twice(self):
   self.run_rebuild();shim=self.home/'ted-avc-manager-hook.sh'
   counter=self.base/'calls';entry=self.home/OWNER/'package/src/native-hook.js'

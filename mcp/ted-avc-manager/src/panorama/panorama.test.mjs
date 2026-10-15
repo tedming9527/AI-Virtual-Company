@@ -111,3 +111,12 @@ test('shared assets use the same public rating evidence in local and public view
  fs.writeFileSync(path.join(shared,'scores.json'),JSON.stringify({'pack:skill/example@1.0.0':{identity:'pack:skill/example@9.0.0',quality:5,source:'过期',assessedAt:'2026-10-13'}}));
  assert.ok(renderPanorama(buildPanoramaModel(root,{view:'public'})).includes('未评分／证据不足'));
 });
+
+test('a malformed legacy proposal warns without blocking the local panorama',t=>{
+ const root=fixture(t),personal=path.join(root,'private/projects/demo');
+ fs.mkdirSync(path.join(personal,'staging/proposals'),{recursive:true});
+ fs.writeFileSync(path.join(root,'runtime/storage.json'),JSON.stringify({personal}));
+ fs.writeFileSync(path.join(personal,'staging/proposals/bad.json'),'{');
+ const model=buildPanoramaModel(root,{view:'local',externalRoots:[]});
+ assert.ok(model.localCandidates.warnings.length>0);assert.deepEqual(model.skillCandidates,[]);
+});

@@ -100,7 +100,12 @@ test('role drift, forbidden tool, ID mutation deny before side effects', t => {
   assert.equal(existsSync(sentinel), false); assert.match(decision.hookSpecificOutput.permissionDecisionReason, /drift/);
 });
 test('monitor records violations but does not claim enforcement; actual foreign root gets no context', t => {
-  const f = fixture(t, 'monitor'); assert.match(f.event('PreToolUse').systemMessage, /task_begin required/);
+  const f = fixture(t, 'monitor'), pending = f.event('PreToolUse');
+  assert.equal(pending.systemMessage, undefined); assert.equal(pending.hookSpecificOutput.permissionDecision, undefined);
+  assert.match(pending.hookSpecificOutput.additionalContext, /任务待关联/);
+  assert.deepEqual(pending._tedTask, {status:'pending',verified:false});
+  assert.equal(JSON.parse(JSON.stringify(pending))._tedTask, undefined);
+  assert.equal(f.event('PostToolUse')._tedTask.status, 'pending');
   f.begin(); assert.deepEqual(f.event('PreToolUse', 'wrong', { tool_name: 'functions.other' }), {});
   const context = runExecutionHook(f.native, f.deployment).hookSpecificOutput.additionalContext;
   assert.match(context, /mode=monitor/); assert.match(context, /session-a/);

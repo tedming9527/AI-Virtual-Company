@@ -157,6 +157,7 @@ function statusReport(){
     const r=JSON.parse(fs.readFileSync(file,'utf8'));
     if(r.invocationKey===invocationKey()&&r.at>=started-60000&&r.at<=Date.now()){
      if(['delivered','captured','not-applicable'].includes(r.status))return;
+     if(r.status==='pending-task'&&r.collection?.captured===true&&r.collection?.taskStatus==='pending'&&r.collection?.taskVerified===false)return;
      message=r.message||message;break;
     }
    }
@@ -172,7 +173,8 @@ const emit=value=>{
  if(value.systemMessage)value.systemMessage+=' [采集关联 '+invocationKey().slice(0,12)+']';
  try{
   const dest=outcomePath(),tmp=dest+'.'+process.pid+'.tmp';
-  try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':value._tedCollection?.captured?'captured':'not-applicable',collection:value._tedCollection??null,message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
+  const pending=value._tedCollection?.captured===true&&value._tedCollection?.taskStatus==='pending'&&value._tedCollection?.taskVerified===false;
+  try{fs.writeFileSync(tmp,JSON.stringify({invocationKey:invocationKey(),at:Date.now(),status:value.systemMessage?'unverified':pending?'pending-task':value._tedCollection?.captured?'captured':'not-applicable',collection:value._tedCollection??null,message:value.systemMessage??null})+'\n',{flag:'wx',mode:0o600});fs.renameSync(tmp,dest);}finally{try{fs.unlinkSync(tmp)}catch{}}
  }catch{}
 
  if(value.systemMessage){
