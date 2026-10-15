@@ -1,6 +1,6 @@
 {
   "name": "ai-virtual-company",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "update": {
     "channel": "master",
     "check": "on-start"
