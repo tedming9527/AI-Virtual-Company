@@ -1,3 +1,4 @@
+import {emitMonitor,inventoryIdentity} from '../monitor/emit.js';
 import { acquireClientLease } from './client-lease.js';
 import { catalogRootFor, stateRootFor } from './client-state.js';
 // Inventory visibility, content delivery and observed reads are separate evidence.
@@ -193,7 +194,8 @@ export function noteDeliveredAsset(root, delivery, input = {}) {
 export function recordAssetUse(root, input, options = {}) {
   if(input.logicalTaskId!==undefined&&(typeof input.logicalTaskId!=='string'||!/^[a-zA-Z0-9:_-]{1,200}$/.test(input.logicalTaskId)))throw Error('logicalTaskId must be an opaque task identifier');
   const asset = resolveAsset(root, input, options);
-  return event(root, { kind: 'model-reported', ...context(input), logicalTaskId:input.logicalTaskId||input.candidateTaskKey||null, assetId: asset.id, name: asset.name, source: asset.source, type: asset.type, sha256: asset.sha256, declaration: 'model-reported', evidence: 'declaration-only; not observed read or semantic execution' });
+  const recorded=event(root, { kind: 'model-reported', ...context(input), logicalTaskId:input.logicalTaskId||input.candidateTaskKey||null, assetId: asset.id, name: asset.name, source: asset.source, type: asset.type, sha256: asset.sha256, declaration: 'model-reported', evidence: 'declaration-only; not observed read or semantic execution' });
+  emitMonitor(root,input,{kind:'model-reported',asset:inventoryIdentity(root,asset)});return recorded;
 }
 export function proposeAsset(root, input) {
   if (!input.name || !types.includes(input.type || 'skill')) throw new Error('Candidate requires name and valid type');
@@ -233,7 +235,9 @@ export function recordObservedRead(root, input, options = {}) {
     if (!asset) continue;
     try {
       safePath(asset.dir, target); if (!existsSync(target) || !lstatSync(target).isFile()) continue;
-      records.push(event(root, { kind: completed ? 'read-completed' : 'read-attempted', ...context(input), assetId: asset.id, name: asset.name, type: asset.type, source: asset.source, relativePath: relative(asset.dir, target), sha256: hash(readFileSync(target)), tool: String(input.tool_name || input.tool || ''), evidence: completed ? 'native-tool-completion; not semantic execution' : 'native-tool-intent; no completed-read proof' }));
+      const readSha256=hash(readFileSync(target));
+      records.push(event(root, { kind: completed ? 'read-completed' : 'read-attempted', ...context(input), assetId: asset.id, name: asset.name, type: asset.type, source: asset.source, relativePath: relative(asset.dir, target), sha256: readSha256, tool: String(input.tool_name || input.tool || ''), evidence: completed ? 'native-tool-completion; not semantic execution' : 'native-tool-intent; no completed-read proof' }));
+      emitMonitor(root,input,{kind:completed?'read-completed':'read-attempted',asset:inventoryIdentity(root,{...asset,entrySha256:readSha256})});
     } catch { /* Unknown or escaping reads remain unverified. */ }
   }
   return { records, evidence: records.length ? 'literal-known-path-only' : 'no-observable-known-read; native automatic loads unknown' };

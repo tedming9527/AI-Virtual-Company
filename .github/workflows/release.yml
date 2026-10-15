@@ -15,8 +15,25 @@ jobs:
   validate:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/validate.yml
-  release:
+  plan:
     needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.intent.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: intent
+        name: 核验当前版本是否仅合并
+        run: node scripts/release-master.mjs --check
+  release:
+    needs: [validate, plan]
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -34,7 +34,7 @@ jobs:
           node scripts/mcp-governance.mjs check-company
       - name: 检查发布候选版本与账本
         run: node scripts/release-master.mjs --check
-      - name: PR 发布版本必须递增
+      - name: PR 发布版本递增或显式绑定仅合并策略
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}

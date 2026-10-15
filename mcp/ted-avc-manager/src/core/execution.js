@@ -1,3 +1,4 @@
+import {emitMonitor,loaderIdentity,monitorActive} from '../monitor/emit.js';
 import { deliverContext, deliverResponse, documentView, CONTEXT_LIMITS } from './context-budget.js';
 // Project-scoped native execution receipts. This is not a hosted model gateway.
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, realpathSync, lstatSync, renameSync, rmSync, readdirSync } from 'node:fs';
@@ -23,7 +24,7 @@ const read = file => JSON.parse(readFileSync(file, 'utf8'));
 const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
 const now = () => new Date().toISOString();
 const owns = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
-const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|workflow_status|workflow_templates|check_update|ted_help|ted_update|ted_scores|ted_doctor|ted_repair|ted_status|ted_summary|load_asset|task_begin|task_closeout)$/;
+const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|workflow_status|workflow_templates|check_update|ted_help|ted_update|ted_scores|ted_doctor|ted_repair|ted_status|ted_summary|ted_monitor|load_asset|task_begin|task_closeout)$/;
 function identifier(value, name) {
   if (typeof value !== 'string' || !value.trim() || value.length > 512 || /[\r\n\0]/.test(value)) throw new Error(`Invalid ${name}`);
   return value;
@@ -207,6 +208,7 @@ export function executionResponse(root,key,result){
  if(!result.roleProfile)return deliverResponse(stateRootFor(root),key,view);
  try{
   const delivery=deliverContext(stateRootFor(root),key,'task-response:'+randomBytes(12).toString('hex'),'',{always:true,parts:[{id:'role:'+sha(result.roleProfile),text:result.roleProfile}],build:texts=>({...view,roleProfile:texts[0]||'',roleProfileComplete:!!texts.length,contextDelivery:{status:'delivered',accounted:true,unit:'utf8-bytes'}})});
+  try{if(monitorActive(root)&&result.role){const meta=read(safePath(catalogRootFor(root),join(catalogRootFor(root),'packs/role',result.role.id,'meta.json')));const response=delivery.status==='delivered'?JSON.parse(delivery.content):null;emitMonitor(root,key,{asset:loaderIdentity(root,{source:'general',type:'role',name:result.role.id,entry:'PROFILE.md',version:result.role.version,sha256:result.role.profileSha256},meta),kind:response?.roleProfileComplete?'chunk':delivery.status==='delivered'||delivery.status==='already-delivered'?'deduplicated':'budget-blocked',bytes:response?.roleProfileComplete?Buffer.byteLength(response.roleProfile):0});}}catch{}
   return delivery.status==='delivered'?JSON.parse(delivery.content):{taskId:result.taskId,status:result.status,contextDelivery:delivery.status,roleProfileComplete:false,taskContinues:true};
  }catch{return {taskId:result.taskId,status:result.status,contextDelivery:'unverified',roleProfileComplete:false,taskContinues:true};}
 }
@@ -251,7 +253,8 @@ export function loadAsset(root, input, deploymentFile) {
     let delivery;
     try { delivery = deliverContext(d.stateRoot, key, `asset:${asset.source}:${asset.type}:${asset.name}:${entry}:${asset.sha256}:${view.mode}:${view.startByte ?? 0}:${view.endByte ?? Buffer.byteLength(view.content)}`, JSON.stringify(response)); }
     catch (error) { return { ...asset, content: '', contextDelivery: 'unverified', warning: error.message, taskContinues: true }; }
-    if (delivery.status !== 'delivered') return { ...asset, content: '', mode: view.mode, nextCursor: delivery.status === 'already-delivered' ? view.nextCursor : (input.cursor || { sha256: asset.sha256, offset: 0 }), contextDelivery: delivery.status, contextBudget: delivery.budget, taskContinues: true };
+    const monitorDelivery=()=>emitMonitor(d.root,input,{asset:loaderIdentity(d.root,asset,meta,!!registryEntry),kind:delivery.status==='delivered'?view.mode==='chunk'?'chunk':'summary':delivery.status==='already-delivered'?'deduplicated':'budget-blocked',bytes:delivery.status==='delivered'?Buffer.byteLength(view.content):0},{stateRoot:d.stateRoot});
+    if (delivery.status !== 'delivered') {monitorDelivery();return { ...asset, content: '', mode: view.mode, nextCursor: delivery.status === 'already-delivered' ? view.nextCursor : (input.cursor || { sha256: asset.sha256, offset: 0 }), contextDelivery: delivery.status, contextBudget: delivery.budget, taskContinues: true };}
     const evidence = { mode: view.mode, startByte: view.startByte, endByte: view.endByte };
     if (prior) (prior.deliveries ||= []).push(evidence);
     else task.assets.push({ ...asset, file, metaFile: join(directory, 'meta.json'), metaSha256: sha(readFileSync(join(directory, 'meta.json'))), loadedAt: now(), complete: false, deliveries: [evidence] });
@@ -262,7 +265,7 @@ export function loadAsset(root, input, deploymentFile) {
       through = Math.max(through, range.endByte);
     }
     loaded.complete = through === Buffer.byteLength(content);
-    atomic(paths.task, task); record(paths, task, 'asset_context_returned', { ...asset, mode: view.mode, complete: loaded.complete });
+    atomic(paths.task, task); record(paths, task, 'asset_context_returned', { ...asset, mode: view.mode, complete: loaded.complete });monitorDelivery();
     return response;
   });
 }

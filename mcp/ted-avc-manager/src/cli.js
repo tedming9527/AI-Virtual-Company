@@ -22,6 +22,19 @@ function ok(text) { console.log(text); }
 function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.exitCode = 1; }
 
 switch (cmd) {
+  case 'monitor': {
+    try {
+      const operation=args[1]||'open',input={operation};let port=0;
+      for(let i=2;i<args.length;i++){if(args[i]==='--open')continue;if(args[i]==='--no-open'){input.openBrowser=false;continue;}if(args[i]==='--session'){input.sessionId=args[++i];if(!input.sessionId)throw Error('Missing session');continue;}if(args[i]==='--port'){port=Number(args[++i]);if(!Number.isInteger(port)||port<0||port>65535)throw Error('Invalid port');continue;}throw Error('Unknown monitor option');}
+      const {runMonitor,control,openBrowser}=await import('./monitor/commands.js');
+      if(operation==='serve'){
+        const {startMonitorServer}=await import('./monitor/service.js');const server=await startMonitorServer(stateRootFor(ROOT),{port});
+        ok(JSON.stringify({status:'listening',address:server.base,version:VERSION,retentionHours:24}));
+        if(args.includes('--open')){const {instance}=await import('./monitor/common.js');const result=await control(instance(stateRootFor(ROOT)),'open');await openBrowser(result.url);}
+        for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{void server.close();});
+      }else {const result=await runMonitor(ROOT,input);ok(JSON.stringify(result));if(result.error)process.exitCode=1;}
+    }catch(error){fail(error);}break;
+  }
   case 'ted': {
     try {
       const {runTedCommand,parseTedCommand}=await import('./core/ted-commands.js');
@@ -307,12 +320,14 @@ switch (cmd) {
   ted-avc-manager init （引导安装器，不写配置）
   ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
   ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
-  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status|summary] [--offline] [--session <id> --turn <id>] [--input <json>] （summary 的 prepare/submit 和分页参数由 input 传入）
+  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status|summary|monitor] [--offline] [--session <id> --turn <id>] [--input <json>] （summary 的 prepare/submit 和分页参数由 input 传入）
   ted-avc-manager governance-weekly-read <input.json> （按当前原生绑定分页读取提取来源，共享上下文预算）
   ted-avc-manager candidate-register | candidate-match | candidate-trial <input.json>
   ted-avc-manager candidate-trial-status [taskKey]
   ted-avc-manager candidate-usage-sync [taskKey] （补录可核验宿主用量，不改独占成本或实际金额）
   ted-avc-manager check | upgrade [--force] | sync | panorama [--force]
+  ted-avc-manager monitor [open|status|stop]    （本机只读资料监控；副本保留24小时）
+  ted-avc-manager monitor serve [--open] [--port <n>] （前台运行；--no-open 仅用于本机 CLI 签发访问链接）
   ted-avc-manager doctor                       （体检个人目录规约，问题则 exit 1）
   ted-avc-manager config                       （合并 preset/custom，逐项标注来源）
   ted-avc-manager import-scan <path>           （外部资产入 staging + 打标台账）

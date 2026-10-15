@@ -46,3 +46,11 @@ python3 scripts/update-local-client.py vX.Y.Z --node '<本机 Node 22 绝对路�
 工作流改动须先经 PR 的远程验证和人审。PR 检查不能证明合并后具有写 tag/Release 权限，也不能替代 `master-release` 与 Pages 的真实运行验收；首次合并后按运行记录验收。
 
 参考：[复用工作流](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows)、[GITHUB_TOKEN 触发限制](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)、[提交关联 PR 接口](https://docs.github.com/en/rest/commits/commits#list-pull-requests-associated-with-a-commit)。
+
+## 仅合并、不发布
+
+用户明确要求只合并时，在 PR 中设置 `.github/release-policy.json`，schema 为 `avc.release-policy.v1`，`holdVersion` 精确绑定本次保留版本并写明 reason。当前监控合并保留 1.9.1，历史 v1.9.1 tag/Release 不变。
+
+CI 仍运行完整校验；只有当前版本命中 holdVersion 时，PR 才允许与 base 版本相同，始终禁止降版本。master 的只读 plan 作业输出 publish=false，跳过创建 tag/Release 及依赖它的新版本 Pages 部署；发布脚本本身也独立拒绝执行受保留版本的发布。不会靠取消已启动的发布作业或绕过失败检查保证不发布。
+
+后续正式发布 PR 递增 bootstrap/manager 版本并补齐 changelog 后，旧 holdVersion 自然失效，恢复原有发布流程；策略格式错误会失败关闭。PR 候选元数据刷新仍只使用已正式发布的目录，不把本次源码当作新版本发布。

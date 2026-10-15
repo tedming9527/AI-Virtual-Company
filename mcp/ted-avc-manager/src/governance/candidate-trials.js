@@ -1,3 +1,4 @@
+import {emitMonitor,candidateIdentity,monitorActive} from '../monitor/emit.js';
 // Private candidate discovery and opt-in trials. No installation, execution or promotion.
 import { existsSync, lstatSync, readFileSync, readdirSync, mkdirSync, writeFileSync, renameSync, rmSync, openSync, closeSync } from 'node:fs';
 import { join, resolve, relative, sep, isAbsolute, parse } from 'node:path';
@@ -108,7 +109,7 @@ export function registerCandidate(root, input) {
       return { ...previous, file, unchanged: true };
     }
     const record = { schema: 'avc.trial-candidate.v1', createdAt: new Date().toISOString(), sha256, candidate, review: 'pending', publication: 'none', installation: 'none' };
-    atomic(file, record); return { ...record, file };
+    atomic(file, record);emitMonitor(root,input,{kind:'candidate-registered',asset:candidateIdentity(record)}); return { ...record, file };
   });
 }
 export function listTrialCandidates(root) {
@@ -262,8 +263,9 @@ export function recordTrial(root, input) {
         text(input.reason,'cancellation reason'); trial.status = 'cancelled'; trial.cancelReason = input.reason;
       }
     }
-    trial.events.push({ action:input.action, at }); ledger.trials[id] = trial;
-    atomic(p.ledger,ledger); return trial;
+    trial.events.push({ action:input.action, at });
+    ledger.trials[id] = trial;
+    atomic(p.ledger,ledger); try {if(monitorActive(root)){const match=listTrialCandidates(root).candidates.find(r=>r.candidate.id===trial.candidateId&&r.sha256===trial.sha256);if(match)emitMonitor(root,input,{kind:'trial-'+input.action,asset:candidateIdentity(match)});}}catch{} return trial;
   });
 }
 // Auxiliary discovery must never prevent ordinary task execution.
