@@ -1,0 +1,5 @@
+{
+  "schema": "avc.release-policy.v1",
+  "holdVersion": "1.9.1",
+  "reason": "Merge the local monitor implementation without creating a new tag or Release; a later version increase resumes normal publication."
+}

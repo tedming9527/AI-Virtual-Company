@@ -67,3 +67,16 @@ test('authentication errors are not treated as missing releases',t=>{
   assert.throws(()=>publishRelease(f.root,env(f.sha),run),/auth/);
   assert.equal(f.calls.filter(a=>a[0]==='release').length,0);
 });
+
+test('version-bound merge-only policy permits equal-base merge but creates neither tags nor Releases',t=>{
+ const f=fixture(t);mkdirSync(join(f.root,'.github'));writeFileSync(join(f.root,'.github/release-policy.json'),JSON.stringify({schema:'avc.release-policy.v1',holdVersion:'1.4.3',reason:'User requested merge without publication'}));
+ assert.equal(readRelease(f.root,{baseSha:f.sha}).publish,false);
+ const result=publishRelease(f.root,env(f.sha),f.run);assert.equal(result.skipped,true);assert.equal(result.publish,false);assert.equal(f.git('ls-remote','--tags','origin'),'');assert.equal(f.calls.filter(a=>a[0]==='release').length,0);
+ assert.equal(f.calls.length,1); // Existing merged-PR verification only.
+});
+test('old hold does not suppress a later version; malformed policy and downgrades fail closed',t=>{
+ const f=fixture(t);mkdirSync(join(f.root,'.github'));const file=join(f.root,'.github/release-policy.json');
+ writeFileSync(file,JSON.stringify({schema:'avc.release-policy.v1',holdVersion:'1.4.2',reason:'Earlier hold'}));assert.equal(readRelease(f.root).publish,undefined);assert.throws(()=>readRelease(f.root,{baseSha:f.sha}),/increase/);
+ writeFileSync(file,JSON.stringify({schema:'avc.release-policy.v1',holdVersion:'1.4.4',reason:'Future hold'}));const run=()=>JSON.stringify({version:'1.4.4'});assert.throws(()=>readRelease(f.root,{baseSha:f.sha,run}),/increase/);
+ writeFileSync(file,'{"schema":"unknown","holdVersion":"1.4.3","reason":"bad"}');assert.throws(()=>readRelease(f.root),/Invalid release policy/);
+});
