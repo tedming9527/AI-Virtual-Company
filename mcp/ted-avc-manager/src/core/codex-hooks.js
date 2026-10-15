@@ -57,7 +57,7 @@ export function installCodexHooks(deploymentFile, codexHome) {
     document.hooks[event].push({ ...(event === 'SessionStart' ? { matcher: 'startup|resume|clear|compact|fork' } : {}), hooks: [{
       type: 'command', command, timeout: 10,
       statusMessage: `ted-avc-manager v${version}: ${event === 'Stop' ? 'Verify delivery footer' : 'Load delivery attribution'}`,
-      ...(event !== 'Stop' ? { additionalContextLimit: 1500 } : {}),
+      ...(event !== 'Stop' ? { additionalContextLimit: 12288 } : {}),
     }] });
   }
   writeFileSync(file, JSON.stringify(document, null, 2) + '\n', { mode: 0o600 });
@@ -110,7 +110,7 @@ function collectCodexHook(input, deploymentFile) {
     if (existsSync(join(project.root, 'runtime', 'storage.json'))) {
       try {
         const status = weeklyStatus(project.root);
-        if (status.due && status.writerAvailable) weekly = ' Weekly governance is due: after binding the user turn, dispatch one background subagent to run governance-weekly-prepare, review private experience and sources within the user-authorized scope, then submit a source-bound proposal through governance-weekly-complete. Do not mark complete from this hook or publish/delete assets.';
+        if (status.due && status.writerAvailable) weekly = ' Weekly governance is due. Hook only reports status; it does not launch model work. Within existing authorization, prepare or resume one pending run; do not dispatch another extractor while that run is pending. Read sources only via bounded governance-weekly-read with the real native binding and shared budget. Leave unread evidence pending; complete only source-bound proposals for human review, never publish/delete assets.';
       } catch { weekly = ' Weekly governance status unavailable; do not claim a completed run.'; }
     }
     return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext:

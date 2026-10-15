@@ -1,3 +1,4 @@
+import { deliverContext, documentView, CONTEXT_LIMITS } from './context-budget.js';
 // Project-scoped native execution receipts. This is not a hosted model gateway.
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, realpathSync, lstatSync, renameSync, rmSync, readdirSync } from 'node:fs';
 import { resolve, join, sep, relative, isAbsolute } from 'node:path';
@@ -21,7 +22,7 @@ const read = file => JSON.parse(readFileSync(file, 'utf8'));
 const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
 const now = () => new Date().toISOString();
 const owns = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
-const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|workflow_status|workflow_templates|check_update|ted_help|ted_update|ted_scores|ted_doctor|ted_repair|ted_status|load_asset|task_begin|task_closeout)$/;
+const MCP_TOOL = /^mcp__(?:ted_avc_manager|ted-avc-manager|pack_manager|pack-manager)__(list_packs|find_skill|find_skills|list_assets|recommend_assets|workflow_status|workflow_templates|check_update|ted_help|ted_update|ted_scores|ted_doctor|ted_repair|ted_status|ted_summary|load_asset|task_begin|task_closeout)$/;
 function identifier(value, name) {
   if (typeof value !== 'string' || !value.trim() || value.length > 512 || /[\r\n\0]/.test(value)) throw new Error(`Invalid ${name}`);
   return value;
@@ -145,6 +146,13 @@ function integrity(root, task, catalogVersion) {
   }
   return { status: issues.length ? 'invalidated' : 'matched', issues };
 }
+function deliverRole(root, key, profile) {
+  try {
+    const delivery = deliverContext(root, key, 'role:' + sha(profile), profile);
+    return { roleProfile: delivery.content, contextBudget: delivery.budget, contextDelivery: delivery.status,
+      roleProfileComplete: delivery.status === 'delivered', actualCompliance: 'unknown' };
+  } catch (error) { return { roleProfile: '', contextDelivery: 'unverified', warning: error.message, taskContinues: true }; }
+}
 export function beginTask(root, input, deploymentFile) {
   const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   if (!d.project.roles.includes(input.role)) throw new Error('Role not allowed by deployment');
@@ -174,7 +182,7 @@ export function beginTask(root, input, deploymentFile) {
       if (JSON.stringify(existing.contract) !== JSON.stringify(contract)) throw new Error('Task contract already pinned; cannot expand in the same turn');
       if (existing.role.profileSha256 !== sha(profile) || existing.role.metaSha256 !== sha(readFileSync(metaFile)) || existing.catalogSha256 !== pinnedCatalog(d.root) || existing.catalogVersion !== d.catalogVersion) throw new Error('Pinned assets changed; begin a new native turn');
       endMaintenance(d.root, input, deploymentFile, existing.taskId);
-      return { ...existing, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), roleProfile: profile, contextDelivery: 'MCP returned complete role PROFILE; actual model compliance requires separate evidence' };
+      return { ...existing, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...deliverRole(d.stateRoot, key, profile) };
     }
     const task = { schema: 'avc.execution-task.v1', ...key, projectRoot: d.root, engineVersion, catalogVersion: d.catalogVersion, catalogSha256: pinnedCatalog(d.root), mode: d.settings.mode, status: 'active', startedAt: now(), contract,
       role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
@@ -184,7 +192,7 @@ export function beginTask(root, input, deploymentFile) {
     }
     atomic(paths.task, task); record(paths, task, 'task_started', { roleId: input.role, mode: task.mode, roleProfileSha256: task.role.profileSha256 });
     endMaintenance(d.root, input, deploymentFile, task.taskId);
-    return { ...task, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), roleProfile: profile, contextDelivery: 'MCP returned complete role PROFILE; actual model compliance requires separate evidence' };
+    return { ...task, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...deliverRole(d.stateRoot, key, profile) };
   });
 }
 export function loadAsset(root, input, deploymentFile) {
@@ -216,11 +224,27 @@ export function loadAsset(root, input, deploymentFile) {
   if (registryEntry && meta.version !== registryEntry.version) throw new Error('Registered personal skill version changed');
   const asset = { source: input.source, type: input.type, name: input.name, entry, version: meta.version, sha256: sha(content),
     bundleSha256: skillBundle(directory).bundleSha256, ...(registryEntry ? { registrationSha256: registryEntry.sha256 } : {}) };
-  locked(d.stateRoot, key.taskId, paths => {
+  const view = documentView(content, input);
+  return locked(d.stateRoot, key.taskId, paths => {
     const task = active(paths, key);
-    task.assets.push({ ...asset, file, metaFile: join(directory, 'meta.json'), metaSha256: sha(readFileSync(join(directory, 'meta.json'))), loadedAt: now() }); atomic(paths.task, task); record(paths, task, 'asset_context_returned', asset);
+    let delivery;
+    try { delivery = deliverContext(d.stateRoot, key, `asset:${asset.source}:${asset.type}:${asset.name}:${entry}:${asset.sha256}:${view.mode}:${view.startByte ?? 0}:${view.endByte ?? Buffer.byteLength(view.content)}`, JSON.stringify(view)); }
+    catch (error) { return { ...asset, content: '', contextDelivery: 'unverified', warning: error.message, taskContinues: true }; }
+    if (delivery.status !== 'delivered') return { ...asset, content: '', mode: view.mode, nextCursor: delivery.status === 'already-delivered' ? view.nextCursor : (input.cursor || { sha256: asset.sha256, offset: 0 }), contextDelivery: delivery.status, contextBudget: delivery.budget, taskContinues: true };
+    const prior = task.assets.find(a => a.file === file && a.sha256 === asset.sha256);
+    const evidence = { mode: view.mode, startByte: view.startByte, endByte: view.endByte };
+    if (prior) (prior.deliveries ||= []).push(evidence);
+    else task.assets.push({ ...asset, file, metaFile: join(directory, 'meta.json'), metaSha256: sha(readFileSync(join(directory, 'meta.json'))), loadedAt: now(), complete: false, deliveries: [evidence] });
+    const loaded = prior || task.assets.at(-1);
+    let through = 0;
+    for (const range of loaded.deliveries.filter(r => r.mode === 'chunk').sort((a,b) => a.startByte - b.startByte)) {
+      if (range.startByte > through) break;
+      through = Math.max(through, range.endByte);
+    }
+    loaded.complete = through === Buffer.byteLength(content);
+    atomic(paths.task, task); record(paths, task, 'asset_context_returned', { ...asset, mode: view.mode, complete: loaded.complete });
+    return { ...asset, ...view, contentSha256: sha(view.content), documentComplete: loaded.complete, contextBudget: delivery.budget, contextDelivery: 'delivered', actualCompliance: 'unknown' };
   });
-  return { ...asset, content, contextDelivery: 'MCP returned selected document; registration and context delivery do not prove native skill activation' };
 }
 export function closeTask(root, input, deploymentFile) {
   const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
@@ -278,13 +302,12 @@ function executeHook(input, deploymentFile, options = {}) {
   }
   const key = binding(d.root, { sessionId: input.session_id, turnId: input.turn_id, agentId: input.agent_id, receipt }, d.stateRoot, d.clientScope);
   if (input.hook_event_name === 'UserPromptSubmit' || options.contextOnly) {
-    const assets=listAssets(d.root).assets.filter(a=>a.source==='general'||a.management==='local-managed');
-    const index=assets.slice(0,36).map(a=>({type:a.type,name:a.name,source:a.source,version:a.version}));
-    const bindingInstruction = d.settings.mode === 'monitor'
-      ? 'Collection is best effort and is not a prerequisite for ordinary task execution. When task_begin is available, call it'
-      : 'Before ordinary task execution call task_begin';
-    return { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext:
-      `ted-avc-manager execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, agentId=${JSON.stringify(input.agent_id ?? '')}, receipt=${JSON.stringify(receipt)}. This session may involve multiple projects; route one task across observed workspaces without granting additional filesystem permissions. ${bindingInstruction} with these exact fields, one allowed role ID, the goal, exact allowed native tool names (Codex shell Hook tool_name is Bash, not functions.exec_command; include request_user_input_async only when that coordination helper is actually needed; use the observed native names) and maxToolCalls <= ${d.settings.maxToolCalls}. In monitor mode, if binding or collection is unavailable, warn, request hook repair and continue the authorized task without claiming verified receipts. In enforce mode, the fixed read-only self-check is permitted without binding: ${JSON.stringify(cwd && existsSync(cwd) ? diagnosticCall(cwd, deploymentFile) : {available:false,reason:'workspace missing; use installer status from an operator terminal'})}. Broader recovery needs explicit user authorization and a bounded maintenance-open grant via the independent local operator entry; remain unbound until a real task_begin succeeds. Never infer maintenance authorization from prompt keywords. Fixed read-only Ted help/update/scores/doctor/repair/status commands are diagnostics and may run without task_begin; do not open a file-delivery contract solely for a read-only diagnostic. task_begin returns the actual role PROFILE and optional candidateTrials; read the PROFILE and apply it. Relevant unverified candidates are optional: explain fit, limits, scope, cost and comparison, then ask the user once before trial. Reuse candidateTaskKey across turns of one logical task; after an actual prompt record candidate_trial offer, explicit user choice, start, then effects/costs/artifacts. Declined candidates are not repeated in that task; no feedback remains unknown. The model may create source-bound candidates of existing skill/knowledge/framework/role or repository material types through candidate_register without asking again in the authorized task scope. Composite candidates pin components and require whole-composition evidence; creation never authorizes installation, execution or publication. Candidate collection failures are non-blocking. bootstrapTools before task_begin: ${JSON.stringify(d.settings.bootstrapTools)}. Asset metadata (not loaded bodies): ${JSON.stringify(index)}. Full inventory ${assets.length} via list_assets/recommend_assets. Use bound load_asset for needed skill/knowledge/framework documents before use. New native skill files are tracked separately from actual reads; report_asset_use is declaration only. Include task_closeout in allowedTools; it is a recorded control call outside execution budget. Before closeout query ted_status with this sessionId and turnId for pendingCalls; classify only still-reserved calls without completion evidence unknown, never already-observed calls. Close with real file artifacts. If there is no file output, report closeout unverified rather than inventing one. This adapter covers only hooks exposed by this native client; do not claim hidden model/token/cost or full supervision control.` } };
+    return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext:
+      `Ted execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, agentId=${JSON.stringify(input.agent_id ?? '')}, receipt=${JSON.stringify(receipt)}.
+Route one task with task_begin using this exact binding, one allowed role, goal, exact native tool names (shell: Bash), maxToolCalls <= ${d.settings.maxToolCalls}; include task_closeout. Contract does not grant permissions. Actual executor: platform agent.
+Collection failures only warn; continue authorized work. Preserve native permissions and independent maintenance restrictions. Diagnostics ted_help/update/scores/doctor/repair/status/summary do not require file delivery. task_begin returns role PROFILE and optional candidateTrials; private candidate trials need explicit choice and source-bound evidence.
+Discover relevant metadata via recommend_assets/list_assets; no automatic inventory bodies. load_asset defaults to extractive preview; use mode=chunk and digest-bound nextCursor for full evidence. Summaries are not full adoption. Adapter UTF-8 budgets: response ${CONTEXT_LIMITS.responseBytes}, turn ${CONTEXT_LIMITS.turnBytes}, session ${CONTEXT_LIMITS.sessionBytes}; not model tokens. Budget exhaustion withholds optional context, never business execution. ted summary gives optimization advice without clearing host context.
+Before closeout query ted_status for pending calls, classify only still-reserved calls lacking completion unknown. Use real file artifacts; no output means closeout unverified. Footer/receipt never proves full supervision. Across resume retain this turn binding; never reuse another turn's receipt.` } };
   }
   identifier(input.tool_name, 'tool_name'); identifier(input.tool_use_id, 'tool_use_id');
   return locked(d.stateRoot, key.taskId, paths => {
@@ -323,7 +346,7 @@ function executeHook(input, deploymentFile, options = {}) {
     if (!control && task.workflow) try { assertNativeNode(d.root, task.workflow, task.taskId); } catch (error) { reasons.push(error.message); }
     if (!control) for (const id of task.contract.requiredAssets || []) {
       if (id === `general:role:${task.role.id}`) continue; // beginTask already returned this exact PROFILE.
-      if (!task.assets.some(a=>`${a.source}:${a.type}:${a.name}`===id && a.entry===(a.type==='role'?'PROFILE.md':'SKILL.md'))) reasons.push(`Required asset body not delivered: ${id}`);
+      if (!task.assets.some(a=>`${a.source}:${a.type}:${a.name}`===id && a.entry===(a.type==='role'?'PROFILE.md':'SKILL.md') && a.complete === true)) reasons.push(`Required asset body not delivered: ${id}`);
     }
     if (!task.contract.allowedTools.includes(input.tool_name)) reasons.push('Tool outside exact task allowlist');
     const prior = task.calls[input.tool_use_id];
@@ -368,7 +391,7 @@ export function installExecutionHooks(deploymentFile, codexHome) {
   const suffix = ` --deployment ${quote(configFile)}`, command = `${quote(process.execPath)} ${quote(entry)} --ted-avc-manager-execution${suffix}`;
   for (const event of ['UserPromptSubmit', 'PreToolUse', 'PostToolUse']) {
     document.hooks[event] = (document.hooks[event] || []).map(group => ({ ...group, hooks: group.hooks.filter(hook => !(hook.command?.includes('/src/execution-hook.js') && hook.command.includes('--ted-avc-manager-execution'))) })).filter(group => group.hooks.length);
-    document.hooks[event].push({ hooks: [{ type: 'command', command, timeout: 10, statusMessage: `ted-avc-manager v${engineVersion}: ${event === 'PreToolUse' ? 'Check task tool contract' : event === 'PostToolUse' ? 'Observe tool result' : 'Load execution contract'}`, ...(event === 'UserPromptSubmit' ? { additionalContextLimit: 2500 } : {}) }] });
+    document.hooks[event].push({ hooks: [{ type: 'command', command, timeout: 10, statusMessage: `ted-avc-manager v${engineVersion}: ${event === 'PreToolUse' ? 'Check task tool contract' : event === 'PostToolUse' ? 'Observe tool result' : 'Load execution contract'}`, ...(event === 'UserPromptSubmit' ? { additionalContextLimit: 12288 } : {}) }] });
   }
   atomic(file, document);
   return { engineVersion, file, events: ['UserPromptSubmit', 'PreToolUse', 'PostToolUse'], command, trust: 'Review native hook trust separately; this installer never grants trust', activation: 'Place footer UserPromptSubmit before execution UserPromptSubmit; restart/reload then verify native receipts' };

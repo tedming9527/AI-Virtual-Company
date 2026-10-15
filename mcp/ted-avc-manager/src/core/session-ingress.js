@@ -152,7 +152,14 @@ export function handleCapturedOnce(input, deploymentFile, collection, handler) {
     if(!existsSync(file))return null;
     const value=JSON.parse(readFileSync(file,'utf8'));
     if(value.schema!=='avc.native-handling.v1'||value.captureId!==collection.captureId||!value.result||typeof value.result!=='object'||Array.isArray(value.result))throw Error('Invalid native handling record');
-    return value.result;
+    // A cached handler proves processing, not a need to inject its context again.
+    const result = structuredClone(value.result);
+    if (result.hookSpecificOutput?.additionalContext) {
+      delete result.hookSpecificOutput.additionalContext;
+      if (Object.keys(result.hookSpecificOutput).length === 1) delete result.hookSpecificOutput;
+    }
+    if (result._tedCollection) { result._tedCollection.contextReturned = false; result._tedCollection.contextDelivery = 'already-delivered'; }
+    return result;
   };
   const deadline=Date.now()+2000;
   while(true) {

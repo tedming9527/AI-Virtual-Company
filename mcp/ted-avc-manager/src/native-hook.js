@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { deliverContext, CONTEXT_LIMITS } from './core/context-budget.js';
+import { clientStateRoot } from './core/client-state.js';
+import { hookProject } from './core/session-ingress.js';
 // One synchronous ingress per host event; cached footer/execution aliases use it too.
 import { readFileSync } from 'node:fs';
 import { captureNative, nativeTaskStatus, handleCapturedOnce } from './core/session-ingress.js';
@@ -30,7 +33,23 @@ try {
   if (warnings.length) output.systemMessage = [...new Set(warnings)].join('\n');
   const control = parts.find(p=>p.decision!==undefined||p.continue!==undefined||p.hookSpecificOutput?.permissionDecision!==undefined);
   if (control) Object.assign(output, control);
-  if (contexts.length && !control) output.hookSpecificOutput = { hookEventName: input.hook_event_name, additionalContext: [...new Set(contexts)].join('\n\n') };
+  if (contexts.length && !control) {
+    const project = hookProject(JSON.parse(readFileSync(file, 'utf8')), input);
+    const key = { sessionId: input.session_id, turnId: input.turn_id || collection.turn?.turnId || 'session-start', agentId: input.agent_id };
+    const recovery = ['SessionStart','SubagentStart'].includes(input.hook_event_name);
+    const deliveredParts = [], statuses = [];
+    for (const context of new Set(contexts)) {
+      const binding = context.includes('Native binding');
+      const tag = binding ? 'binding' : context.includes('The following footer belongs') ? 'footer' : 'notice:' + context;
+      const id = recovery ? `${tag}:recovery:${collection.captureId}` : tag;
+      const delivered = deliverContext(clientStateRoot(project), key, id, context, { maxBytes: CONTEXT_LIMITS.hookBytes });
+      statuses.push(delivered.status);
+      if (delivered.content) deliveredParts.push(delivered.content);
+    }
+    output._tedCollection.contextDelivery = statuses;
+    output._tedCollection.contextReturned = deliveredParts.length > 0;
+    if (deliveredParts.length) output.hookSpecificOutput = { hookEventName: input.hook_event_name, additionalContext: deliveredParts.join('\n\n') };
+  }
   return output;
   });
   process.stdout.write(JSON.stringify(output) + '\n');

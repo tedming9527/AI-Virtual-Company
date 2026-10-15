@@ -178,8 +178,8 @@ function resolveAsset(root, input, options) {
 // Call only inside the server after the bound execution loader returns successfully.
 // Do not expose this helper as an arbitrary model-declaration MCP tool.
 export function noteDeliveredAsset(root, delivery, input = {}) {
-  if (typeof delivery.content !== 'string' || !delivery.sha256 || hash(delivery.content) !== delivery.sha256) throw new Error('Trusted loader content/hash mismatch');
-  return event(root, { kind: 'manager-delivered', ...context(input), name: delivery.name, type: delivery.type, source: delivery.source, entry: delivery.entry, sha256: delivery.sha256, evidence: 'bound-loader-tool-response; not semantic execution' });
+  if (typeof delivery.content !== 'string' || !delivery.sha256 || hash(delivery.content) !== (delivery.contentSha256 || delivery.sha256)) throw new Error('Trusted loader content/hash mismatch');
+  return event(root, { kind: 'manager-delivered', ...context(input), name: delivery.name, type: delivery.type, source: delivery.source, entry: delivery.entry, sha256: delivery.sha256, mode: delivery.mode, contentSha256: delivery.contentSha256 || delivery.sha256, documentComplete: delivery.documentComplete === true, evidence: 'bound-loader-tool-response; not semantic execution' });
 }
 export function recordAssetUse(root, input, options = {}) {
   const asset = resolveAsset(root, input, options);

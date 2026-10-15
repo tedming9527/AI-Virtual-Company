@@ -158,7 +158,7 @@ test('CLI stdout contains only valid native hook JSON', t => {
 });
 
 function assertWarningOnly(result, reason) {
-  assert.deepEqual(Object.keys(result), ['systemMessage']);
+  assert.deepEqual(Object.keys(result).filter(k=>k!=='_tedCollection'), ['systemMessage']);
   assert.match(result.systemMessage, reason);
   assert.match(result.systemMessage, /请修复钩子/);
 }
@@ -222,7 +222,7 @@ test('required entry body gates execution and controls remain callable after bud
   writeFileSync(join(f.root,'packs/skill/demo/README.md'),'Short description');
   loadAsset(f.root,{...input,entry:'README.md'},f.deployment);
   assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason,/Required asset/);
-  loadAsset(f.root,input,f.deployment);
+  loadAsset(f.root,{...input,mode:'chunk'},f.deployment);
   assert.deepEqual(f.event('PreToolUse','first'),{});
   f.event('PostToolUse','first',{tool_response:{exit_code:0}});
   assert.match(f.event('PreToolUse','second').hookSpecificOutput.permissionDecisionReason,/budget/i);
@@ -368,7 +368,7 @@ test('workflow native claim uses real adapter binding and required asset deliver
  assert.throws(()=>f.begin({...ref,receipt:'invented'}),/receipt mismatch/);
  assert.throws(()=>f.begin({...ref,maxToolCalls:3}),/workflow node tool/);
  const task=f.begin(ref);assert.equal(workflowStatus(f.root,ref.workflowId).nodes.work.status,'reserved');assert.ok(task.contract.requiredAssets.includes('general:skill:demo'));
- loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo',mode:'chunk'},f.deployment);
  assert.deepEqual(f.event('PreToolUse'),{});writeFileSync(join(f.root,'result.md'),'new artifact');f.event('PostToolUse','call-a',{tool_response:{exit_code:0}});
  closeTask(f.root,{...f.key,artifacts:[{path:'result.md'}]},f.deployment);
  const run=workflowStatus(f.root,ref.workflowId);assert.equal(run.status,'succeeded');assert.equal(run.nodes.work.attempts[0].nativeTaskId,task.taskId);assert.equal(run.nodes.work.attempts[0].outputs.length,1);
@@ -376,7 +376,7 @@ test('workflow native claim uses real adapter binding and required asset deliver
 test('workflow required assets, cancellation and unknown completion cannot be claimed successful',t=>{
  const f=fixture(t),ref=nativeWorkflow(f);f.begin(ref);
  assert.match(f.event('PreToolUse').hookSpecificOutput.permissionDecisionReason,/Required asset/);
- loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo',mode:'chunk'},f.deployment);
  f.event('PreToolUse','call-b');f.event('PostToolUse','call-b');writeFileSync(join(f.root,'result.md'),'artifact');
  closeTask(f.root,{...f.key,artifacts:[{path:'result.md'}]},f.deployment);assert.equal(workflowStatus(f.root,ref.workflowId).status,'needs_attention');
  const g=fixture(t),other=nativeWorkflow(g);g.begin(other);cancelWorkflow(g.root,other.workflowId);
@@ -428,4 +428,44 @@ test('cold directory EEXIST races accept only real directories',t=>{
   assert.equal(child.status,0,child.stderr);const result=JSON.parse(child.stdout);
   if(kind==='directory')assert.equal(result.status,'active');else assert.match(result.error,/Refusing symlink|Expected directory/);
  }
+});
+
+import { CONTEXT_LIMITS, deliverContext, contextStatus } from './context-budget.js';
+test('preview does not satisfy full delivery; chunks reconstruct UTF-8 source with dedup and pinned cursors', t => {
+ const f=fixture(t,'monitor'), source='# 标题\n'+'中文😀 evidence\n'.repeat(500);
+ writeFileSync(join(f.root,'packs/skill/demo/SKILL.md'),source); f.begin();
+ const input={...f.key,source:'general',type:'skill',name:'demo'};
+ const preview=loadAsset(f.root,input,f.deployment); assert.equal(preview.previewOnly,true);assert.equal(preview.documentComplete,false);
+ assert.ok(Buffer.byteLength(preview.content)<=2048);assert.ok(preview.headings[0].cursor);
+ const repeated=loadAsset(f.root,input,f.deployment);assert.equal(repeated.contextDelivery,'already-delivered');assert.equal(repeated.content,'');
+ let cursor=preview.nextCursor, reconstructed=''; let part;
+ do {
+  part=loadAsset(f.root,{...input,mode:'chunk',cursor,maxBytes:1024},f.deployment);
+  assert.equal(part.contextDelivery,'delivered');assert.ok(!part.content.includes('�'));
+  reconstructed+=part.content;cursor=part.nextCursor;
+ }while(cursor);
+ assert.equal(reconstructed,source);assert.equal(part.documentComplete,true);
+ assert.equal(loadAsset(f.root,{...input,mode:'chunk',maxBytes:1024},f.deployment).contextDelivery,'already-delivered');
+ writeFileSync(join(f.root,'packs/skill/demo/SKILL.md'),source+'changed');
+ assert.throws(()=>loadAsset(f.root,{...input,mode:'chunk',cursor:preview.nextCursor},f.deployment),/Stale/);
+});
+test('shared cumulative budget withholds context without rejecting the authorized business tool',t=>{
+ const f=fixture(t,'monitor');f.begin();
+ for(let i=0;i<8;i++)deliverContext(f.root,f.key,'fill:'+i,'x'.repeat(8000));
+ const result=loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ // Fill remaining space with individually small deliveries until optional content cannot fit.
+ for(let i=0;i<20;i++)deliverContext(f.root,f.key,'tail:'+i,'x'.repeat(256));
+ const dir=join(f.root,'packs/skill/demo');writeFileSync(join(dir,'README.md'),'x'.repeat(3000));
+ const withheld=loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo',entry:'README.md'},f.deployment);
+ assert.equal(withheld.contextDelivery,'budget-exhausted');assert.equal(withheld.content,'');assert.equal(withheld.taskContinues,true);
+ assert.ok(contextStatus(f.root,f.key).turnBytes<=CONTEXT_LIMITS.turnBytes);assert.deepEqual(f.event('PreToolUse'),{});
+});
+test('corrupt context accounting reports unverified and business collection remains nonblocking',t=>{
+ const f=fixture(t,'monitor');f.begin();
+ const dir=join(f.root,'runtime/context');
+ // A directory replacement simulates storage failure without faking a successful receipt.
+ rmSync(dir,{recursive:true});writeFileSync(dir,'unavailable');
+ const result=loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ assert.equal(result.contextDelivery,'unverified');assert.equal(result.content,'');assert.equal(result.taskContinues,true);
+ assert.deepEqual(f.event('PreToolUse'),{});
 });

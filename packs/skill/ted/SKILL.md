@@ -20,3 +20,11 @@ description: 处理 Ted 便捷命令，包括 /ted 文本触发、检查更新�
 更新或修复获用户明确授权后，执行返回的确定性安装入口，并保留原生审批、Hook 信任及资料保全。工具或采集失败时继续其他已授权工作，任务登记、资料交付、评分、升级和最终署名分别核验。
 
 原生任务已登记时，结束前用 `ted_status` 传入当前 sessionId 和 turnId 查询 `pendingCalls`。仅把仍为 reserved 且确实没有完成回执的调用登记为 unknown；不要把已观测调用再次声明 unknown。无需读取或修改底层任务 JSON。
+
+## 上下文预算与摘要
+
+`/ted summary`（`/ted 摘要优化`）或 `ted_summary` 查看预算和收敛方案；CLI 可带 `--session <id> --turn <id>`。仅统计适配器交付的 UTF-8 字节，不代表模型 token，也不能清空宿主已加载上下文。预算不会因查询而重置。
+
+`load_asset` 默认 `mode=summary` 返回有界摘录和章节游标，不代表全文采用。需要正文时显式 `mode=chunk`，按 `nextCursor` 连续读取；游标绑定源 SHA-256，源变更须重新发现。重复片段不再次交付，预算耗尽保留未读游标，继续其他授权业务。
+
+自动升级提取同样先索引后分段；周度使用 `governance-weekly-read <input.json>`，携带当前原生 sessionId/turnId/receipt 与 runId，先读分页索引，再以 path 和 mode=chunk 读取来源。摘要、预算不足和未读来源不能当成完整提取或升级回执；不自动发布，不删除原始资料。

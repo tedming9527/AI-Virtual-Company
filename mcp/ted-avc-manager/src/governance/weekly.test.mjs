@@ -1,9 +1,10 @@
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { prepareWeekly, completeWeekly, weeklyStatus } from './weekly.js';
+import { prepareWeekly, readWeekly, completeWeekly, weeklyStatus } from './weekly.js';
 
 test('weekly preparation catches up, freezes source hashes, and requires matching completion', t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'avc-weekly-'));
@@ -27,7 +28,39 @@ test('weekly preparation catches up, freezes source hashes, and requires matchin
   assert.equal(usage.delivered,1);assert.equal(usage.sampleSize,0);assert.equal(usage.successRate,null);assert.equal(usage.feedbackCount,0);
   assert.equal(prepared.windows[0].suggestions[0].action,'audit');
   const proposal = { title: '整理经验', action: 'extract', sources: prepared.experience, reason: '复核可复用步骤' };
+  assert.throws(()=>completeWeekly(root,{runId:pending.runId,proposals:[proposal]},{now:at,writerId:'writer_one'}),/提取未完成/);
+  const key={sessionId:'weekly-session',turnId:'weekly-turn',receipt:'fixture-receipt'};
+  const sessionHash=createHash('sha256').update(key.sessionId).digest('hex');
+  fs.mkdirSync(path.join(root,'runtime/hooks/sessions'),{recursive:true});
+  fs.writeFileSync(path.join(root,'runtime/hooks/sessions',sessionHash+'.json'),JSON.stringify({turns:{[key.turnId]:{receipt:key.receipt}}}));
+  const input={...key,runId:pending.runId,path:prepared.experience[0].path};
+  assert.equal(readWeekly(root,{...input},{writerId:'writer_one'}).previewOnly,true);
+  assert.throws(()=>completeWeekly(root,{runId:pending.runId,proposals:[proposal]},{now:at,writerId:'writer_one'}),/提取未完成/);
+  assert.equal(readWeekly(root,{...input,mode:'chunk'},{writerId:'writer_one'}).complete,true);
   assert.equal(completeWeekly(root, { runId: pending.runId, proposals: [proposal] }, { now: at, writerId: 'writer_one' }).status, 'awaiting-human-review');
   assert.equal(weeklyStatus(root, { now: at + 6 * 86400000 }).due, false);
   assert.equal(weeklyStatus(root, { now: at + 7 * 86400000 }).due, true);
+});
+
+test('automatic extraction pages metadata, shares budgets, retains oversized/unread evidence and cannot advance completion',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'avc-extraction-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const personal=path.join(root,'private/projects/demo');fs.mkdirSync(path.join(root,'runtime'),{recursive:true});fs.mkdirSync(path.join(personal,'experience'),{recursive:true});
+ fs.writeFileSync(path.join(root,'bootstrap.json'),JSON.stringify({name:'demo',version:'1.0.0',presets:[]}));
+ fs.writeFileSync(path.join(root,'runtime/storage.json'),JSON.stringify({personal}));
+ for(let i=0;i<42;i++)fs.writeFileSync(path.join(personal,'experience',`source-${i}.md`),'😀来源\n'.repeat(500));
+ const large=path.join(personal,'experience/large.md');fs.writeFileSync(large,'x'.repeat(1024*1024+1));
+ const key={sessionId:'extract',turnId:'one',receipt:'fixture-receipt'},writerId='writer_one';
+ const sessionHash=createHash('sha256').update(key.sessionId).digest('hex');fs.mkdirSync(path.join(root,'runtime/hooks/sessions'),{recursive:true});
+ fs.writeFileSync(path.join(root,'runtime/hooks/sessions',sessionHash+'.json'),JSON.stringify({turns:{one:{receipt:key.receipt}}}));
+ const pending=prepareWeekly(root,{writerId});assert.equal(pending.experienceCount,43);
+ const input={...key,runId:pending.runId};let indexCursor,entries=[];
+ do {const page=readWeekly(root,{...input,indexCursor},{writerId});assert.equal(page.status,'delivered');assert.ok(page.entries.length<=20);assert.ok(Buffer.byteLength(JSON.stringify(page.entries))<=4096);entries.push(...page.entries);indexCursor=page.nextIndexCursor;}while(indexCursor);
+ assert.equal(entries.length,43);
+ const oversized=readWeekly(root,{...input,path:'experience/large.md',mode:'chunk'},{writerId});assert.equal(oversized.status,'source-too-large');assert.equal(fs.statSync(large).size,1024*1024+1);
+ const source=entries.find(e=>e.path.endsWith('source-0.md'));const preview=readWeekly(root,{...input,path:source.path},{writerId});
+ const part=readWeekly(root,{...input,path:source.path,mode:'chunk',maxBytes:256},{writerId});assert.ok(part.nextCursor);
+ assert.throws(()=>completeWeekly(root,{runId:pending.runId,proposals:[]},{writerId}),/提取未完成/);
+ // A failed or limited extraction leaves the previous coverage watermark unchanged.
+ assert.equal(weeklyStatus(root).coveredThrough,null);assert.equal(weeklyStatus(root).pending.runId,pending.runId);
+ fs.writeFileSync(path.join(personal,source.path),'changed');assert.throws(()=>readWeekly(root,{...input,path:source.path,mode:'chunk',cursor:part.nextCursor},{writerId}),/changed/);
 });

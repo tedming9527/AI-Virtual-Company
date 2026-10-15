@@ -23,7 +23,7 @@ function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.
 
 switch (cmd) {
   case 'ted': {
-    try {const {runTedCommand}=await import('./core/ted-commands.js');ok(JSON.stringify(await runTedCommand(ROOT,{action:args[1]||'help',offline:args.includes('--offline')}),null,2));}catch(error){fail(error);}break;
+    try {const {runTedCommand,parseTedCommand}=await import('./core/ted-commands.js');ok(JSON.stringify(await runTedCommand(ROOT,{action:parseTedCommand('ted '+(args[1]||'help')),offline:args.includes('--offline'),sessionId:args.includes('--session')?args[args.indexOf('--session')+1]:undefined,turnId:args.includes('--turn')?args[args.indexOf('--turn')+1]:undefined}),null,2));}catch(error){fail(error);}break;
   }
   case 'setup':
     process.argv.splice(2,1);
@@ -69,11 +69,11 @@ switch (cmd) {
       const result=cmd==='candidate-register'?registerCandidate(ROOT,input):cmd==='candidate-match'?matchCandidates(ROOT,input):cmd==='candidate-trial'?recordTrial(ROOT,input):trialStatus(ROOT,args[1]);
       ok(JSON.stringify(result,null,2));
     } catch(e) {fail(e);}break;
-  case 'governance-weekly-status': case 'governance-weekly-prepare': case 'governance-weekly-complete':
+  case 'governance-weekly-status': case 'governance-weekly-prepare': case 'governance-weekly-read': case 'governance-weekly-complete':
     try {
-      const { weeklyStatus, prepareWeekly, completeWeekly } = await import('./governance/weekly.js');
+      const { weeklyStatus, prepareWeekly, readWeekly, completeWeekly } = await import('./governance/weekly.js');
       const result = cmd === 'governance-weekly-status' ? weeklyStatus(ROOT) :
-        cmd === 'governance-weekly-prepare' ? prepareWeekly(ROOT) : completeWeekly(ROOT, JSON.parse(readFileSync(args[1], 'utf8')));
+        cmd === 'governance-weekly-prepare' ? prepareWeekly(ROOT) : cmd === 'governance-weekly-read' ? readWeekly(ROOT, JSON.parse(readFileSync(args[1], 'utf8'))) : completeWeekly(ROOT, JSON.parse(readFileSync(args[1], 'utf8')));
       ok(JSON.stringify(result, null, 2));
     } catch (e) { fail(e); }
     break;
@@ -287,7 +287,8 @@ switch (cmd) {
   ted-avc-manager init （引导安装器，不写配置）
   ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
   ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
-  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status] [--offline] （聊天 Ted 技能与 MCP 的同一后端）
+  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status|summary] [--offline] [--session <id> --turn <id>] （聊天 Ted 技能与 MCP 的同一后端）
+  ted-avc-manager governance-weekly-read <input.json> （按当前原生绑定分页读取提取来源，共享上下文预算）
   ted-avc-manager candidate-register | candidate-match | candidate-trial <input.json>
   ted-avc-manager candidate-trial-status [taskKey]
   ted-avc-manager candidate-usage-sync [taskKey] （补录可核验宿主用量，不改独占成本或实际金额）
