@@ -3,7 +3,7 @@
 
 import { deploymentFileFor, stateRootFor } from './core/client-state.js';
 import process from 'node:process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join, isAbsolute } from 'node:path';
 import { parseCommand } from './core/protocol.js';
 import { flowInit, flowCheck, flowUpgrade, flowSync, flowPanorama, flowDoctor, flowConfig, flowImportScan, flowBind, runtimeDirOf } from './core/flows.js';
@@ -23,7 +23,23 @@ function fail(err) { console.error(`[ted-avc-manager] ${err.message}`); process.
 
 switch (cmd) {
   case 'ted': {
-    try {const {runTedCommand,parseTedCommand}=await import('./core/ted-commands.js');ok(JSON.stringify(await runTedCommand(ROOT,{action:parseTedCommand('ted '+(args[1]||'help')),offline:args.includes('--offline'),sessionId:args.includes('--session')?args[args.indexOf('--session')+1]:undefined,turnId:args.includes('--turn')?args[args.indexOf('--turn')+1]:undefined}),null,2));}catch(error){fail(error);}break;
+    try {
+      const {runTedCommand,parseTedCommand}=await import('./core/ted-commands.js');
+      let input={};
+      for(let i=2;i<args.length;i++) {
+        const flag=args[i];if(flag==='--offline'){input.offline=true;continue;}
+        if(!['--session','--turn','--input'].includes(flag))throw Error('Unknown ted option: '+flag);
+        const value=args[++i];if(!value||value.startsWith('--'))throw Error('Missing value for '+flag);
+        if(flag==='--input') {
+          const stat=statSync(value);if(!stat.isFile()||stat.size>16384)throw Error('Ted input must be a regular file of at most 16384 bytes');
+          const payload=JSON.parse(readFileSync(value,'utf8'));
+          if(!payload||typeof payload!=='object'||Array.isArray(payload)||payload.action!==undefined||payload.command!==undefined)throw Error('Ted input must be an object without action or command');
+          input={...input,...payload};
+        } else input[flag==='--session'?'sessionId':'turnId']=value;
+      }
+      const result=await runTedCommand(ROOT,{...input,action:parseTedCommand('ted '+(args[1]||'help'))});
+      ok(JSON.stringify(result));if(result.error)process.exitCode=1;
+    }catch(error){fail(error);}break;
   }
   case 'setup':
     process.argv.splice(2,1);
@@ -100,9 +116,10 @@ switch (cmd) {
     break;
   case 'task-begin': case 'load-asset': case 'task-closeout':
     try {
-      const { beginTask, loadAsset, closeTask } = await import('./core/execution.js');
+      const { beginTask, loadAsset, closeTask,executionResponse } = await import('./core/execution.js');
       const input = JSON.parse(readFileSync(args[1], 'utf8'));
-      ok(JSON.stringify(({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,deploymentFileFor(ROOT)),null,2));
+      const result=({'task-begin':beginTask,'load-asset':loadAsset,'task-closeout':closeTask})[cmd](ROOT,input,deploymentFileFor(ROOT),{deferDelivery:cmd==='task-begin'});
+      ok(JSON.stringify(cmd==='load-asset'?result:executionResponse(ROOT,input,result)));
     } catch (e) { fail(e); }
     break;
   case 'install-codex-hooks': {
@@ -194,7 +211,10 @@ switch (cmd) {
     } catch (e) { fail(e); }
     break;
   case 'find-skill':
-    try { const { findSkills } = await import('./core/local-assets.js'); ok(JSON.stringify(findSkills(ROOT, args.slice(1).join(' ')), null, 2)); } catch (e) { fail(e); }
+    try { const {discoverAssets}=await import('./core/asset-discovery.js');ok(JSON.stringify(discoverAssets(ROOT,{query:args.slice(1).join(' '),kind:'skills'},{collection:'skills'}))); } catch (e) { fail(e); }
+    break;
+  case 'discover-assets':
+    try { const {discoverAssets}=await import('./core/asset-discovery.js');if(!args[1])throw Error('discover-assets <input.json>');const stat=statSync(args[1]);if(!stat.isFile()||stat.size>16384)throw Error('Discovery input exceeds 16384 bytes');ok(JSON.stringify(discoverAssets(ROOT,JSON.parse(readFileSync(args[1],'utf8'))))); } catch (e) { fail(e); }
     break;
   case 'register-skill':
     try { const { registerLocalSkill } = await import('./core/local-assets.js'); if (!args[1]) throw new Error('register-skill <personal/custom/skill-dir>'); ok(JSON.stringify(registerLocalSkill(ROOT, args[1]), null, 2)); } catch (e) { fail(e); }
@@ -287,7 +307,7 @@ switch (cmd) {
   ted-avc-manager init （引导安装器，不写配置）
   ted-avc-manager init-personal "根据 github://owner/repo 开始执行初始化" （独立用户目录初始化）
   ted-avc-manager client-status （源码不可用时也可只读核对当前安装与原生事件）
-  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status|summary] [--offline] [--session <id> --turn <id>] （聊天 Ted 技能与 MCP 的同一后端）
+  ted-avc-manager ted [help|update|panorama|scores|doctor|repair|status|summary] [--offline] [--session <id> --turn <id>] [--input <json>] （summary 的 prepare/submit 和分页参数由 input 传入）
   ted-avc-manager governance-weekly-read <input.json> （按当前原生绑定分页读取提取来源，共享上下文预算）
   ted-avc-manager candidate-register | candidate-match | candidate-trial <input.json>
   ted-avc-manager candidate-trial-status [taskKey]

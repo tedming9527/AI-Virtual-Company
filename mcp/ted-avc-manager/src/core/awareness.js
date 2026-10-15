@@ -9,6 +9,7 @@ import { discoverSkills, personalProject, nativeSkillRoots } from './local-asset
 import { prepareSkillCandidate } from './skill-candidates.js';
 import { searchAssets, searchMetadata } from './asset-search.js';
 import { describeAsset, compactDescription } from './description.js';
+import { selectAssets } from './asset-selection.js';
 
 const hash = data => createHash('sha256').update(data).digest('hex');
 const types = ['skill', 'knowledge', 'framework', 'role'];
@@ -74,8 +75,8 @@ function bundle(dir, type, name, source, management) {
   if (!content.trim()) return null;
   return { id: `${source}:${type}:${resolve(dir)}`, type, name, displayName: meta.displayName || name,
     description: describeAsset(meta, content).description || '', ...searchMetadata(meta),
-    version: meta.version || null, source, management, dir: resolve(dir), entry: resolve(entry),
-    entrySha256: hash(content), sha256: hash(content + '\0' + (existsSync(metaFile) ? readFileSync(metaFile) : '')),
+    version: meta.version || null, status:meta.status||'unknown', source, management, dir: resolve(dir), entry: resolve(entry),
+    entrySha256: hash(content),metaSha256:existsSync(metaFile)?hash(readFileSync(metaFile)):null, sha256: hash(content + '\0' + (existsSync(metaFile) ? readFileSync(metaFile) : '')),
     discovery: 'metadata-only', nativeInstalled: 'unverified', loaded: false };
 }
 export function listAssets(root, filter = {}, options = {}) {
@@ -98,23 +99,30 @@ export function listAssets(root, filter = {}, options = {}) {
     discovery: 'metadata-only', placement: s.source === 'external-installed' ? 'native-skill-directory' : 'managed-project-directory', nativeInstalled: 'unverified', loaded: false });
   const knowledgeFile = safePath(catalog,join(catalog, 'packs/knowledge/catalog.json'));
   if (existsSync(knowledgeFile)) {
-    const knowledge = JSON.parse(readFileSync(knowledgeFile, 'utf8'));
+    try {
+    const catalogBytes=readFileSync(knowledgeFile),knowledge = JSON.parse(catalogBytes);
     for (const entry of knowledge.entries || []) {
       const match=/^packs\/(knowledge|role)\/([a-z0-9][a-z0-9-]*)\/(.+\.md)$/.exec(entry.detail || '');
       if(!match){warnings.push('Invalid knowledge detail identity: '+entry.id);continue;}
       const bundleType=match[1], bundleName=match[2], roleDir=safePath(catalog,join(catalog,'packs',bundleType,bundleName)), detail=safePath(roleDir,join(catalog,entry.detail));
       if (!existsSync(detail) || !lstatSync(detail).isFile()) continue;
       assets.push({ id: `general:knowledge-entry:${entry.id}`, type:'knowledge', name:entry.id, displayName:basename(detail), source:'general', management:'central-managed', dir:roleDir, entry:detail,
-        description:compactDescription(entry.summary) || '', version:entry.updated, sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
+        description:compactDescription(entry.summary) || '', version:entry.updated,status:entry.status||'unknown',metaSha256:hash(JSON.stringify(entry)),metadataFileSha256:hash(catalogBytes), sha256:hash(readFileSync(detail)), entrySha256:hash(readFileSync(detail)), discovery:'metadata-only', loaded:false, nativeInstalled:'unverified',
         load:{source:'general',type:bundleType,name:bundleName,entry:relative(roleDir,detail)} });
     }
+    } catch(error) {warnings.push('Knowledge catalog unavailable: '+error.message);}
   }
-  const nativeFile = runtimeFile(root, 'native-skill-index.json');
-  if (existsSync(nativeFile)) {
+  try {
+   const nativeFile = runtimeFile(root, 'native-skill-index.json');
+   if (existsSync(nativeFile)) {
+    if (!lstatSync(nativeFile).isFile() || lstatSync(nativeFile).size > 262144) throw new Error('Invalid native skill index size or type');
     const native=JSON.parse(readFileSync(nativeFile,'utf8'));
-    const listed=new Set(native.entries?.map(e=>resolve(e.path)) || []);
+    if (!native || !Array.isArray(native.entries)) throw new Error('Invalid native skill index entries');
+    const listed=new Set(native.entries.filter(e=>e && typeof e.path==='string' && e.path).map(e=>resolve(e.path)));
+    if (listed.size !== native.entries.length) warnings.push('Native skill index contains invalid or duplicate paths');
     for (const asset of assets) if (listed.has(resolve(asset.entry))) { asset.nativeClientListed=true;asset.nativeListedAt=native.fetchedAt;asset.nativeInstalled=true; }
-  }
+   }
+  } catch(error) {warnings.push('Native skill index unavailable: '+error.message);}
   for (const source of [{ path: catalog, source: 'general', management: 'central-managed' }, { path: join(personal.directory, 'custom'), source: 'local-custom', management: 'discovered-unregistered' }]) {
     for (const type of types.filter(t => t !== 'skill')) {
       const base = join(source.path, 'packs', type);
@@ -133,7 +141,8 @@ export function listAssets(root, filter = {}, options = {}) {
   for (const asset of assets) {
     try { Object.assign(asset, bundleFiles(asset.dir)); } catch (e) { asset.bundleIntegrity = 'unverified'; warnings.push(`${asset.name}: ${e.message}`); }
   }
-  return { assets: searchAssets(assets.filter(a => (!filter.type || a.type === filter.type) && (!filter.source || a.source === filter.source)), filter.query), warnings };
+  const filtered=assets.filter(a=>(!filter.type||a.type===filter.type)&&(!filter.source||a.source===filter.source));
+  return filter.query?{...selectAssets(root,filtered,filter.query,options),warnings}:{assets:filtered,warnings};
 }
 export function refreshInventory(root, options = {}) {
   const release = acquireClientLease();
@@ -182,8 +191,9 @@ export function noteDeliveredAsset(root, delivery, input = {}) {
   return event(root, { kind: 'manager-delivered', ...context(input), name: delivery.name, type: delivery.type, source: delivery.source, entry: delivery.entry, sha256: delivery.sha256, mode: delivery.mode, contentSha256: delivery.contentSha256 || delivery.sha256, documentComplete: delivery.documentComplete === true, evidence: 'bound-loader-tool-response; not semantic execution' });
 }
 export function recordAssetUse(root, input, options = {}) {
+  if(input.logicalTaskId!==undefined&&(typeof input.logicalTaskId!=='string'||!/^[a-zA-Z0-9:_-]{1,200}$/.test(input.logicalTaskId)))throw Error('logicalTaskId must be an opaque task identifier');
   const asset = resolveAsset(root, input, options);
-  return event(root, { kind: 'model-reported', ...context(input), assetId: asset.id, name: asset.name, source: asset.source, type: asset.type, sha256: asset.sha256, declaration: 'model-reported', evidence: 'declaration-only; not observed read or semantic execution' });
+  return event(root, { kind: 'model-reported', ...context(input), logicalTaskId:input.logicalTaskId||input.candidateTaskKey||null, assetId: asset.id, name: asset.name, source: asset.source, type: asset.type, sha256: asset.sha256, declaration: 'model-reported', evidence: 'declaration-only; not observed read or semantic execution' });
 }
 export function proposeAsset(root, input) {
   if (!input.name || !types.includes(input.type || 'skill')) throw new Error('Candidate requires name and valid type');
@@ -207,7 +217,8 @@ function literalReadPaths(input) {
   return tokens.filter(t => t !== '--').filter(t => !t.startsWith('-')).map(t => /^['"]/.test(t) ? t.slice(1, -1) : t);
 }
 export function recordObservedRead(root, input, options = {}) {
-  const paths = literalReadPaths(input), assets = listAssets(root, {}, options).assets, records = [];
+  const paths = literalReadPaths(input);if(!paths.length)return {records:[],evidence:'no-observable-known-read'};
+  const assets = listAssets(root, {}, options).assets, records = [];
   const cwd = input.cwd || root;
   const eventName = input.hook_event_name || input.event || '';
   const responseField = ['tool_response','tool_result','tool_output'].find(key => Object.prototype.hasOwnProperty.call(input,key) && input[key] !== null);

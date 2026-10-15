@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { deliverContext, CONTEXT_LIMITS } from './core/context-budget.js';
+import { createHash } from 'node:crypto';
 import { clientStateRoot } from './core/client-state.js';
 import { hookProject } from './core/session-ingress.js';
 // One synchronous ingress per host event; cached footer/execution aliases use it too.
@@ -36,19 +37,21 @@ try {
   if (contexts.length && !control) {
     const project = hookProject(JSON.parse(readFileSync(file, 'utf8')), input);
     const key = { sessionId: input.session_id, turnId: input.turn_id || collection.turn?.turnId || 'session-start', agentId: input.agent_id };
-    const recovery = ['SessionStart','SubagentStart'].includes(input.hook_event_name);
-    const deliveredParts = [], statuses = [];
-    for (const context of new Set(contexts)) {
-      const binding = context.includes('Native binding');
-      const tag = binding ? 'binding' : context.includes('The following footer belongs') ? 'footer' : 'notice:' + context;
-      const id = recovery ? `${tag}:recovery:${collection.captureId}` : tag;
-      const delivered = deliverContext(clientStateRoot(project), key, id, context, { maxBytes: CONTEXT_LIMITS.hookBytes });
-      statuses.push(delivered.status);
-      if (delivered.content) deliveredParts.push(delivered.content);
+    const text=[...new Set(contexts)].join('\n\n');
+    // Native capture IDs differ on every tool/start event. They must never be
+    // recovery epochs, or an unbound child receives the same contract forever.
+    const epoch=typeof input.context_epoch==='string'&&input.context_epoch.length<=64?'explicit:'+input.context_epoch:
+      input.hook_event_name==='SessionStart'&&['compact','resume'].includes(input.source)?'host:'+input.source:'initial';
+    const id='hook-context:'+epoch+':'+createHash('sha256').update(text).digest('hex');
+    output._tedCollection.contextDelivery=['delivered'];
+    output.hookSpecificOutput={hookEventName:input.hook_event_name,additionalContext:text};
+    const delivery=deliverContext(clientStateRoot(project),key,id,'',{maxBytes:CONTEXT_LIMITS.hookBytes,
+      parts:[...new Set(contexts)].map(text=>({id:epoch+':'+createHash('sha256').update(text).digest('hex'),text})),
+      build:texts=>({...output,hookSpecificOutput:{hookEventName:input.hook_event_name,additionalContext:texts.join('\n\n')}})});
+    if(delivery.status==='delivered')return JSON.parse(delivery.content);
+    if(delivery.status!=='delivered'){
+      delete output.hookSpecificOutput;output._tedCollection.contextReturned=false;output._tedCollection.contextDelivery=[delivery.status];
     }
-    output._tedCollection.contextDelivery = statuses;
-    output._tedCollection.contextReturned = deliveredParts.length > 0;
-    if (deliveredParts.length) output.hookSpecificOutput = { hookEventName: input.hook_event_name, additionalContext: deliveredParts.join('\n\n') };
   }
   return output;
   });

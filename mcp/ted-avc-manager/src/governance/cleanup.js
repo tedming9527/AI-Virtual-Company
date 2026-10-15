@@ -1,8 +1,9 @@
 // cleanup.js —— runtime 约定目录清理（FR-7：TTL + 删除规则，根治临时文件膨胀）
 
 import { readdirSync, statSync, existsSync, rmSync, readFileSync, lstatSync } from 'node:fs';
-import { join } from 'node:path';
+import { join,resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { assertNoLinks } from '../core/scan.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -17,44 +18,61 @@ export function cleanupRuntime(rt, opts = {}) {
   const logRetentionDays = opts.logRetentionDays ?? 30;
   const dryRun = opts.dryRun !== false;
   const removed = { cache: 0, logs: 0 };
+  const warnings=[];
+  if(![cacheTtlDays,logRetentionDays].every(n=>Number.isFinite(n)&&n>=0))throw Error('Invalid cleanup retention');
+  rt=resolve(rt);
+  if(lstatSync(rt).isSymbolicLink())return {dryRun,removed,warnings:['Unsafe runtime root']};
+  const safe=file=>assertNoLinks(rt,file);
   const receiptsFile = join(rt, 'governance', 'consumed-log-receipts.json');
-  const receipts = existsSync(receiptsFile) ? JSON.parse(readFileSync(receiptsFile, 'utf8')) : { schema: 'avc.consumed-logs.v1', entries: [] };
+  let receipts={schema:'avc.consumed-logs.v1',entries:[]};
+  try{safe(receiptsFile);if(existsSync(receiptsFile))receipts=JSON.parse(readFileSync(receiptsFile,'utf8'));
   if (receipts.schema !== 'avc.consumed-logs.v1' || !Array.isArray(receipts.entries)) throw new Error('日志汇总回执无效');
+  }catch{warnings.push('Log receipts unavailable; logs retained');receipts={entries:[]};}
   const eligible = new Map(receipts.entries.filter(e => {
     if (e?.status !== 'verified' || e.taskClosed !== true || e.investigationHold === true || !/^[a-zA-Z0-9._-]+$/.test(e.name || '') ||
       !/^[a-zA-Z0-9._-]+\.json$/.test(e.rollupFile || '') || !/^[a-f0-9]{64}$/.test(e.rollupSha256 || '') || !/^[a-f0-9]{64}$/.test(e.sha256 || '')) return false;
     const rollup = join(rt, 'governance', 'rollups', e.rollupFile);
-    return existsSync(rollup) && lstatSync(rollup).isFile() && !lstatSync(rollup).isSymbolicLink() &&
+    try{return safe(rollup) && existsSync(rollup) && lstatSync(rollup).isFile() && !lstatSync(rollup).isSymbolicLink() &&
       createHash('sha256').update(readFileSync(rollup)).digest('hex') === e.rollupSha256;
+    }catch{return false;}
   }).map(e => [e.name, e]));
 
   const cacheDir = join(rt, 'cache');
+  try{safe(cacheDir);
   if (existsSync(cacheDir)) {
     for (const f of readdirSync(cacheDir)) {
       const file = join(cacheDir, f);
-      if (statSync(file).isFile() && olderThan(file, cacheTtlDays)) {
-        if (!dryRun) rmSync(file);
+      try{safe(file);const before=lstatSync(file);
+      if (before.isFile() && olderThan(file, cacheTtlDays)) {
+        if (!dryRun) {safe(file);const after=lstatSync(file);if(after.dev!==before.dev||after.ino!==before.ino||after.mtimeMs!==before.mtimeMs)throw Error('Cache changed');rmSync(file);}
         removed.cache += 1;
       }
+      }catch{warnings.push('Unsafe or changed cache entry retained');}
     }
   }
+  }catch{warnings.push('Unsafe cache directory retained');}
 
   const logsDir = join(rt, 'logs');
+  try{safe(logsDir);
   if (existsSync(logsDir)) {
     for (const f of readdirSync(logsDir)) {
       const file = join(logsDir, f);
       const receipt = eligible.get(f);
-      if (statSync(file).isFile() && olderThan(file, logRetentionDays) && receipt &&
+      try{safe(file);const before=lstatSync(file);
+      if (before.isFile() && olderThan(file, logRetentionDays) && receipt &&
         createHash('sha256').update(readFileSync(file)).digest('hex') === receipt.sha256) {
-        if (!dryRun) rmSync(file);
+        if (!dryRun) {safe(file);const after=lstatSync(file);if(after.dev!==before.dev||after.ino!==before.ino||after.mtimeMs!==before.mtimeMs)throw Error('Log changed');rmSync(file);}
         removed.logs += 1;
       }
+      }catch{warnings.push('Unsafe or changed log retained');}
     }
   }
+  }catch{warnings.push('Unsafe logs directory retained');}
 
   return {
     dryRun,
     removed,
+    warnings:[...new Set(warnings)],
     rule: `cache TTL=${cacheTtlDays}天 / logs 最早可删=${logRetentionDays}天（需已核验汇总及任务终态回执）`,
   };
 }

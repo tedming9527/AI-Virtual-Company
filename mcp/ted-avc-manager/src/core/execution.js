@@ -1,11 +1,11 @@
-import { deliverContext, documentView, CONTEXT_LIMITS } from './context-budget.js';
+import { deliverContext, deliverResponse, documentView, CONTEXT_LIMITS } from './context-budget.js';
 // Project-scoped native execution receipts. This is not a hosted model gateway.
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, realpathSync, lstatSync, renameSync, rmSync, readdirSync } from 'node:fs';
 import { resolve, join, sep, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomBytes } from 'node:crypto';
 import { readHookDeployment } from './codex-hooks.js';
-import { clientStateRoot, catalogRootFor, verifyDistributedFile, catalogVersionFor } from './client-state.js';
+import { clientStateRoot, stateRootFor, catalogRootFor, verifyDistributedFile, catalogVersionFor } from './client-state.js';
 import { hookProject, captureNative, readNativeTurn, sessionWorkspaces } from './session-ingress.js';
 import { hookWarning } from './hook-warning.js';
 import { resolvePersonalStorage } from './storage.js';
@@ -14,6 +14,7 @@ import { endMaintenance, runMaintenanceHook } from './maintenance.js';
 import { diagnosticCall, isDiagnosticCall } from './maintenance-diagnostics.js';
 import { skillBundle } from './local-assets.js';
 import { taskTrialContext, trialStatus } from '../governance/candidate-trials.js';
+import { registerNativeTools } from './native-tools.js';
 import { workflowNodeContract, claimNativeNode, assertNativeNode, observeNativeNode, finishNativeNode } from './workflow.js';
 
 const engineVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url))).version;
@@ -148,12 +149,15 @@ function integrity(root, task, catalogVersion) {
 }
 function deliverRole(root, key, profile) {
   try {
-    const delivery = deliverContext(root, key, 'role:' + sha(profile), profile);
+    const delivery = deliverContext(root, key, 'part:role:' + sha(profile), profile);
     return { roleProfile: delivery.content, contextBudget: delivery.budget, contextDelivery: delivery.status,
       roleProfileComplete: delivery.status === 'delivered', actualCompliance: 'unknown' };
   } catch (error) { return { roleProfile: '', contextDelivery: 'unverified', warning: error.message, taskContinues: true }; }
 }
-export function beginTask(root, input, deploymentFile) {
+export function beginTask(root, input, deploymentFile, options={}) {
+  const registration=registerNativeTools(input.allowedTools,input.toolCapabilities);
+  registration.capabilities=input.toolCapabilities||[];
+  input={...input,allowedTools:registration.allowedTools};
   const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   if (!d.project.roles.includes(input.role)) throw new Error('Role not allowed by deployment');
   identifier(input.goal, 'goal');
@@ -182,20 +186,32 @@ export function beginTask(root, input, deploymentFile) {
       if (JSON.stringify(existing.contract) !== JSON.stringify(contract)) throw new Error('Task contract already pinned; cannot expand in the same turn');
       if (existing.role.profileSha256 !== sha(profile) || existing.role.metaSha256 !== sha(readFileSync(metaFile)) || existing.catalogSha256 !== pinnedCatalog(d.root) || existing.catalogVersion !== d.catalogVersion) throw new Error('Pinned assets changed; begin a new native turn');
       endMaintenance(d.root, input, deploymentFile, existing.taskId);
-      return { ...existing, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...deliverRole(d.stateRoot, key, profile) };
+      return { ...existing, toolRegistration:registration, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...(options.deferDelivery?{roleProfile:profile,contextDelivery:'prepared'}:deliverRole(d.stateRoot, key, profile)) };
     }
     const task = { schema: 'avc.execution-task.v1', ...key, projectRoot: d.root, engineVersion, catalogVersion: d.catalogVersion, catalogSha256: pinnedCatalog(d.root), mode: d.settings.mode, status: 'active', startedAt: now(), contract,
-      role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
+      role: { id: input.role, displayName: meta.displayName, version: meta.version, metaSha256: sha(readFileSync(metaFile)), profileSha256: sha(profile) }, toolRegistration:{...registration,capabilities:input.toolCapabilities||[]}, actualExecutor: 'platform agent', calls: {}, assets: [], violations: [] };
     if (workflow) {
       const attempt = claimNativeNode(d.root, input.workflowId, input.nodeId, key.taskId);
       task.workflow = { ...contract.workflow, attemptId: attempt.id };
     }
     atomic(paths.task, task); record(paths, task, 'task_started', { roleId: input.role, mode: task.mode, roleProfileSha256: task.role.profileSha256 });
     endMaintenance(d.root, input, deploymentFile, task.taskId);
-    return { ...task, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...deliverRole(d.stateRoot, key, profile) };
+    return { ...task, toolRegistration:registration, candidateTrials: taskTrialContext(d.root, contract.candidateTaskKey || key.taskId, input.goal), ...(options.deferDelivery?{roleProfile:profile,contextDelivery:'prepared'}:deliverRole(d.stateRoot, key, profile)) };
   });
 }
+export function executionResponse(root,key,result){
+ const view={schema:result.schema,sessionId:result.sessionId,turnId:result.turnId,agentId:result.agentId,receipt:result.receipt,taskId:result.taskId,status:result.status,role:result.role,actualExecutor:result.actualExecutor,
+  contract:result.contract?{...result.contract,allowedTools:result.contract.allowedTools.slice(0,16),omittedTools:Math.max(0,result.contract.allowedTools.length-16)}:undefined,
+  toolRegistration:result.toolRegistration?{mappings:result.toolRegistration.mappings?.slice(0,8),capabilities:result.toolRegistration.capabilities}:undefined,
+  candidateTrials:result.candidateTrials,projectCount:result.projects?.length,projects:result.projects?.slice(0,8),artifactCount:result.artifacts?.length,artifacts:result.artifacts?.slice(0,4),observedCalls:result.observation?.observedCalls,unknownCalls:result.observation?.unknownCalls,violations:result.violations?.length,integrity:result.integrity};
+ if(!result.roleProfile)return deliverResponse(stateRootFor(root),key,view);
+ try{
+  const delivery=deliverContext(stateRootFor(root),key,'task-response:'+randomBytes(12).toString('hex'),'',{always:true,parts:[{id:'role:'+sha(result.roleProfile),text:result.roleProfile}],build:texts=>({...view,roleProfile:texts[0]||'',roleProfileComplete:!!texts.length,contextDelivery:{status:'delivered',accounted:true,unit:'utf8-bytes'}})});
+  return delivery.status==='delivered'?JSON.parse(delivery.content):{taskId:result.taskId,status:result.status,contextDelivery:delivery.status,roleProfileComplete:false,taskContinues:true};
+ }catch{return {taskId:result.taskId,status:result.status,contextDelivery:'unverified',roleProfileComplete:false,taskContinues:true};}
+}
 export function loadAsset(root, input, deploymentFile) {
+  if(input.documentId)return loadDocument(root,input,deploymentFile);
   const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
   if (!['general', 'local-custom'].includes(input.source)) throw new Error('Asset source must be general or registered local-custom');
   if (!['skill', 'knowledge', 'framework', 'role'].includes(input.type) || !/^[a-z0-9][a-z0-9-]*$/.test(input.name || '')) throw new Error('Invalid asset identity');
@@ -227,24 +243,46 @@ export function loadAsset(root, input, deploymentFile) {
   const view = documentView(content, input);
   return locked(d.stateRoot, key.taskId, paths => {
     const task = active(paths, key);
+    let through = view.mode==='chunk'?(view.endByte||0):0;
+    const prior = task.assets.find(a => a.file === file && a.sha256 === asset.sha256);
+    const ranges=[...(prior?.deliveries||[]),{mode:view.mode,startByte:view.startByte,endByte:view.endByte}].filter(r=>r.mode==='chunk').sort((a,b)=>a.startByte-b.startByte);
+    through=0;for(const range of ranges){if(range.startByte>through)break;through=Math.max(through,range.endByte);}
+    const response={...asset,...view,contentSha256:sha(view.content),documentComplete:through===Buffer.byteLength(content),contextDelivery:'delivered',actualCompliance:'unknown'};
     let delivery;
-    try { delivery = deliverContext(d.stateRoot, key, `asset:${asset.source}:${asset.type}:${asset.name}:${entry}:${asset.sha256}:${view.mode}:${view.startByte ?? 0}:${view.endByte ?? Buffer.byteLength(view.content)}`, JSON.stringify(view)); }
+    try { delivery = deliverContext(d.stateRoot, key, `asset:${asset.source}:${asset.type}:${asset.name}:${entry}:${asset.sha256}:${view.mode}:${view.startByte ?? 0}:${view.endByte ?? Buffer.byteLength(view.content)}`, JSON.stringify(response)); }
     catch (error) { return { ...asset, content: '', contextDelivery: 'unverified', warning: error.message, taskContinues: true }; }
     if (delivery.status !== 'delivered') return { ...asset, content: '', mode: view.mode, nextCursor: delivery.status === 'already-delivered' ? view.nextCursor : (input.cursor || { sha256: asset.sha256, offset: 0 }), contextDelivery: delivery.status, contextBudget: delivery.budget, taskContinues: true };
-    const prior = task.assets.find(a => a.file === file && a.sha256 === asset.sha256);
     const evidence = { mode: view.mode, startByte: view.startByte, endByte: view.endByte };
     if (prior) (prior.deliveries ||= []).push(evidence);
     else task.assets.push({ ...asset, file, metaFile: join(directory, 'meta.json'), metaSha256: sha(readFileSync(join(directory, 'meta.json'))), loadedAt: now(), complete: false, deliveries: [evidence] });
     const loaded = prior || task.assets.at(-1);
-    let through = 0;
+    through = 0;
     for (const range of loaded.deliveries.filter(r => r.mode === 'chunk').sort((a,b) => a.startByte - b.startByte)) {
       if (range.startByte > through) break;
       through = Math.max(through, range.endByte);
     }
     loaded.complete = through === Buffer.byteLength(content);
     atomic(paths.task, task); record(paths, task, 'asset_context_returned', { ...asset, mode: view.mode, complete: loaded.complete });
-    return { ...asset, ...view, contentSha256: sha(view.content), documentComplete: loaded.complete, contextBudget: delivery.budget, contextDelivery: 'delivered', actualCompliance: 'unknown' };
+    return response;
   });
+}
+function loadDocument(root,input,deploymentFile){
+ const d=deployment(root,deploymentFile),key=binding(d.root,input,d.stateRoot,d.clientScope);
+ const prefix='general:document:',id=input.documentId;
+ if(typeof id!=='string'||!id.startsWith(prefix))throw Error('Invalid discovery document identity');
+ const path=id.slice(prefix.length);
+ if(!/^(?:packs\/|docs\/|rules\/|AGENTS\.md$|README\.md$)/.test(path)||!path.endsWith('.md')||isAbsolute(path)||path.split(/[\\/]/).some(p=>!p||p==='.'||p==='..'))throw Error('Unsafe discovery document path');
+ const file=safePath(catalogRootFor(d.root),join(catalogRootFor(d.root),path));
+ if(!lstatSync(file).isFile()||lstatSync(file).size>1048576)throw Error('Discovery document exceeds read limit');
+ verifyDistributedFile(d.root,file);const content=readFileSync(file,'utf8'),view=documentView(content,input),digest=sha(content);
+ if(input.sourceSha256&&input.sourceSha256!==digest)throw Error('Discovery document revision changed');
+ return locked(d.stateRoot,key.taskId,paths=>{
+  const task=active(paths,key),response={documentId:id,source:'general',sourceSha256:digest,...view,contentSha256:sha(view.content),contextDelivery:'delivered',previewOnly:true,activation:'not-granted-by-read'};
+  const delivery=deliverContext(d.stateRoot,key,'document:'+id+':'+digest+':'+JSON.stringify([view.mode,view.startByte,view.endByte]),JSON.stringify(response));
+  if(delivery.status!=='delivered')return {documentId:id,contextDelivery:delivery.status,content:'',taskContinues:true};
+  task.documents||=[];task.documents.push({documentId:id,sha256:digest,mode:view.mode,startByte:view.startByte,endByte:view.endByte});
+  atomic(paths.task,task);record(paths,task,'document_context_returned',{documentId:id,sha256:digest,mode:view.mode});return response;
+ });
 }
 export function closeTask(root, input, deploymentFile) {
   const d = deployment(root, deploymentFile), key = binding(d.root, input, d.stateRoot, d.clientScope);
@@ -291,7 +329,7 @@ function executeHook(input, deploymentFile, options = {}) {
   const d = deployment(p.root, deploymentFile);
   const attachment = d.clientScope ? captureNative(input, deploymentFile) : null;
   // Inventory discovery is auxiliary and cannot erase a captured native event.
-  try { refreshInventory(d.root); } catch {}
+  if(input.hook_event_name==='UserPromptSubmit')try { refreshInventory(d.root); } catch {}
   if (!options.contextOnly && ['PreToolUse','PostToolUse'].includes(input.hook_event_name)) recordObservedRead(d.root,input);
   identifier(input.session_id, 'native session_id'); identifier(input.turn_id, 'native turn_id');
   const receiptFile = safePath(d.stateRoot, join(d.stateRoot, 'runtime/hooks/sessions', sha(input.session_id) + '.json'));
@@ -304,9 +342,9 @@ function executeHook(input, deploymentFile, options = {}) {
   if (input.hook_event_name === 'UserPromptSubmit' || options.contextOnly) {
     return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext:
       `Ted execution adapter engine v${engineVersion}; catalog v${d.catalogVersion}; mode=${d.settings.mode}. Native binding sessionId=${JSON.stringify(input.session_id)}, turnId=${JSON.stringify(input.turn_id)}, agentId=${JSON.stringify(input.agent_id ?? '')}, receipt=${JSON.stringify(receipt)}.
-Route one task with task_begin using this exact binding, one allowed role, goal, exact native tool names (shell: Bash), maxToolCalls <= ${d.settings.maxToolCalls}; include task_closeout. Contract does not grant permissions. Actual executor: platform agent.
+Route one task with task_begin using this exact binding, one allowed role, goal, exact native tool names (shell: Bash; editing: apply_patch; collaboration tools: collaboration plus method name without dot), maxToolCalls <= ${d.settings.maxToolCalls}; include task_closeout. Explicit toolCapabilities shell/edit/delegation may register their exact native sets. No implicit expansion or historical rewrites; native permissions still apply. Actual executor: platform agent.
 Collection failures only warn; continue authorized work. Preserve native permissions and independent maintenance restrictions. Diagnostics ted_help/update/scores/doctor/repair/status/summary do not require file delivery. task_begin returns role PROFILE and optional candidateTrials; private candidate trials need explicit choice and source-bound evidence.
-Discover relevant metadata via recommend_assets/list_assets; no automatic inventory bodies. load_asset defaults to extractive preview; use mode=chunk and digest-bound nextCursor for full evidence. Summaries are not full adoption. Adapter UTF-8 budgets: response ${CONTEXT_LIMITS.responseBytes}, turn ${CONTEXT_LIMITS.turnBytes}, session ${CONTEXT_LIMITS.sessionBytes}; not model tokens. Budget exhaustion withholds optional context, never business execution. ted summary gives optimization advice without clearing host context.
+Discover relevant metadata via recommend_assets/list_assets; pass sessionId/turnId/agentId above to discovery and Ted commands for shared accounting. Follow nextCursor; no automatic inventory bodies. load_asset defaults to extractive preview; use mode=chunk and digest-bound nextCursor for full evidence. Summaries are not full adoption. report_asset_use is a weak declaration only after actual use; pass the same logicalTaskId across turns, never report recommendations as adoption. Adapter UTF-8 budgets: response ${CONTEXT_LIMITS.responseBytes}, turn ${CONTEXT_LIMITS.turnBytes}, session ${CONTEXT_LIMITS.sessionBytes}, shared across agents; not model tokens. Budget exhaustion withholds optional context, never business execution. ted summary gives optimization advice without clearing host context.
 Before closeout query ted_status for pending calls, classify only still-reserved calls lacking completion unknown. Use real file artifacts; no output means closeout unverified. Footer/receipt never proves full supervision. Across resume retain this turn binding; never reuse another turn's receipt.` } };
   }
   identifier(input.tool_name, 'tool_name'); identifier(input.tool_use_id, 'tool_use_id');

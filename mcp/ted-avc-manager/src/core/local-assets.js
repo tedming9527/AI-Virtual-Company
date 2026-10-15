@@ -5,6 +5,7 @@ import { homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { scanPacks, readBootstrap, assertNoLinks } from './scan.js';
 import { searchAssets, searchMetadata } from './asset-search.js';
+import { selectAssets } from './asset-selection.js';
 import { describeAsset } from './description.js';
 import { resolvePersonal, projectDirOf, PROJECT_DIRS } from './personal.js';
 
@@ -57,7 +58,7 @@ function skillFromDir(dir, source, root) {
   const displayName = meta.displayName || content.match(/^#\s+(.+)$/m)?.[1] || name;
   return { id: `${source}:${dir}`, name, displayName, type: 'skill', source, dir, entry,
     ...describeAsset(meta, content), ...searchMetadata(meta),
-    version: meta.version || null, origin: meta.origin || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
+    version: meta.version || null, status:meta.status||'unknown', origin: meta.origin || null, entrySha256: sha(entry), metaSha256: existsSync(metaFile) ? sha(metaFile) : null,
     sha256: createHash('sha256').update(sha(entry) + ':' + (existsSync(metaFile) ? sha(metaFile) : '')).digest('hex'), error,
     metadataValid: meta.type === 'skill' && meta.name === basename(dir) && /^\d+\.\d+\.\d+$/.test(meta.version || '') && Array.isArray(meta.rubric) && meta.rubric.length > 0,
     pathLabel: source === 'general' ? relative(root, entry) : source === 'local-custom' ? relative(personalProject(root).directory, entry) : entry };
@@ -105,7 +106,8 @@ export function discoverSkills(root, opts = {}) {
 }
 export function findSkills(root, query = '', opts = {}) {
   const result = discoverSkills(root, opts);
-  return { ...result, skills: searchAssets(result.skills, query), evidence: 'metadata-and-declared-aliases; local inventory, not web or semantic translation' };
+  const selected=query?selectAssets(root,result.skills,query,opts):{assets:result.skills};
+  return { ...result, skills: selected.assets,coverage:selected.coverage, evidence: 'local lexical fields and source-bound bilingual previews; not semantic applicability' };
 }
 export function registerLocalSkill(root, input) {
   const personal = personalProject(root), allowed = realpathSync(join(personal.directory, 'custom'));

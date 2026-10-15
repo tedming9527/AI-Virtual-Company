@@ -1,6 +1,6 @@
 // Counts only UTF-8 bodies returned by this adapter, never hidden model tokens.
 import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync, realpathSync } from 'node:fs';
-import { join } from 'node:path';
+import { join,dirname } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 export const CONTEXT_LIMITS = Object.freeze({ responseBytes: 8192, summaryBytes: 2048, hookBytes: 12288, turnBytes: 65536, sessionBytes: 262144 });
 const hash = s => createHash('sha256').update(s).digest('hex');
@@ -17,21 +17,53 @@ function location(root, key, create) {
     if (create && !existsSync(dir)) { try { mkdirSync(dir); } catch (e) { if (e.code !== 'EEXIST') throw e; } }
     if (existsSync(dir) && (lstatSync(dir).isSymbolicLink() || !lstatSync(dir).isDirectory())) throw Error('Unsafe context directory');
   }
-  const file = join(dir, hash(JSON.stringify([key.sessionId, key.agentId || ''])) + '.json');
+  // A shared session ledger prevents each child from obtaining a fresh quota.
+  const file = join(dir, hash(JSON.stringify([key.sessionId, ''])) + '.json');
   if (existsSync(file) && (lstatSync(file).isSymbolicLink() || !lstatSync(file).isFile())) throw Error('Unsafe context ledger');
   return file;
 }
 function read(file) {
-  if (!existsSync(file)) return { schema: 'avc.context-budget.v1', bytes: 0, turns: {} };
+  if (!existsSync(file)) return { schema: 'avc.context-budget.v2', bytes: 0, turns: {}, importedAgents: [] };
+  if(lstatSync(file).size>4194304)throw Error('Context ledger exceeds bounded read');
   const v = JSON.parse(readFileSync(file, 'utf8'));
-  if (v.schema !== 'avc.context-budget.v1' || !Number.isSafeInteger(v.bytes) || v.bytes < 0 || !v.turns || typeof v.turns !== 'object') throw Error('Invalid context ledger');
+  if (!['avc.context-budget.v1','avc.context-budget.v2'].includes(v.schema) || !Number.isSafeInteger(v.bytes) || v.bytes < 0 || !v.turns || typeof v.turns !== 'object') throw Error('Invalid context ledger');
+  if(v.schema==='avc.context-budget.v1'){
+    for(const t of Object.values(v.turns))t.agents={[hash('')]:{bytes:t.bytes,delivered:t.delivered}};
+    v.schema='avc.context-budget.v2';v.importedAgents=[];
+  }
+  if(!Array.isArray(v.importedAgents))throw Error('Invalid context migration state');
+  let total=0;
+  for(const t of Object.values(v.turns)){
+    if(!Number.isSafeInteger(t.bytes)||t.bytes<0||!t.agents||typeof t.agents!=='object')throw Error('Invalid context turn totals');
+    let sum=0;for(const a of Object.values(t.agents)){if(!Number.isSafeInteger(a.bytes)||a.bytes<0||!a.delivered||typeof a.delivered!=='object')throw Error('Invalid context agent totals');sum+=a.bytes;}
+    if(!Number.isSafeInteger(sum)||sum!==t.bytes)throw Error('Inconsistent context turn totals');total+=sum;
+  }
+  if(!Number.isSafeInteger(total)||total!==v.bytes)throw Error('Inconsistent context session total');
+  return v;
+}
+function readSession(file,key) {
+  const v=read(file),agent=key.agentId||'',tag=hash(agent);
+  // Legacy files lack raw session identities. Import only a caller's exact
+  // known agent file; never guess ownership of unrelated ledgers.
+  if(agent&&!v.importedAgents.includes(tag)){
+    const legacy=join(dirname(file),hash(JSON.stringify([key.sessionId,agent]))+'.json');
+    if(existsSync(legacy)){
+      if(lstatSync(legacy).isSymbolicLink()||!lstatSync(legacy).isFile())throw Error('Unsafe legacy context ledger');
+      const old=read(legacy);v.bytes+=old.bytes;
+      for(const [id,t]of Object.entries(old.turns)){
+        const target=v.turns[id]||={bytes:0,agents:{}};
+        target.bytes+=t.bytes;target.agents[hash(agent)]={bytes:t.bytes,delivered:t.delivered||t.agents?.[hash('')]?.delivered||{}};
+      }
+    }
+    v.importedAgents.push(tag);
+  }
   return v;
 }
 export function contextStatus(root, key) {
-  const v = read(location(root, key, false)), t = v.turns[hash(key.turnId)];
-  return { unit: 'utf8-bytes', scope: 'adapter-delivered bodies; not model tokens or host context', limits: CONTEXT_LIMITS, sessionBytes: v.bytes, turnBytes: t?.bytes || 0 };
+  const v = readSession(location(root, key, false),key), t = v.turns[hash(key.turnId)];
+  return { unit: 'utf8-bytes', scope: 'shared session and turn across agents; not model tokens or host context', limits: CONTEXT_LIMITS, sessionBytes: v.bytes, turnBytes: t?.bytes || 0,agentTurnBytes:t?.agents?.[hash(key.agentId||'')]?.bytes||0,legacyCoverage:'parent and explicitly encountered legacy agents only' };
 }
-export function deliverContext(root, key, id, text, { maxBytes = CONTEXT_LIMITS.responseBytes } = {}) {
+export function deliverContext(root, key, id, text, { maxBytes = CONTEXT_LIMITS.responseBytes,parts,build,always=false } = {}) {
   const file = location(root, key, true), lock = file + '.lock';
   const deadline = Date.now() + 500;
   while (true) {
@@ -42,19 +74,37 @@ export function deliverContext(root, key, id, text, { maxBytes = CONTEXT_LIMITS.
     }
   }
   try {
-    const v = read(file), turnKey = hash(key.turnId), t = v.turns[turnKey] ||= { bytes: 0, delivered: {} };
-    if (!Number.isSafeInteger(t.bytes) || t.bytes < 0 || !t.delivered || typeof t.delivered !== 'object') throw Error('Invalid context turn');
+    const v = readSession(file,key), turnKey = hash(key.turnId), t = v.turns[turnKey] ||= { bytes: 0, agents: {} };
+    if (!Number.isSafeInteger(t.bytes) || t.bytes < 0 || !t.agents || typeof t.agents !== 'object') throw Error('Invalid context turn');
+    const agent=t.agents[hash(key.agentId||'')]||={bytes:0,delivered:{}};
+    if(!Number.isSafeInteger(agent.bytes)||agent.bytes<0||!agent.delivered||typeof agent.delivered!=='object')throw Error('Invalid context agent');
+    if(parts&&(!Array.isArray(parts)||typeof build!=='function'||parts.some(p=>typeof p.id!=='string'||typeof p.text!=='string')))throw Error('Invalid context parts');
+    const unsent=parts?.filter(p=>!agent.delivered[hash('part:'+p.id)]);
+    if(parts)text=JSON.stringify(build(unsent.map(p=>p.text)));
     const tag = hash(id), bytes = Buffer.byteLength(text);
     const budget = () => ({ unit: 'utf8-bytes', sessionBytes: v.bytes, turnBytes: t.bytes, limits: CONTEXT_LIMITS });
-    if (t.delivered[tag]) return { status: 'already-delivered', content: '', budget: budget() };
+    if (parts?(!always&&!unsent.length):agent.delivered[tag]) return { status: 'already-delivered', content: '', budget: budget() };
     if (bytes > maxBytes || t.bytes + bytes > CONTEXT_LIMITS.turnBytes || v.bytes + bytes > CONTEXT_LIMITS.sessionBytes)
       return { status: 'budget-exhausted', content: '', budget: budget(), taskContinues: true };
-    v.bytes += bytes; t.bytes += bytes; t.delivered[tag] = bytes || 1;
+    v.bytes += bytes; t.bytes += bytes; agent.bytes+=bytes; agent.delivered[tag] = bytes || 1;
+    for(const part of unsent||[])agent.delivered[hash('part:'+part.id)]=1;
     const temp = file + '.' + randomUUID() + '.tmp';
     try { writeFileSync(temp, JSON.stringify(v), { flag: 'wx', mode: 0o600 }); renameSync(temp, file); }
     finally { rmSync(temp, { force: true }); }
     return { status: 'delivered', content: text, budget: budget() };
   } finally { rmSync(lock, { recursive: true }); }
+}
+// Complete adapter JSON body accounting, including escaping and its own meter.
+// A small, explicitly unaccounted control is the only failure fallback.
+export function deliverResponse(root,key,result,{id='response:'+randomUUID(),maxBytes=CONTEXT_LIMITS.responseBytes,operationOutcome}={}) {
+  const control=(status,reason)=>({status,reason,taskContinues:true,detailsOmitted:true,...(operationOutcome?{operationOutcome}:{}),contextDelivery:{status,accounted:false,controlOnly:true}});
+  let value={...(Array.isArray(result)?{items:result}:result),contextDelivery:{status:key?.sessionId&&key?.turnId?'delivered':'unbound',accounted:!!(key?.sessionId&&key?.turnId),unit:'utf8-bytes',responseBytes:0}};
+  for(let i=0;i<8;i++){const n=Buffer.byteLength(JSON.stringify(value));if(n===value.contextDelivery.responseBytes)break;value.contextDelivery.responseBytes=n;}
+  const text=JSON.stringify(value);
+  if(Buffer.byteLength(text)>maxBytes)return control('response-too-large','Read a smaller page or chunk');
+  if(!key?.sessionId||!key?.turnId)return value;
+  try{const delivery=deliverContext(root,key,id,text,{maxBytes});return delivery.status==='delivered'?value:control(delivery.status,'Optional context withheld; task continues');}
+  catch{return control('unverified','Context accounting unavailable; optional content withheld');}
 }
 // Deterministic extractive preview. Never represented as a complete semantic summary.
 export function documentView(content, input = {}) {

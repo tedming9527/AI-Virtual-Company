@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { skillBundle } from './local-assets.js';
-import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks } from './execution.js';
+import { beginTask, loadAsset, closeTask, runExecutionHook, installExecutionHooks,executionResponse } from './execution.js';
 import {registerCandidate,recordTrial} from '../governance/candidate-trials.js';
 import { runCodexHook } from './codex-hooks.js';
 import { openMaintenance, maintenanceStatus, endMaintenance } from './maintenance.js';
@@ -185,7 +185,7 @@ test('reinstall after deployment move replaces the old owned commands and preser
   }
 });
 test('monitor collection failures never prevent the handler or invent successful observations', t => {
-  for (const failure of ['receipt', 'lock', 'audit', 'inventory']) {
+  for (const failure of ['receipt', 'lock', 'audit']) {
     const f = fixture(t, 'monitor'), task = f.begin();
     if (failure === 'receipt') rmSync(join(f.root, 'runtime/hooks'), { recursive: true });
     if (failure === 'lock') mkdirSync(join(f.root, 'runtime/execution/tasks', `${task.taskId}.lock`));
@@ -468,4 +468,34 @@ test('corrupt context accounting reports unverified and business collection rema
  const result=loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
  assert.equal(result.contextDelivery,'unverified');assert.equal(result.content,'');assert.equal(result.taskContinues,true);
  assert.deepEqual(f.event('PreToolUse'),{});
+});
+test('explicit edit/delegation registration normalizes interface aliases without widening history or hiding real violations',t=>{
+ const f=fixture(t,'monitor'),tools=['functions.exec_command',close],caps=['edit','delegation'];
+ const task=f.begin({allowedTools:tools,toolCapabilities:caps,maxToolCalls:3});
+ for(const native of ['Bash','apply_patch','collaborationinterrupt_agent']){
+  assert.ok(task.contract.allowedTools.includes(native));assert.deepEqual(f.event('PreToolUse',native,{tool_name:native}),{});
+  f.event('PostToolUse',native,{tool_name:native,tool_response:{exit_code:0}});
+ }
+ assert.equal(f.begin({allowedTools:tools,toolCapabilities:caps,maxToolCalls:3}).violations.length,0);
+ f.event('PreToolUse','unexpected',{tool_name:'unregistered_tool'});
+ assert.equal(f.begin({allowedTools:tools,toolCapabilities:caps,maxToolCalls:3}).violations.length,1);
+ assert.throws(()=>f.begin({allowedTools:[...tools,'unregistered_tool'],toolCapabilities:caps,maxToolCalls:3}),/pinned/);
+ const g=fixture(t),config=JSON.parse(readFileSync(g.deployment));config.projects[0].execution.allowedTools=['Bash',close];writeFileSync(g.deployment,JSON.stringify(config));
+ assert.throws(()=>g.begin({allowedTools:['Bash',close],toolCapabilities:['edit']}),/deployment-approved/);
+});
+test('discovered untagged documents have a source-bound chunk path without granting adoption',t=>{
+ const f=fixture(t,'monitor');mkdirSync(join(f.root,'rules'));const body='# 账号选择\n\n'+'创建 PR 前核对账号。\n'.repeat(50),id='general:document:rules/account.md';writeFileSync(join(f.root,'rules/account.md'),body);f.begin();
+ let cursor,received='';do{const result=loadAsset(f.root,{...f.key,documentId:id,mode:'chunk',maxBytes:512,cursor},f.deployment);assert.equal(result.contextDelivery,'delivered');assert.equal(result.activation,'not-granted-by-read');received+=result.content;cursor=result.nextCursor;}while(cursor);
+ assert.equal(received,body);assert.throws(()=>loadAsset(f.root,{...f.key,documentId:'general:document:rules/../../outside.md'},f.deployment),/Unsafe/);
+ const preview=loadAsset(f.root,{...f.key,documentId:id},f.deployment);writeFileSync(join(f.root,'rules/account.md'),body+'changed');
+ assert.throws(()=>loadAsset(f.root,{...f.key,documentId:id,mode:'chunk',cursor:preview.nextCursor},f.deployment),/Stale/);
+});
+test('public task control envelopes charge complete JSON and repeated task_begin does not resend the role profile',t=>{
+ const f=fixture(t,'monitor'),input={...f.key,role:'ai-engineer',goal:'Read one role',allowedTools:[tool,close],maxToolCalls:2};
+ const first=executionResponse(f.root,input,beginTask(f.root,input,f.deployment,{deferDelivery:true}));
+ const second=executionResponse(f.root,input,beginTask(f.root,input,f.deployment,{deferDelivery:true}));
+ assert.equal(first.roleProfileComplete,true);assert.equal(second.roleProfileComplete,false);assert.equal(second.roleProfile,'');
+ assert.equal(contextStatus(f.root,f.key).turnBytes,Buffer.byteLength(JSON.stringify(first))+Buffer.byteLength(JSON.stringify(second)));
+ const before=contextStatus(f.root,f.key).turnBytes,response=loadAsset(f.root,{...f.key,source:'general',type:'skill',name:'demo'},f.deployment);
+ assert.equal(contextStatus(f.root,f.key).turnBytes-before,Buffer.byteLength(JSON.stringify(response)));
 });

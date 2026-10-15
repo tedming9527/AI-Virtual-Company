@@ -2,9 +2,13 @@
 
 Jev 包的首选安装位置由 `yarn global dir` 解析；Yarn Classic 的常见位置为 `~/.config/yarn/global/node_modules/jev-use/`。不再将某个 nvm 版本下的 `npm root -g` 作为主安装位置。
 
+## 文档与部署快照
+
+以下 `jev-use@0.8.0` / Node 22 是安装方案示例，不是本机已完成状态。2026-10-15 只读审计发现当前安装为 `jev-use@0.7.1`，实际启动使用固定 Node 24.15.0 与 `--use-env-proxy`；当前聊天的默认模型真实调用返回 typesafe / jev-1.13.0。历史结果还存在 HTTP 451 服务区域不可用，不能由当前成功推断所有设备与历史连接正常。本文更新不升级包、改代理、切账号或重载客户端。
+
 ## 依赖与安装
 
-- `jev-use@0.8.0` 声明 Node >=20；本部署选择已验证支持 `--use-env-proxy` 的 Node 22。
+- 安装方案需核对目标包的 Node 要求，并选择已验证支持 `--use-env-proxy` 的运行时；下例使用 Node 22，不静默改变现有启动器。
 - Homebrew 提供 Yarn Classic 1.22.x；此流程需要其 `yarn global` 命令。其他 Yarn 主版本须另核对安装方式。
 - nvm 负责选择运行时，Yarn 负责安装 Jev；两者职责独立。
 - TypeSafe 凭据与本机代理只保存在权限 600 的 `~/.config/jev-use/env`，目录权限 700。中央仓库只保存变量名称，不保存值。
