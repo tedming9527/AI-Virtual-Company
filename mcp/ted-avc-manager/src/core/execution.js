@@ -292,6 +292,13 @@ function executeHook(input, deploymentFile, options = {}) {
       if (input.hook_event_name === 'PreToolUse' && d.settings.bootstrapTools.includes(input.tool_name)) return {};
       const task = { ...key, catalogVersion: d.catalogVersion };
       record(paths, task, 'unbound_tool_observed', { tool: input.tool_name, toolUseId: input.tool_use_id, nativeEvent: input.hook_event_name });
+      if (d.settings.mode === 'monitor') {
+        // Missing optional routing is a normal state, not a collection failure.
+        // Keep this internal marker out of legacy native JSON output.
+        return Object.defineProperty({ hookSpecificOutput: { hookEventName: input.hook_event_name,
+          additionalContext: 'Ted 事件已采集；任务待关联。尚未登记 task_begin，未声明角色路由、契约验证或署名通过；当前已授权任务照常推进。' } },
+        '_tedTask', { value: { status: 'pending', verified: false } });
+      }
       return input.hook_event_name === 'PreToolUse' ? denial(d.settings.mode, 'task_begin required before this tool') : {};
     }
     const task = read(paths.task);

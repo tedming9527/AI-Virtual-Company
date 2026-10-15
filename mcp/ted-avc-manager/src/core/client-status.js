@@ -40,6 +40,7 @@ export function clientStatus({ codexHome = process.env.CODEX_HOME || join(homedi
   return { installed:true, version:manifest.version, generation:manifest.generation, scope:deployment.scope??(problems.some(p=>p.file==='deployment.json')?'unknown':'legacy-project'),
     nativeActivation:current.length?'native-events-observed':problems.length?'unverified':deployment.scope!=='client'?'upgrade-required-for-client-ingress':'pending-host-reload-and-event',
     problems, observedEvents:events.length, eventsCaptured:current.length, turnsAttached:turns.length, contextReturned:outcomes.some(o=>o.collection?.contextReturned), footerStatus:footer?.collection.footerStatus??'not-observed',
+    pendingTaskEvents:outcomes.filter(o=>o.collection?.captured===true&&o.collection?.taskStatus==='pending'&&o.collection?.taskVerified===false).length,
     sessionChains:[...new Set(current.map(e=>e.sessionId).filter(Boolean))].map(id=>({sessionChainId:id,turns:turns.filter(t=>t.sessionId===id).length,taskContracts:routed.filter(t=>t.sessionId===id).length})),
     taskContracts:routed.length, taskStatuses:routed.map(t=>({sessionId:t.sessionId,turnId:t.turnId,status:t.status,taskId:t.taskId,
       pendingCalls:Object.entries(t.calls||{}).filter(([,c])=>c.status==='reserved').map(([toolUseId,c])=>({toolUseId,tool:c.tool,status:c.status})),
